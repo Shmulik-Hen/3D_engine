@@ -1,11 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <memory>
 
-#include "graphics.h"
-#include "unit.h"
-#include "vector_3.h"
 #include "config_document.h"
 
 // clang-format off

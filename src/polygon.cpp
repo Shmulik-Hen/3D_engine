@@ -1,11 +1,9 @@
 #include <algorithm>
-#include <climits>
 #include <cmath>
 
 // #define DEBUG_PRINTS
 #include "polygon.h"
 #include "render_conventions.h"
-#include "utils.h"
 
 namespace polygon_ns
 {

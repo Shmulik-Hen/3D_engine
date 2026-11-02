@@ -1,8 +1,10 @@
 #pragma once
 
-#include "utils.h"
+#include <cstdint>
+
 #include "attrib.h"
 #include "unit.h"
+#include "utils.h"
 #include "vector_3.h"
 
 // clang-format off

@@ -3,16 +3,18 @@
 **Parsing** verifies JSON syntax, field types, field names, and fixed-length arrays.\
 **Validation** checks duplicates, completeness, value constraints, references, and scene hierarchy.
 
-### Value constraints
-(1) **valid field names:** Any combination of `[a-z][_]`\
-(2) **valid string values:** Any combination of `[a-z][A-Z][0-9][~!@#$%^&*-_=+;:|,.<>/?]`\
-(3) **valid numeric values:** See [`inc/constants.h`](./inc/constants.h).
+### Name/Value constraints
+
+<a id="valid1"></a>(1) **valid field names:** Non-null, non-empty, not-control chars, lower-case ASCII only `letters` + `underscore`\
+<a id="valid2"></a>(2) **valid string values:** Non-null, non-empty, not-control chars, upper/lower-case\
+&emsp;&emsp;&emsp;ASCII/Unicode `letters`, `numbers` and `punctuations`, except `[()[]{}',.;:"\]`
+<a id="valid3"></a>(3) **valid numeric values:** See [`inc/constants.h`](./inc/constants.h).
 
 ## Sections
 
 ### Version
 
-`version` is **mandatory** and contains exactly three unsigned integers.  (3)\
+`version` is **mandatory** and contains exactly three unsigned integers.&ensp;[(3)](#valid3)\
 The currently supported version is **`[0, 0, 3]`**.
 
 ### Library
@@ -32,27 +34,27 @@ The library contains definitions of **polygons**, **meshes**, and **elements**, 
 
 | Field | JSON type | Description |
 |---|---|---|
-| `name` | String | Non-null, nonempty, valid object identifier. (2)|
+| `name` | String | Valid object identifier.&ensp;[(2)](#valid2)|
 | `force` | Boolean | Render the polygon regardless of its facing direction. |
-| `color_idx` | Unsigned integer | Color palette index (see below). (3)|
+| `color_idx` | Unsigned integer | Color palette index (see below).&ensp;[(3)](#valid3)|
 | `vectors` | Array | At least three vectors defining a valid polygon.|
 
 **Vector:** is an unnamed array containing **exactly three floating-point coordinates**: `[x, y, z]`.\
-**Coordinate valid values:** [ -1000.0 - 1000.0 ].  (3)
+**Coordinate valid values:** [ -1000.0 - 1000.0 ].&ensp;[(3)](#valid3)
 
 #### `library.meshes`
 
 | Field | JSON type | Description |
 |---|---|---|
-| `name` | String | Non-null, nonempty, valid object identifier. (2)|
-| `polygons` | Array of strings | Nonempty, valid names of at least one valid polygon. (2)|
+| `name` | String | Valid object identifier.&ensp;[(2)](#valid2)|
+| `polygons` | Array of strings | Valid names of at least one valid polygon.&ensp;[(2)](#valid2)|
 
 #### `library.elements`
 
 | Field | JSON type | Description |
 |---|---|---|
-| `name` | String | Non-null, nonempty, valid object identifier. (2)|
-| `mesh` | String | Non-null, nonempty, valid name of exactly one valid mesh. (2)|
+| `name` | String | Valid object identifier.&ensp;[(2)](#valid2)|
+| `mesh` | String | Valid name of exactly one valid mesh.&ensp;[(2)](#valid2)|
 
 #### Color palette
 
@@ -84,12 +86,12 @@ The library contains definitions of **polygons**, **meshes**, and **elements**, 
 
 | Field | JSON type | Description |
 |---|---|---|
-| `name` | String | Non-null, nonempty, valid scene-element identifier. (2)|
-| `parent` | String or null | Nonempty, valid name of a valid parent; `null` identifies the root. (0)|
+| `name` | String | Valid scene-element identifier.&ensp;[(2)](#valid2)|
+| `parent` | String or null | Valid name of a valid parent; `null` identifies the root. (0)|
 | `active` | Boolean | Enables or disables the scene element. |
-| `ref` | String | Optional Non-null, nonempty, valid name of a valid library element. (2)|
-| `origin` | Array | Optional initial position and orientation attributes. (see below) |
-| `motion` | Array | Optional continuous movement attributes. (see below) |
+| `ref` | String | Optional; Valid name of a valid library element.&ensp;[(2)](#valid2)|
+| `origin` | Array | Optional; Initial position and orientation attributes. (see below) |
+| `motion` | Array | Optional; Continuous translation/rotation attributes. (see below) |
 
 ##### Attributes
 
@@ -102,9 +104,9 @@ Attribute fields:
 
 The scale factor is `1.0` for normal size, `0.5` for half size, and `2.0` for twice the size.
 
-**Rotation/Translation valid values:** `[ -1000.0 - 1000.0 ]`.  (3)\
+**Rotation/Translation valid values:** `[ -1000.0 - 1000.0 ]`.&ensp;[(3)](#valid3)\
 **Scale values:** `[ 0.1 - 10.0 ]`.
-###### Default: `[ 0, 0, 0, 0, 0, 0, 1 ]`.  (3)
+###### Default: `[ 0, 0, 0, 0, 0, 0, 1 ]`.&ensp;[(3)](#valid3)
 
 #### Environment
 
@@ -114,20 +116,20 @@ All its fields are optional overrides.
 | Field | JSON type | Description |
 |---|---|---|
 | `resolution` | Array | Contains exactly two unsigned integers defining the window size.|
-| `color_idx` | Unsigned integer | Background color index (see above). (3) |
-| `light_type` | Unsigned integer | `0`: directional (sunlight); `1`: point light (default: `0`). (3)|
-| `light_direction` | Vector | Direction of the light source (default: `[ 0, 0, 1 ]`). (3)|
-| `light_position` | Vector | Position of the light source (default: `[ 0, 20, 75 ]`). (3)|
-| `camera_position` | Vector | Position of the camera (default: `[ 0, 0, 1000 ]`). (3)|
-| `focal_len` | Floating-point number | Perspective projection and magnification (default: `2000`). (3)|
-| `near_eps` | Floating-point number | Near-plane/depth tolerance (default: `1`). (3)|
+| `color_idx` | Unsigned integer | Background color index (see above).&ensp;[(3)](#valid3) |
+| `light_type` | Unsigned integer | `0`: directional (sunlight); `1`: point light; (default: `0`).&ensp;[(3)](#valid3)|
+| `light_direction` | Vector | Direction of the light source (default: `[ 0, 0, 1 ]`).&ensp;[(3)](#valid3)|
+| `light_position` | Vector | Position of the light source (default: `[ 0, 20, 75 ]`).&ensp;[(3)](#valid3)|
+| `camera_position` | Vector | Position of the camera (default: `[ 0, 0, 1000 ]`).&ensp;[(3)](#valid3)|
+| `focal_len` | Floating-point number | Perspective projection and magnification (default: `2000`).&ensp;[(3)](#valid3)|
+| `near_eps` | Floating-point number | Near-plane/depth tolerance (default: `1`).&ensp;[(3)](#valid3)|
 
-**Minimum supported resolution:** `320 × 200` (16:10). (3)\
-**Maximum supported resolution:** `1600 × 1000` (16:10). (3)\
-**Default resolution:** `1280 × 800` (16:10). (3)\
+**Minimum supported resolution:** `320 × 200` (16:10).&ensp;[(3)](#valid3)\
+**Maximum supported resolution:** `1600 × 1000` (16:10).&ensp;[(3)](#valid3)\
+**Default resolution:** `1280 × 800` (16:10).&ensp;[(3)](#valid3)\
 **Vectors:** see polygon vectors above.\
-**Focal length valid range:** `[ 100.0 - 3000.0 ]`. (3)\
-**Near epsilon valid range:** `[ 0.5 - 3.0 ]`.  (3)
+**Focal length valid range:** `[ 100.0 - 3000.0 ]`.&ensp;[(3)](#valid3)\
+**Near epsilon valid range:** `[ 0.5 - 3.0 ]`.&ensp;[(3)](#valid3)
 
 #### Runtime
 
@@ -139,8 +141,8 @@ All its fields are optional overrides.
 | `loops` | Integer | Number of loops; `-1` means endless (default: `-1`).|
 | `loop_delay` | Unsigned integer | Delay between frames, in milliseconds (default: `20`).|
 
-**Loops valid range:** `[ -1 - 100 ]`. (3)\
-**Loop delay valid range:** `[ 1 - 200 ]`.  (3)
+**Loops valid range:** `[ -1 - 100 ]`.&ensp;[(3)](#valid3)\
+**Loop delay valid range:** `[ 1 - 200 ]`.&ensp;[(3)](#valid3)
 
 ## JSON configuration example
 

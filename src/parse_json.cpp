@@ -1,11 +1,9 @@
-#include <cctype>
-#include <stdexcept>
-#include <string>
-#include <vector>
+#include <algorithm>
+#include <numeric>
 
 // #define DEBUG_PRINTS
-#include "utils.h"
 #include "parse_json.h"
+#include "utils.h"
 
 namespace config_ns
 {
@@ -41,7 +39,7 @@ static std::string suggest_field(const std::string& invalid)
 	size_t best_distance = 3;
 	std::string best_match;
 
-	for (const auto& field : valid_field_names) {
+	for (const auto& field : hints_field_names) {
 		size_t distance = levenshtein_distance(invalid, field);
 
 		if (distance < best_distance) {
@@ -59,80 +57,87 @@ static std::string get_hint(const std::string invalid)
 	return SPC + LP + "did you mean" + SPC + TAG + hint + TAG + SPC + '?' + RP;
 }
 
-static void check_valid_field_name(const Json::Value& root, const std::string& field, errors_t& errs, const std::string& path = "")
+void check_valid_field_name(const Json::Value& root, errors_t& errs, const std::string& path = "", const std::string& member = "")
 {
-	if (!root.isNull() && field.size()) {
-		DBG("checking" + SPC + path + PFX + TAG + field + TAG);
-		bool rc = is_valid_field_name(field);
+	if (!root.isNull() && member.size()) {
+		DBG("checking" + SPC + QT + path + QT + PFX + QT + escape_control_chars(member) + QT);
+		bool rc = is_valid_field_name(member);
 		if (!rc) {
-			std::string err = path + PFX + QT + field + QT + SPC + ERR_ILG + DOT;
-			DBG(err /*  + NL */);
-			std::string hint = get_hint(field);
+			DBG("is_valid_field_name" + QT + escape_control_chars(member) + QT + PFX + "returned false");
+			std::string err = path + PFX + QT + escape_control_chars(member) + QT + SPC + ERR_ILG + DOT;
+			DBG("err: " + QT + err + QT /*  + NL */);
+			std::string hint = get_hint(member);
+			DBG("hint" + PFX + QT + hint + QT /*  + NL */);
 			if (!hint.empty()) {
-				err = path + PFX + QT + field + QT + SPC + ERR_ILG + DOT + hint;
+				err += hint;
+				DBG("err: " + QT + err + QT /*  + NL */);
 			}
 
-			DBG("logging an error for" + path + PFX + SPC + QT + field + QT /*  + NL */);
+			DBG("logging an error for" + PFX + QT + escape_control_chars(member) + QT /*  + NL */);
 			add_error(err, errs);
 			return;
 		}
-		else if (valid_field_names.find(field) == valid_field_names.end()) {
-			DBG("couldn't find " + QT + field + QT + SPC + "in valid_field_names" /*  + NL */);
-			if (ignored_field_names.find(field) == ignored_field_names.end()) {
-				DBG("couldn't find " + path + PFX + QT + field + QT + SPC + "in ignored_field_names either" /*  + NL */);
-				std::string err = path + PFX + ERR_UNS + PFX + QT + field + QT + DOT;
-				DBG(err /*  + NL */);
-				std::string hint = get_hint(field);
+		else if (valid_field_names.find(member) == valid_field_names.end()) {
+			DBG("couldn't find " + QT + escape_control_chars(member) + QT + SPC + "in valid_field_names" /*  + NL */);
+			if (ignored_field_names.find(member) == ignored_field_names.end()) {
+				DBG("couldn't find " + QT + escape_control_chars(member) + QT + SPC + "in ignored_field_names either" /*  + NL */);
+				std::string err = path + PFX + ERR_UNS + PFX + QT + escape_control_chars(member) + QT + DOT;
+				DBG(QT + err + QT /*  + NL */);
+				std::string hint = get_hint(member);
+				DBG(hint /*  + NL */);
 				if (!hint.empty()) {
-					err = path + PFX + ERR_UNS + PFX + QT + field + QT + DOT + hint;
+					err += hint;
+					DBG(QT + err + QT /*  + NL */);
 				}
 
-				DBG("logging an error for" + path + PFX + SPC + QT + field + QT /*  + NL */);
+				DBG("logging an error for" + PFX + QT + escape_control_chars(member) + QT /*  + NL */);
 				add_error(err, errs);
 				return;
 			}
 			else {
-				DBG("but found" + SPC + TAG + field + TAG + SPC + "in ignored_field_names" /*  + NL */);
+				DBG("but found" + SPC + QT + escape_control_chars(member) + QT + SPC + "in ignored_field_names" /*  + NL */);
 			}
 		}
 	}
 
 	switch (root.type()) {
 	case Json::nullValue:
-		DBG(path + " = null");
+		DBG(STR_PATH + PFX + QT + path + QT + PFX + "value" + PFX + "null");
 		break;
 	case Json::intValue:
-		DBG(path + " = " + std::to_string(root.asInt()));
+		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "Int" + PFX + "value" + PFX + std::to_string(root.asInt()));
 		break;
 	case Json::uintValue:
-		DBG(path + " = " + std::to_string(root.asUInt()));
+		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "UInt" + PFX + "value" + PFX + std::to_string(root.asUInt()));
 		break;
 	case Json::realValue:
-		DBG(path + " = " + set_precision(root.asFloat()));
-		break;
-	case Json::stringValue:
-		DBG(path + " = " + TAG + root.asString() + TAG);
+		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "Float" + PFX + "value" + PFX + set_precision(root.asFloat()));
 		break;
 	case Json::booleanValue:
-		DBG(path + " = " + BOOL(root.asBool()));
+		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "Bool" + PFX + "value" + PFX + BOOL(root.asBool()));
+		break;
+	case Json::stringValue:
+		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "String" + SEP + STR_LEN + PFX + std::to_string(root[member].asString().length()) + PFX + "value" + PFX + QT + escape_control_chars(root.asString()) + QT);
 		break;
 	case Json::arrayValue:
-		DBG(path + " = array");
-		// Loop through each element in the array using its index
-		DBG(path + " size: " + std::to_string(root.size()));
-		for (Json::Value::ArrayIndex i = 0; i < root.size(); i++) {
-			std::string arrayPath = path + "[" + std::to_string(i) + "]";
-			DBG(arrayPath);
-			check_valid_field_name(root[i], field, errs, arrayPath);
+		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "Array" + SEP + STR_SIZE + PFX + std::to_string(root.size()));
+		for (Json::Value::ArrayIndex i = 0; i < root.size(); ++i) {
+			// Construct the path for array elements (e.g., .users[0])
+			std::string arrayPath = path + LB + std::to_string(i + 1) + RB;
+			DBG("arrayPath" + PFX + QT + arrayPath + QT);
+			check_valid_field_name(root[i], errs, arrayPath);
 		}
 		break;
 	case Json::objectValue: {
-		DBG(path + " = object");
+		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "Object" + SEP + STR_SIZE + PFX + std::to_string(root.size()));
+		// Get all member names (keys) in the object
 		Json::Value::Members members = root.getMemberNames();
 		for (const auto& member : members) {
-			std::string objectPath = path.empty() ? member : path + "." + member;
-			DBG(objectPath);
-			check_valid_field_name(root[member], member, errs, objectPath);
+			DBG("member" + PFX + QT + escape_control_chars(member) + QT);
+			// Construct the path for object fields (e.g., .user.name)
+			std::string objectPath = path.empty() ? member : path + DOT + member;
+			DBG("objectPath" + PFX + QT + objectPath + QT + SEP + "member" + PFX + QT + escape_control_chars(member) + QT);
+			check_valid_field_name(root[member], errs, objectPath, member);
 		}
 		break;
 	}
@@ -929,7 +934,7 @@ bool parse_json(std::ifstream& ifs, config_ns::AST& ast)
 		return false;
 	}
 
-	check_valid_field_name(root, "", errs);
+	check_valid_field_name(root, errs);
 	if (errs.size()) {
 		PRN(WARN_PFX + STR_PRS + PFX + ERR_UNK + NL);
 		print_errors(errs);

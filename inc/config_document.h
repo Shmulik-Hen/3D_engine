@@ -1,16 +1,7 @@
 #pragma once
 
-#include <string>
-#include <vector>
 #include <optional>
-#include <string_view>
-#include <cmath>
-#include <array>
-#include <map>
-#include <charconv>
 #include <unordered_set>
-#include <algorithm>
-#include <numeric>
 
 #include "graphics.h"
 #include "attrib.h"
@@ -45,6 +36,7 @@ const std::string JSON_STR_REF   = "ref";
 const std::string JSON_STR_ORIG  = "origin";
 const std::string JSON_STR_MOTN  = "motion";
 const std::string JSON_STR_ENV   = "environment";
+const std::string JSON_STR_RUN   = "runtime";
 // environment field names
 const std::string JSON_STR_RES        = "resolution";
 const std::string JSON_STR_LIGHT_TYPE = "light_type";
@@ -53,12 +45,11 @@ const std::string JSON_STR_LIGHT_POS  = "light_position";
 const std::string JSON_STR_CAM_POS    = "camera_position";
 const std::string JSON_STR_FOCAL_LEN  = "focal_len";
 const std::string JSON_STR_NEAR_EPS   = "near_eps";
-const std::string JSON_STR_RUN        = "runtime";
-// runtime
+// runtime field names
 const std::string JSON_STR_LOOPS      = "loops";
 const std::string JSON_STR_LOOP_DELAY = "loop_delay";
-// ignored fields
-const std::string JSON_STR_IGN_ENC   = "encoding";
+// ignored fields names
+const std::string JSON_STR_IGN_ENC    = "encoding";
 
 // error/debug messages
 constexpr std::string_view STR_JSON  = "JSON";
@@ -91,9 +82,11 @@ constexpr std::string_view STR_WID   = "width";
 constexpr std::string_view STR_HGT   = "height";
 constexpr std::string_view STR_CORD  = "coord";
 constexpr std::string_view STR_SIZE  = "size";
+constexpr std::string_view STR_LEN   = "len";
+constexpr std::string_view STR_PATH  = "path";
 constexpr std::string_view STR_FOUND = "found";
-constexpr std::string_view ERR_NFND  = "not found";
 constexpr std::string_view STR_FLD   = "fields";
+constexpr std::string_view ERR_NFND  = "not found";
 constexpr std::string_view ERR_VER   = " unsupported version";
 constexpr std::string_view ERR_REQ   = "requires";
 constexpr std::string_view ERR_CURR  = "current";
@@ -149,6 +142,37 @@ const std::unordered_set<std::string> valid_field_names = {
 };
 
 const std::unordered_set<std::string> ignored_field_names = {
+	JSON_STR_IGN_ENC,
+};
+
+const std::unordered_set<std::string> hints_field_names = {
+	JSON_STR_VER,
+	JSON_STR_LIB,
+	JSON_STR_VECS,
+	JSON_STR_MESHS,
+	JSON_STR_POLYS,
+	JSON_STR_ELEMS,
+	JSON_STR_MESH,
+	JSON_STR_SCNS,
+	JSON_STR_NAME,
+	JSON_STR_COLOR,
+	JSON_STR_FORCE,
+	JSON_STR_PAREN,
+	JSON_STR_ACT,
+	JSON_STR_REF,
+	JSON_STR_ORIG,
+	JSON_STR_MOTN,
+	JSON_STR_ENV,
+	JSON_STR_RES,
+	JSON_STR_LIGHT_TYPE,
+	JSON_STR_LIGHT_DIR,
+	JSON_STR_LIGHT_POS,
+	JSON_STR_CAM_POS,
+	JSON_STR_FOCAL_LEN,
+	JSON_STR_NEAR_EPS,
+	JSON_STR_RUN,
+	JSON_STR_LOOPS,
+	JSON_STR_LOOP_DELAY,
 	JSON_STR_IGN_ENC,
 };
 
@@ -284,12 +308,13 @@ struct AST
 	validate_def valids;
 };
 
-void add_error(const std::string& str, errors_t& errs);
+void add_error(const std::string& err, errors_t& errs);
 void print_errors(const config_ns::errors_t errs, const std::string str = "");
-bool is_valid_field_name(const std::string& field);
-bool is_valid_field_value(const std::string& value);
 std::string_view get_att_name(const uint32_t i);
 std::string_view get_coord_name(const uint32_t i);
 std::string set_precision(const unit val, const uint32_t digits = 3);
+std::string escape_control_chars(const std::string& source);
+bool is_valid_field_name(const std::string& field);
+bool is_valid_field_value(const std::string& value);
 
 } // namespace config_ns

@@ -1,14 +1,7 @@
 #pragma once
 
-#include <optional>
-#include <vector>
-
-#include "utils.h"
-#include "attrib.h"
-#include "matrix.h"
 #include "polygon.h"
 #include "treenode.h"
-#include "scene_types.h"
 
 // clang-format off
 namespace attrib_ns   { class attrib; }

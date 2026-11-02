@@ -1,8 +1,6 @@
-#include <vector>
+#include <cmath>
 
 // #define DEBUG_PRINTS
-#include "utils.h"
-#include "graphics.h"
 #include "validate.h"
 
 namespace config_ns

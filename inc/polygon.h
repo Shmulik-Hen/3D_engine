@@ -1,14 +1,9 @@
 #pragma once
 
 #include <list>
-#include <utility>
-#include <vector>
 
-#include "utils.h"
 #include "graphics.h"
 #include "matrix.h"
-#include "unit.h"
-#include "vector_3.h"
 #include "scene_types.h"
 
 // clang-format off

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <limits>
 
 #include "unit.h"
 
@@ -18,6 +17,7 @@ constexpr int FORWARD_LOOKING_SIGN(-1);
 // for detecting nearly-duplicate polygon vectors.
 constexpr unit CONSEC_TOLERANCE_SCALE(10.0f);
 constexpr unit NORMAL_SCALE_FACTOR(50.0f); // polygon debugging
+constexpr std::string_view JSON_FIELD_VALUES_REJECTED_CHARS = "()[]{}'`,.;:\"\\";
 
 // versions
 constexpr uint32_t APP_VER_MAJ(0U);

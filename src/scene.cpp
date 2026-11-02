@@ -1,9 +1,7 @@
 #include <algorithm>
-#include <chrono>
 #include <thread>
 
 // #define DEBUG_PRINTS
-#include "utils.h"
 #include "scene.h"
 #include "parse_json.h"
 #include "validate.h"

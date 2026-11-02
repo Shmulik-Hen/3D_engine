@@ -1,9 +1,7 @@
-#include <algorithm>
 #include <SDL2/SDL.h>
 
 // #define DEBUG_PRINTS
 #include "graphics.h"
-#include "utils.h"
 #include "constants.h"
 
 namespace graphics_ns

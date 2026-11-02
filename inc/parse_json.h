@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <json/json.h>
+
 #include "config_document.h"
 
 namespace config_ns

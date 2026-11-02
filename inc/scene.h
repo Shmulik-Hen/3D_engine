@@ -1,11 +1,6 @@
 #pragma once
 
-#include <list>
-#include <memory>
-
 #include "element.h"
-#include "graphics.h"
-#include "polygon.h"
 #include "scene_types.h"
 
 // clang-format off
