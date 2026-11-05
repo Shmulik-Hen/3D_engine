@@ -99,7 +99,7 @@ bool my_scene::validate()
 	return config_ns::validate_ast(ast);
 }
 
-config_ns::scene_def* my_scene::find_scene(const std::string& name)
+config_ns::parse_scn_def* my_scene::find_scene(const std::string& name)
 {
 	for (auto& scn : ast.scene_defs) {
 		if (scn.name == name) {
@@ -110,7 +110,7 @@ config_ns::scene_def* my_scene::find_scene(const std::string& name)
 	return nullptr;
 }
 
-void my_scene::build(const config_ns::scene_def& scene_def)
+void my_scene::build(const config_ns::parse_scn_def& scene_def)
 {
 #ifdef DEBUG_PRINTS
 	// clang-format off
@@ -147,10 +147,10 @@ void my_scene::build(const config_ns::scene_def& scene_def)
 		// clang-format on
 #endif // DEBUG_PRINTS
 
-		config_ns::environ_def env = scene_def.env.value();
+		config_ns::parse_env_def env = scene_def.env.value();
 
 		if (env.resolution.has_value()) {
-			config_ns::resolution_def res = env.resolution.value();
+			config_ns::parse_res_def res = env.resolution.value();
 			bool res_changed = false;
 
 			if (res.width != frame_ctx.state->grfx.width) {
@@ -272,7 +272,7 @@ void my_scene::build(const config_ns::scene_def& scene_def)
 		// clang-format on
 #endif // DEBUG_PRINTS
 
-		config_ns::runtime_def run = scene_def.run.value();
+		config_ns::parse_run_def run = scene_def.run.value();
 		if (run.loops.has_value() &&
 		    frame_ctx.state->run.loops != run.loops.value()) {
 			frame_ctx.state->run.loops = run.loops.value();
@@ -443,7 +443,7 @@ void my_scene::set_defaults()
 #endif // DEBUG_PRINTS
 
 	// limits for validations
-	ast.valids.max_color_idx = (graphics::color_idx)((uint32_t)graphics::color_idx::__last_color__ - 1);
+	ast.valid_values.max_color_idx = (graphics::color_idx)((uint32_t)graphics::color_idx::__last_color__ - 1);
 }
 
 } // namespace scene_ns

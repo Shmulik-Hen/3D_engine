@@ -108,6 +108,7 @@ constexpr std::string_view RB   = "]";
 constexpr std::string_view QT   = "\"";
 constexpr std::string_view NL   = "\n";
 constexpr std::string_view DASH = " - ";
+constexpr std::string_view USC = "_";
 constexpr std::string_view TAB  = "       ";
 constexpr std::string_view ERR_PFX  = "Error: ";
 constexpr std::string_view WARN_PFX = "Warning: ";

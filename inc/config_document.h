@@ -3,19 +3,21 @@
 #include <optional>
 #include <unordered_set>
 
-#include "graphics.h"
 #include "attrib.h"
+#include "graphics.h"
 #include "vector_3.h"
 
 namespace config_ns
 {
 
+using attrib = attrib_ns::attrib;
 using graphics = graphics_ns::graphics;
 using vector_3 = vector_3_ns::vector_3;
-using attrib = attrib_ns::attrib;
+
 using errors_t = std::vector<std::string>;
 using att_names_t = std::map<uint32_t, std::string_view>;
 using coord_names_t = std::map<uint32_t, std::string_view>;
+using validate_key_t = std::unordered_set<std::string>;
 
 // clang-format off
 // supported field names - jsoncpp uses only std::string
@@ -86,6 +88,13 @@ constexpr std::string_view STR_LEN   = "len";
 constexpr std::string_view STR_PATH  = "path";
 constexpr std::string_view STR_FOUND = "found";
 constexpr std::string_view STR_FLD   = "fields";
+constexpr std::string_view STR_NAMES = "names";
+constexpr std::string_view STR_LIST  = "list";
+constexpr std::string_view STR_DET   = "detected";
+constexpr std::string_view STR_IKEY  = "insert key";
+constexpr std::string_view STR_FKEY  = "find key";
+constexpr std::string_view STR_SUCC  = "succeeded";
+constexpr std::string_view STR_IN    = " in ";
 constexpr std::string_view ERR_NFND  = "not found";
 constexpr std::string_view ERR_VER   = " unsupported version";
 constexpr std::string_view ERR_REQ   = "requires";
@@ -109,6 +118,7 @@ constexpr std::string_view ERR_FAILW = "failed with";
 constexpr std::string_view ERR_DET   = "errors detected !";
 constexpr std::string_view ERR_UNK   = "unknown fields detected";
 constexpr std::string_view ERR_UNS   = "unsupported field";
+constexpr std::string_view ERR_DUP   = "duplicate";
 // clang-format on
 
 const std::unordered_set<std::string> valid_field_names = {
@@ -192,6 +202,7 @@ const coord_names_t coord_names = {
 	{2, "Z"},
 };
 
+/* values validation */
 enum light_type
 {
 	__lt_min__,               // dummy
@@ -200,7 +211,8 @@ enum light_type
 	__lt_max__                // dummy
 };
 
-struct polygon_def
+/* library */
+struct parse_poly_def
 {
 	// required fields
 	std::string name;
@@ -209,21 +221,31 @@ struct polygon_def
 	std::vector<vector_3> vectors;
 };
 
-struct mesh_def
+struct parse_mesh_def
 {
 	// required fields
 	std::string name;
 	std::vector<std::string> polygons;
 };
 
-struct lib_elem_def
+struct parse_lib_elem_def
 {
 	// required fields
 	std::string name;
 	std::string mesh;
 };
 
-struct scene_elem_def
+struct parse_lib_def
+{
+	// required fields
+	std::vector<parse_poly_def> polygons;
+	std::vector<parse_mesh_def> meshes;
+	std::vector<parse_lib_elem_def> lib_elem_defs;
+};
+/* library end */
+
+/* scenes */
+struct parse_scn_elem_def
 {
 	// required fields
 	std::string name;
@@ -236,7 +258,146 @@ struct scene_elem_def
 	std::optional<attrib> motion;
 };
 
-// merged during build from lib_elem_def + scene_elem_def
+struct parse_res_def
+{
+	// required fields
+	uint32_t width {0};
+	uint32_t height {0};
+};
+
+struct parse_run_def
+{
+	// optional fields
+	std::optional<int> loops;
+	std::optional<uint32_t> loop_delay;
+};
+
+struct parse_env_def
+{
+	// optional fields
+	std::optional<parse_res_def> resolution;
+	std::optional<graphics::color_idx> color_idx;
+	std::optional<uint32_t> light_type;
+	std::optional<vector_3> light_direction;
+	std::optional<vector_3> light_position;
+	std::optional<vector_3> camera_position;
+	std::optional<unit> focal_len;
+	std::optional<unit> near_eps;
+};
+
+struct parse_scn_def
+{
+	// required fields
+	std::string name;
+	std::vector<parse_scn_elem_def> scene_elem_defs;
+
+	// optional fields
+	std::optional<parse_env_def> env;
+	std::optional<parse_run_def> run;
+};
+
+struct valid_values_def
+{
+	graphics::color_idx max_color_idx;
+};
+/* scenes end */
+/* values validation end*/
+
+/* references validation */
+/* library */
+struct valid_poly_ref
+{
+	const std::string* name;
+	const parse_poly_def* poly_def_ptr;
+};
+
+struct valid_poly_refs
+{
+	validate_key_t poly_keys;
+	std::vector<valid_poly_ref*> poly_ptrs;
+};
+
+struct valid_mesh_ref
+{
+	validate_key_t mesh_poly_keys;
+	std::vector<valid_poly_refs*> mesh_polys_ptrs;
+	const std::string* name;
+	const parse_mesh_def* mesh_def_ptr;
+};
+
+struct valid_mesh_refs
+{
+	validate_key_t mesh_keys;
+	std::vector<valid_mesh_ref*> mesh_ptrs;
+};
+
+struct valid_lib_elem_ref
+{
+	valid_mesh_ref* lib_mesh_ptr;
+	const std::string* name;
+	const parse_lib_elem_def* lib_elem_ptr;
+};
+
+struct valid_lib_elem_refs
+{
+	validate_key_t lib_elem_keys;
+	std::vector<valid_lib_elem_ref*> lib_elem_ptrs;
+};
+
+struct valid_library_refs
+{
+	valid_poly_refs poly_refs;
+	valid_mesh_refs mesh_refs;
+	valid_lib_elem_refs lib_elem_refs;
+};
+/* library end */
+
+/* scenes */
+
+struct valid_scn_elem_ref
+{
+	valid_lib_elem_ref* lib_elem_ptr;
+	const std::string* name;
+	const parse_scn_elem_def* scn_elem_def_ptr;
+};
+
+struct valid_scn_elem_refs
+{
+	validate_key_t scn_elem_keys;
+	std::vector<valid_scn_elem_ref*> scn_elem_ptrs;
+};
+
+struct valid_scene_ref
+{
+	validate_key_t scn_elem_keys;
+	std::vector<valid_scn_elem_refs*> scn_elem_ptrs;
+	const std::string* name;
+	const parse_scn_def* scn_def_ptr;
+};
+
+struct valid_scene_refs
+{
+	validate_key_t scene_ref_keys;
+	std::vector<valid_scene_ref*> scene_ref_ptrs;
+};
+
+struct valid_refs
+{
+	valid_library_refs valid_lib_refs;
+	valid_scene_refs valid_scn_ref;
+};
+/* scenes end */
+/* references validation end */
+
+struct AST
+{
+	parse_lib_def library_defs;
+	std::vector<parse_scn_def> scene_defs;
+	valid_values_def valid_values;
+	valid_refs valid_references;
+};
+
+// merged during build from parse_lib_elem_def + parse_scn_elem_def
 struct element_def
 {
 	// required fields
@@ -248,64 +409,6 @@ struct element_def
 	std::string parent; // null means "root"
 	std::optional<attrib> origin;
 	std::optional<attrib> motion;
-};
-
-struct resolution_def
-{
-	// required fields
-	uint32_t width {0};
-	uint32_t height {0};
-};
-
-struct runtime_def
-{
-	// optional fields
-	std::optional<int> loops;
-	std::optional<uint32_t> loop_delay;
-};
-
-struct environ_def
-{
-	// optional fields
-	std::optional<resolution_def> resolution;
-	std::optional<graphics::color_idx> color_idx;
-	std::optional<uint32_t> light_type;
-	std::optional<vector_3> light_direction;
-	std::optional<vector_3> light_position;
-	std::optional<vector_3> camera_position;
-	std::optional<unit> focal_len;
-	std::optional<unit> near_eps;
-};
-
-struct library_def
-{
-	// required fields
-	std::vector<polygon_def> polygons;
-	std::vector<mesh_def> meshes;
-	std::vector<lib_elem_def> lib_elem_defs;
-};
-
-struct scene_def
-{
-	// required fields
-	std::string name;
-	std::vector<scene_elem_def> scene_elem_defs;
-
-	// optional fields
-	std::optional<environ_def> env;
-	std::optional<runtime_def> run;
-};
-
-struct validate_def
-{
-	graphics::color_idx max_color_idx;
-};
-
-struct AST
-{
-	library_def library_defs;
-	std::vector<scene_def> scene_defs;
-	validate_def valids;
 };
 
 void add_error(const std::string& err, errors_t& errs);

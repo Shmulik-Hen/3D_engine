@@ -168,7 +168,7 @@ int main(int argc, char** argv)
 			sys_error("scene->validate() failed");
 		}
 
-		config_ns::scene_def* scn = scene->find_scene(conf_name);
+		config_ns::parse_scn_def* scn = scene->find_scene(conf_name);
 		if (!scn) {
 			sys_error("couldn't find a scene with name ", conf_name.c_str());
 		}

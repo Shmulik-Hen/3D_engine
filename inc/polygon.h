@@ -140,8 +140,7 @@ class polygon
 
 public:
 
-	typedef std::vector<vector_3_ns::vector_3> vector_t;
-	typedef std::list<polygon*> polylist_t;
+	using vector_t = std::vector<vector_3_ns::vector_3>;
 	using frame_context = scene_ns::frame_context;
 
 	polygon();
@@ -150,7 +149,7 @@ public:
 	const std::string get_name() const { return _name; }
 	double get_depth() const { return _depth; }
 
-	void init_from_def(frame_context&, const config_ns::polygon_def&);
+	void init_from_def(frame_context&, const config_ns::parse_poly_def&);
 	void print() const;
 	void draw(scene_ns::frame_context&);
 	void update(matrix_ns::matrix&, matrix_ns::matrix&, scene_ns::frame_context&);

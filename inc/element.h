@@ -7,6 +7,7 @@
 namespace attrib_ns   { class attrib; }
 namespace graphics_ns { class graphics; }
 namespace matrix_ns   { class matrix; }
+namespace polygon_ns   { class polygon; }
 namespace vector_3_ns { class vector_3; }
 // clang-format on
 
@@ -18,11 +19,12 @@ class element : public treenode_ns::treenode<element>
 public:
 
 	using frame_context = scene_ns::frame_context;
+	using poly_ptr_list_t = std::list<polygon_ns::polygon*>;
 
 	element() = default;
 	~element() = default;
 
-	void init_from_def(const polygon_ns::polygon::polylist_t&, element*, const config_ns::element_def&);
+	void init_from_def(const poly_ptr_list_t&, element*, const config_ns::element_def&);
 	void print() const;
 	void print_all();
 
@@ -41,7 +43,7 @@ public:
 
 private:
 
-	polygon_ns::polygon::polylist_t _polygons;
+	poly_ptr_list_t _polygons;
 	std::string _name;
 	std::string _parent_name;
 	element* _parent {nullptr}; // raw pointer, non-owning
@@ -52,7 +54,7 @@ private:
 	bool _dirty {false};
 	std::optional<attrib_ns::attrib> _motion;
 
-	polygon_ns::polygon* find(const polygon_ns::polygon::polylist_t&, const std::string&) const;
+	polygon_ns::polygon* find(const poly_ptr_list_t&, const std::string&) const;
 };
 
 } // namespace element_ns

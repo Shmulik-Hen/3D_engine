@@ -793,7 +793,7 @@ vector_3 polygon::find_normal()
 	}
 }
 
-void polygon::init_from_def(frame_context& ctx, const config_ns::polygon_def& def)
+void polygon::init_from_def(frame_context& ctx, const config_ns::parse_poly_def& def)
 {
 	_name = def.name;
 	_draw_ctx->set_base_color(ctx.state->grfx.gfx.get(), def.color_index);

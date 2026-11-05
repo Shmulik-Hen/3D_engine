@@ -8,9 +8,8 @@ namespace element_ns
 using namespace matrix_ns;
 using namespace polygon_ns;
 using polygon = polygon_ns::polygon;
-using polylist_t = polygon_ns::polygon::polylist_t;
 
-void element::init_from_def(const polylist_t& poly_list, element* root, const config_ns::element_def& def)
+void element::init_from_def(const poly_ptr_list_t& poly_list, element* root, const config_ns::element_def& def)
 {
 	_name = def.name;
 	_active = def.active;
@@ -170,7 +169,7 @@ void element::update_all(frame_context& frame_ctx)
 	this->update_tree(upd, &frame_ctx);
 }
 
-polygon* element::find(const polylist_t& poly_list, const std::string& s) const
+polygon* element::find(const poly_ptr_list_t& poly_list, const std::string& s) const
 {
 	for (const auto poly : poly_list) {
 		if (poly && poly->get_name() == s) {

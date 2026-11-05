@@ -8,7 +8,8 @@
 namespace config_ns
 {
 
-static size_t levenshtein_distance(const std::string& source, const std::string& target)
+static size_t levenshtein_distance(const std::string& source,
+                                   const std::string& target)
 {
 	std::vector<size_t> previous_row(target.size() + 1);
 	std::vector<size_t> current_row(target.size() + 1);
@@ -57,70 +58,115 @@ static std::string get_hint(const std::string invalid)
 	return SPC + LP + "did you mean" + SPC + TAG + hint + TAG + SPC + '?' + RP;
 }
 
-void check_valid_field_name(const Json::Value& root, errors_t& errs, const std::string& path = "", const std::string& member = "")
+void check_valid_field_name(const Json::Value& root,
+                            errors_t& errs,
+                            const std::string& path = "",
+                            const std::string& member = "")
 {
 	if (!root.isNull() && member.size()) {
 		DBG("checking" + SPC + QT + path + QT + PFX + QT + escape_control_chars(member) + QT);
 		bool rc = is_valid_field_name(member);
 		if (!rc) {
-			DBG("is_valid_field_name" + QT + escape_control_chars(member) + QT + PFX + "returned false");
-			std::string err = path + PFX + QT + escape_control_chars(member) + QT + SPC + ERR_ILG + DOT;
-			DBG("err: " + QT + err + QT /*  + NL */);
+			// clang-format off
+			DBG("is_valid_field_name" + QT + escape_control_chars(member) +
+			    QT + PFX + "returned false");
+
+			std::string err = path + PFX + QT + escape_control_chars(member) +
+					  QT + SPC + ERR_ILG + DOT;
+			// clang-format on
+			DBG("err: " + QT + err + QT);
 			std::string hint = get_hint(member);
-			DBG("hint" + PFX + QT + hint + QT /*  + NL */);
+			DBG("hint" + PFX + QT + hint + QT);
+
 			if (!hint.empty()) {
 				err += hint;
-				DBG("err: " + QT + err + QT /*  + NL */);
+				DBG("err: " + QT + err + QT);
 			}
 
-			DBG("logging an error for" + PFX + QT + escape_control_chars(member) + QT /*  + NL */);
+			// clang-format off
+			DBG("logging an error for" + PFX + QT +
+			    escape_control_chars(member) + QT);
+			// clang-format on
+
 			add_error(err, errs);
 			return;
 		}
 		else if (valid_field_names.find(member) == valid_field_names.end()) {
-			DBG("couldn't find " + QT + escape_control_chars(member) + QT + SPC + "in valid_field_names" /*  + NL */);
+			// clang-format off
+			DBG("couldn't find " + QT + escape_control_chars(member) +
+			    QT + SPC + "in valid_field_names");
+			// clang-format on
+
 			if (ignored_field_names.find(member) == ignored_field_names.end()) {
-				DBG("couldn't find " + QT + escape_control_chars(member) + QT + SPC + "in ignored_field_names either" /*  + NL */);
-				std::string err = path + PFX + ERR_UNS + PFX + QT + escape_control_chars(member) + QT + DOT;
-				DBG(QT + err + QT /*  + NL */);
+				// clang-format off
+				DBG("couldn't find " + QT + escape_control_chars(member) +
+				    QT + SPC + "in ignored_field_names either");
+
+				std::string err = path + PFX + ERR_UNS + PFX + QT +
+						  escape_control_chars(member) + QT + DOT;
+				// clang-format on
+				DBG(QT + err + QT);
 				std::string hint = get_hint(member);
-				DBG(hint /*  + NL */);
+				DBG(hint);
 				if (!hint.empty()) {
 					err += hint;
-					DBG(QT + err + QT /*  + NL */);
+					DBG(QT + err + QT);
 				}
 
-				DBG("logging an error for" + PFX + QT + escape_control_chars(member) + QT /*  + NL */);
+				// clang-format off
+				DBG("logging an error for" + PFX + QT +
+				    escape_control_chars(member) + QT);
+				// clang-format on
+
 				add_error(err, errs);
 				return;
 			}
 			else {
-				DBG("but found" + SPC + QT + escape_control_chars(member) + QT + SPC + "in ignored_field_names" /*  + NL */);
+				// clang-format off
+				DBG("but found" + SPC + QT + escape_control_chars(member) +
+				    QT + SPC + "in ignored_field_names");
+				// clang-format on
 			}
 		}
 	}
 
+	// clang-format off
 	switch (root.type()) {
 	case Json::nullValue:
-		DBG(STR_PATH + PFX + QT + path + QT + PFX + "value" + PFX + "null");
+		DBG(STR_PATH + PFX + QT + path + QT + PFX +
+		    "value" + PFX + "null");
 		break;
 	case Json::intValue:
-		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "Int" + PFX + "value" + PFX + std::to_string(root.asInt()));
+		DBG(STR_PATH + PFX + QT + path + QT + PFX +
+		    "type" + PFX + "Int" + PFX + "value" +
+		    PFX + std::to_string(root.asInt()));
 		break;
 	case Json::uintValue:
-		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "UInt" + PFX + "value" + PFX + std::to_string(root.asUInt()));
+		DBG(STR_PATH + PFX + QT + path + QT + PFX +
+		    "type" + PFX + "UInt" + PFX + "value" + PFX +
+		    std::to_string(root.asUInt()));
 		break;
 	case Json::realValue:
-		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "Float" + PFX + "value" + PFX + set_precision(root.asFloat()));
+		DBG(STR_PATH + PFX + QT + path + QT + PFX +
+		    "type" + PFX + "Float" + PFX + "value" + PFX +
+		    set_precision(root.asFloat()));
 		break;
 	case Json::booleanValue:
-		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "Bool" + PFX + "value" + PFX + BOOL(root.asBool()));
+		DBG(STR_PATH + PFX + QT + path + QT + PFX +
+		    "type" + PFX + "Bool" + PFX + "value" + PFX +
+		    BOOL(root.asBool()));
 		break;
 	case Json::stringValue:
-		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "String" + SEP + STR_LEN + PFX + std::to_string(root[member].asString().length()) + PFX + "value" + PFX + QT + escape_control_chars(root.asString()) + QT);
+		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" +
+		    PFX + "String" + SEP + STR_LEN + PFX +
+		    std::to_string(root[member].asString().length()) + PFX +
+		    "value" + PFX + QT + escape_control_chars(root.asString()) + QT);
 		break;
 	case Json::arrayValue:
-		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "Array" + SEP + STR_SIZE + PFX + std::to_string(root.size()));
+		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" +
+		    PFX + "Array" + SEP + STR_SIZE + PFX +
+		    std::to_string(root.size()));
+
 		for (Json::Value::ArrayIndex i = 0; i < root.size(); ++i) {
 			// Construct the path for array elements (e.g., .users[0])
 			std::string arrayPath = path + LB + std::to_string(i + 1) + RB;
@@ -129,22 +175,31 @@ void check_valid_field_name(const Json::Value& root, errors_t& errs, const std::
 		}
 		break;
 	case Json::objectValue: {
-		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX + "Object" + SEP + STR_SIZE + PFX + std::to_string(root.size()));
+		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" + PFX +
+		    "Object" + SEP + STR_SIZE + PFX + std::to_string(root.size()));
+
 		// Get all member names (keys) in the object
 		Json::Value::Members members = root.getMemberNames();
 		for (const auto& member : members) {
 			DBG("member" + PFX + QT + escape_control_chars(member) + QT);
+
 			// Construct the path for object fields (e.g., .user.name)
 			std::string objectPath = path.empty() ? member : path + DOT + member;
-			DBG("objectPath" + PFX + QT + objectPath + QT + SEP + "member" + PFX + QT + escape_control_chars(member) + QT);
+
+			DBG("objectPath" + PFX + QT + objectPath + QT + SEP +
+			    "member" + PFX + QT + escape_control_chars(member) + QT);
+
 			check_valid_field_name(root[member], errs, objectPath, member);
 		}
 		break;
 	}
 	}
+	// clang-format on
 }
 
-static bool check_json_version(const Json::Value& ver, const std::string& path, const uint32_t array[JSON_VER_FIELDS])
+static bool check_json_version(const Json::Value& ver,
+                               const std::string& path,
+                               const uint32_t array[JSON_VER_FIELDS])
 {
 	if (ver.size() != JSON_VER_FIELDS) {
 		// clang-format off
@@ -197,7 +252,9 @@ static bool check_json_version(const Json::Value& ver, const std::string& path, 
 	return true;
 }
 
-static bool parse_json_attrib(const Json::Value& att, const std::string& path, unit array[NUM_ATTRIBUTES])
+static bool parse_json_attrib(const Json::Value& att,
+                              const std::string& path,
+                              unit array[NUM_ATTRIBUTES])
 {
 	if (att.size() != NUM_ATTRIBUTES) {
 		// clang-format off
@@ -224,7 +281,9 @@ static bool parse_json_attrib(const Json::Value& att, const std::string& path, u
 	return true;
 }
 
-static bool parse_json_vector(const Json::Value& vector, const std::string& path, unit array[NUM_COORDS])
+static bool parse_json_vector(const Json::Value& vector,
+                              const std::string& path,
+                              unit array[NUM_COORDS])
 {
 	if (vector.size() != NUM_COORDS) {
 		// clang-format off
@@ -251,7 +310,9 @@ static bool parse_json_vector(const Json::Value& vector, const std::string& path
 	return true;
 }
 
-static bool parse_json_polygon(const Json::Value& polygon, const std::string path, polygon_def& pd)
+static bool parse_json_polygon(const Json::Value& polygon,
+                               const std::string path,
+                               parse_poly_def& pd)
 {
 	bool rc;
 
@@ -321,7 +382,9 @@ static bool parse_json_polygon(const Json::Value& polygon, const std::string pat
 	return true;
 }
 
-static bool parse_json_mesh(const Json::Value& mesh, const std::string path, mesh_def& md)
+static bool parse_json_mesh(const Json::Value& mesh,
+                            const std::string path,
+                            parse_mesh_def& md)
 {
 	if (mesh.isMember(JSON_STR_NAME)) {
 		if (!mesh[JSON_STR_NAME].isString()) {
@@ -368,7 +431,9 @@ static bool parse_json_mesh(const Json::Value& mesh, const std::string path, mes
 	return true;
 }
 
-static bool parse_json_lib_elem_def(const Json::Value& element, const std::string path, lib_elem_def& ed)
+static bool parse_json_lib_elem_def(const Json::Value& element,
+                                    const std::string path,
+                                    parse_lib_elem_def& ed)
 {
 	if (element.isMember(JSON_STR_NAME)) {
 		if (!element[JSON_STR_NAME].isString()) {
@@ -393,7 +458,9 @@ static bool parse_json_lib_elem_def(const Json::Value& element, const std::strin
 	return true;
 }
 
-static bool parse_json_scene_elem_def(const Json::Value& element, const std::string path, scene_elem_def& ed)
+static bool parse_json_scene_elem_def(const Json::Value& element,
+                                      const std::string path,
+                                      parse_scn_elem_def& ed)
 {
 	std::string str;
 	bool rc;
@@ -488,7 +555,9 @@ static bool parse_json_scene_elem_def(const Json::Value& element, const std::str
 	return true;
 }
 
-static bool parse_json_resolution(const Json::Value& res, const std::string& path, uint32_t array[2])
+static bool parse_json_resolution(const Json::Value& res,
+                                  const std::string& path,
+                                  uint32_t array[2])
 {
 	if (res.size() != 2) {
 		// clang-format off
@@ -510,7 +579,9 @@ static bool parse_json_resolution(const Json::Value& res, const std::string& pat
 	return true;
 }
 
-static bool parse_json_environment(const Json::Value& env, const std::string path, environ_def& ed)
+static bool parse_json_environment(const Json::Value& env,
+                                   const std::string path,
+                                   parse_env_def& ed)
 {
 	std::string str;
 	bool rc;
@@ -532,7 +603,7 @@ static bool parse_json_environment(const Json::Value& env, const std::string pat
 		}
 
 		DBG(str + PFX + std::to_string(res[0]) + 'x' + std::to_string(res[1]));
-		ed.resolution = config_ns::resolution_def {res[0], res[1]};
+		ed.resolution = config_ns::parse_res_def {res[0], res[1]};
 	}
 
 	if (env.isMember(JSON_STR_COLOR)) {
@@ -653,7 +724,9 @@ static bool parse_json_environment(const Json::Value& env, const std::string pat
 	return true;
 }
 
-static bool parse_json_runtime(const Json::Value& run, const std::string path, runtime_def& rd)
+static bool parse_json_runtime(const Json::Value& run,
+                               const std::string path,
+                               parse_run_def& rd)
 {
 	std::string str;
 
@@ -684,7 +757,9 @@ static bool parse_json_runtime(const Json::Value& run, const std::string path, r
 	return true;
 }
 
-static bool parse_json_library(const Json::Value& library, const std::string path, library_def& ld)
+static bool parse_json_library(const Json::Value& library,
+                               const std::string path,
+                               parse_lib_def& ld)
 {
 	bool rc;
 
@@ -703,7 +778,7 @@ static bool parse_json_library(const Json::Value& library, const std::string pat
 
 		int i = 1;
 		for (const auto& polygon : polygons) {
-			polygon_def pd {};
+			parse_poly_def pd {};
 			// clang-format off
 			std::string str = path + JSON_STR_POLYS +
 					  LB + std::to_string(i) + RB;
@@ -738,7 +813,7 @@ static bool parse_json_library(const Json::Value& library, const std::string pat
 
 		int i = 1;
 		for (const auto& mesh : meshes) {
-			mesh_def md {};
+			parse_mesh_def md {};
 			// clang-format off
 			std::string str = path + JSON_STR_MESHS +
 					  LB + std::to_string(i) + RB;
@@ -773,7 +848,7 @@ static bool parse_json_library(const Json::Value& library, const std::string pat
 
 		int i = 1;
 		for (const auto& element : elements) {
-			lib_elem_def ed {};
+			parse_lib_elem_def ed {};
 			// clang-format off
 			std::string str = path + JSON_STR_ELEMS +
 					  LB + std::to_string(i) + RB;
@@ -806,7 +881,9 @@ static bool parse_json_library(const Json::Value& library, const std::string pat
 	return true;
 }
 
-static bool parse_json_scene(const Json::Value& scene, const std::string path, scene_def& sd)
+static bool parse_json_scene(const Json::Value& scene,
+                             const std::string path,
+                             parse_scn_def& sd)
 {
 	bool rc;
 
@@ -844,7 +921,7 @@ static bool parse_json_scene(const Json::Value& scene, const std::string path, s
 				return false;
 			}
 
-			scene_elem_def ed {};
+			parse_scn_elem_def ed {};
 			rc = parse_json_scene_elem_def(element, err + DOT, ed);
 			if (!rc) {
 				return false;
@@ -874,7 +951,7 @@ static bool parse_json_scene(const Json::Value& scene, const std::string path, s
 		    PFX + std::to_string(env.size()));
 		// clang-format on
 
-		environ_def ed {};
+		parse_env_def ed {};
 		rc = parse_json_environment(env, str + DOT, ed);
 		if (!rc) {
 			return false;
@@ -894,7 +971,7 @@ static bool parse_json_scene(const Json::Value& scene, const std::string path, s
 		const Json::Value& run = scene[JSON_STR_RUN];
 		DBG(str + SPC + STR_NUM + SPC + STR_FLD + PFX + std::to_string(run.size()));
 
-		runtime_def rd {};
+		parse_run_def rd {};
 		rc = parse_json_runtime(run, str + DOT, rd);
 		if (!rc) {
 			return false;
@@ -977,7 +1054,7 @@ bool parse_json(std::ifstream& ifs, config_ns::AST& ast)
 		}
 
 		const Json::Value& library = root[JSON_STR_LIB];
-		library_def ld {};
+		parse_lib_def ld {};
 
 		rc = parse_json_library(library, str + DOT, ld);
 		if (!rc) {
@@ -1005,7 +1082,7 @@ bool parse_json(std::ifstream& ifs, config_ns::AST& ast)
 
 		int i = 1;
 		for (const auto& scene : scenes) {
-			scene_def sd {};
+			parse_scn_def sd {};
 
 			str += DOT + STR_SCN + LB + std::to_string(i) + RB;
 

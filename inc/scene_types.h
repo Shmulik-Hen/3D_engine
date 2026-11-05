@@ -12,6 +12,8 @@ namespace graphics_ns { class graphics; }
 namespace scene_ns
 {
 
+using drawvec_t = std::vector<polygon_ns::polygon*>;
+
 struct graphics_state
 {
 	std::unique_ptr<graphics_ns::graphics> gfx {nullptr};
@@ -70,8 +72,6 @@ struct scene_state
 	window_state win;
 	runtime_state run;
 };
-
-using drawvec_t = std::vector<polygon_ns::polygon*>;
 
 struct frame_context
 {

@@ -21,7 +21,7 @@ public:
 	std::list<std::unique_ptr<element_ns::element>> elements_owned;
 
 	// Non-owning views
-	polygon_ns::polygon::polylist_t poly_list;
+	element_ns::element::poly_ptr_list_t poly_list;
 
 	// Root of element tree (non-owning)
 	element_ns::element* root {nullptr};
@@ -41,12 +41,12 @@ public:
 	element_ns::element* add_element();
 	bool parse(std::ifstream&);
 	bool validate();
-	void build(const config_ns::scene_def&);
+	void build(const config_ns::parse_scn_def&);
 	void init_graphics();
 	void update();
 	void render();
 	bool keep_going();
-	config_ns::scene_def* find_scene(const std::string&);
+	config_ns::parse_scn_def* find_scene(const std::string&);
 
 private:
 
