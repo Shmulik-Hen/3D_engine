@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <unordered_set>
+#include <deque>
 
 #include "attrib.h"
 #include "graphics.h"
@@ -307,41 +308,42 @@ struct valid_values_def
 /* library */
 struct valid_poly_ref
 {
-	const std::string* name;
-	const parse_poly_def* poly_def_ptr;
+	const std::string* poly_def_name = nullptr;
+	const parse_poly_def* poly_def_ptr = nullptr;
 };
 
 struct valid_poly_refs
 {
 	validate_key_t poly_keys;
-	std::vector<valid_poly_ref*> poly_ptrs;
+	std::deque<valid_poly_ref> poly_refs;
 };
 
 struct valid_mesh_ref
 {
 	validate_key_t mesh_poly_keys;
-	std::vector<valid_poly_refs*> mesh_polys_ptrs;
-	const std::string* name;
-	const parse_mesh_def* mesh_def_ptr;
+	std::deque<valid_poly_ref> mesh_poly_refs;
+	const std::string* mesh_def_name = nullptr;
+	const parse_mesh_def* mesh_def_ptr = nullptr;
 };
 
 struct valid_mesh_refs
 {
 	validate_key_t mesh_keys;
-	std::vector<valid_mesh_ref*> mesh_ptrs;
+	std::deque<valid_mesh_ref> mesh_refs;
 };
 
 struct valid_lib_elem_ref
 {
-	valid_mesh_ref* lib_mesh_ptr;
-	const std::string* name;
-	const parse_lib_elem_def* lib_elem_ptr;
+	valid_mesh_ref* lib_mesh_ptr = nullptr;
+	const std::string* lib_elem_def_name = nullptr;
+	const std::string* lib_elem_def_mesh = nullptr;
+	const parse_lib_elem_def* lib_elem_def_ptr = nullptr;
 };
 
 struct valid_lib_elem_refs
 {
 	validate_key_t lib_elem_keys;
-	std::vector<valid_lib_elem_ref*> lib_elem_ptrs;
+	std::deque<valid_lib_elem_ref> lib_elem_refs;
 };
 
 struct valid_library_refs
@@ -356,35 +358,31 @@ struct valid_library_refs
 
 struct valid_scn_elem_ref
 {
-	valid_lib_elem_ref* lib_elem_ptr;
-	const std::string* name;
-	const parse_scn_elem_def* scn_elem_def_ptr;
-};
-
-struct valid_scn_elem_refs
-{
-	validate_key_t scn_elem_keys;
-	std::vector<valid_scn_elem_ref*> scn_elem_ptrs;
+	valid_lib_elem_ref* lib_elem_ref = nullptr;
+	const std::string* scn_elem_def_name = nullptr;
+	const std::string* scn_elem_def_ref = nullptr;
+	const std::string* scn_elem_def_parent = nullptr;
+	const parse_scn_elem_def* scn_elem_def_ptr = nullptr;
 };
 
 struct valid_scene_ref
 {
 	validate_key_t scn_elem_keys;
-	std::vector<valid_scn_elem_refs*> scn_elem_ptrs;
-	const std::string* name;
-	const parse_scn_def* scn_def_ptr;
+	std::deque<valid_scn_elem_ref> scn_elem_refs;
+	const std::string* scn_def_name = nullptr;
+	const parse_scn_def* scn_def_ptr = nullptr;
 };
 
 struct valid_scene_refs
 {
 	validate_key_t scene_ref_keys;
-	std::vector<valid_scene_ref*> scene_ref_ptrs;
+	std::deque<valid_scene_ref> scene_ref_refs;
 };
 
 struct valid_refs
 {
 	valid_library_refs valid_lib_refs;
-	valid_scene_refs valid_scn_ref;
+	valid_scene_refs valid_scn_refs;
 };
 /* scenes end */
 /* references validation end */

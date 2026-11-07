@@ -3,7 +3,7 @@
 namespace config_ns
 {
 
-bool validate_ast(const config_ns::AST&);
+bool validate_ast(config_ns::AST&);
 
 } // namespace config_ns
 
