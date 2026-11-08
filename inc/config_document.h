@@ -120,6 +120,7 @@ constexpr std::string_view ERR_DET   = "errors detected !";
 constexpr std::string_view ERR_UNK   = "unknown fields detected";
 constexpr std::string_view ERR_UNS   = "unsupported field";
 constexpr std::string_view ERR_DUP   = "duplicate";
+constexpr std::string_view ERR_MISM  = "mismatch";
 // clang-format on
 
 const std::unordered_set<std::string> valid_field_names = {
@@ -334,22 +335,22 @@ struct valid_mesh_refs
 
 struct valid_lib_elem_ref
 {
-	valid_mesh_ref* lib_mesh_ptr = nullptr;
-	const std::string* lib_elem_def_name = nullptr;
-	const std::string* lib_elem_def_mesh = nullptr;
-	const parse_lib_elem_def* lib_elem_def_ptr = nullptr;
+	valid_mesh_ref elem_mesh_ref;
+	const std::string* elem_def_name = nullptr;
+	const std::string* elem_def_mesh = nullptr;
+	const parse_lib_elem_def* elem_def_ptr = nullptr;
 };
 
 struct valid_lib_elem_refs
 {
-	validate_key_t lib_elem_keys;
-	std::deque<valid_lib_elem_ref> lib_elem_refs;
+	validate_key_t elem_keys;
+	std::deque<valid_lib_elem_ref> elem_refs;
 };
 
 struct valid_library_refs
 {
-	valid_poly_refs poly_refs;
-	valid_mesh_refs mesh_refs;
+	valid_poly_refs lib_poly_refs;
+	valid_mesh_refs lib_mesh_refs;
 	valid_lib_elem_refs lib_elem_refs;
 };
 /* library end */
@@ -358,7 +359,7 @@ struct valid_library_refs
 
 struct valid_scn_elem_ref
 {
-	valid_lib_elem_ref* lib_elem_ref = nullptr;
+	valid_lib_elem_ref lib_elem_ref;
 	const std::string* scn_elem_def_name = nullptr;
 	const std::string* scn_elem_def_ref = nullptr;
 	const std::string* scn_elem_def_parent = nullptr;

@@ -1,5 +1,6 @@
 #include <cmath>
 #include <unordered_set>
+#include <memory>
 
 // #define DEBUG_PRINTS
 #include "validate.h"
@@ -21,6 +22,7 @@ static void check_range_real(const unit val,
 				  LB + set_precision(min) + DASH +
 				  set_precision(max) + RB;
 		// clang-format on
+
 		add_error(err, errs);
 	}
 }
@@ -38,6 +40,7 @@ static void check_range_int(const int val,
 				  LB + std::to_string(min) + DASH +
 				  std::to_string(max) + RB;
 		// clang-format on
+
 		add_error(err, errs);
 	}
 }
@@ -55,6 +58,7 @@ static void check_range_uint(const uint32_t val,
 				  LB + std::to_string(min) + DASH +
 				  std::to_string(max) + RB;
 		// clang-format on
+
 		add_error(err, errs);
 	}
 }
@@ -95,7 +99,11 @@ static void validate_vector_values(const vector_3& vec,
 		// clang-format on
 
 		DBG(str + set_precision(coord));
-		check_range_real(coord, MIN_REAL_VAL, MAX_REAL_VAL, str, errs);
+		check_range_real(coord,
+		                 MIN_REAL_VAL,
+		                 MAX_REAL_VAL,
+		                 str,
+		                 errs);
 	}
 }
 
@@ -108,26 +116,42 @@ static void validate_polygon_values(const parse_poly_def& poly,
 	DBG(name + PFX + QT + poly.name + QT);
 
 	if (!is_valid_field_value(poly.name)) {
-		add_error(name + SPC + ERR_INV + PFX + QT + poly.name + QT, errs);
+		// clang-format off
+		add_error(name + SPC + ERR_INV + PFX +
+			  QT + poly.name + QT, errs);
+		// clang-format on
 	}
 
-	DBG(path + DOT + JSON_STR_COLOR + PFX + std::to_string(poly.color_index));
+	// clang-format off
+	DBG(path + DOT + JSON_STR_COLOR + PFX +
+	    std::to_string(poly.color_index));
+	// clang-format on
 
 	std::string err = path + DOT + JSON_STR_COLOR;
-	check_range_uint(poly.color_index, 0, valid_values.max_color_idx, err + PFX, errs);
+	check_range_uint(poly.color_index,
+	                 0,
+	                 valid_values.max_color_idx,
+	                 err + PFX,
+	                 errs);
 
 	DBG(path + DOT + JSON_STR_FORCE + PFX + BOOL(poly.force));
 
 	std::string str = path + PFX + STR_NUM + SPC + JSON_STR_VECS;
 	DBG(str + PFX + std::to_string(poly.vectors.size()));
-	check_range_uint(poly.vectors.size(), MIN_VECTORS, MAX_VECTORS, str + PFX, errs);
+
+	check_range_uint(poly.vectors.size(),
+	                 MIN_VECTORS,
+	                 MAX_VECTORS,
+	                 str + PFX,
+	                 errs);
+
 	int i = 1;
 	for (const auto& vector : poly.vectors) {
 		// clang-format off
 		std::string vec = path + DOT + STR_VEC + LB +
 				  std::to_string(i) + RB;
 		// clang-format on
-		// DBG(vec);
+
 		validate_vector_values(vector, vec, errs, valid_values);
 		i++;
 	}
@@ -142,10 +166,17 @@ static void validate_mesh_values(const parse_mesh_def& mesh,
 	DBG(msh + PFX + QT + mesh.name + QT);
 
 	if (!is_valid_field_value(mesh.name)) {
-		add_error(msh + SPC + ERR_INV + PFX + QT + mesh.name + QT, errs);
+		// clang-format off
+		add_error(msh + SPC + ERR_INV + PFX +
+			  QT + mesh.name + QT, errs);
+		// clang-format on
 	}
 
-	DBG(path + PFX + STR_NUM + SPC + JSON_STR_POLYS + PFX + std::to_string(mesh.polygons.size()));
+	// clang-format off
+	DBG(path + PFX + STR_NUM + SPC + JSON_STR_POLYS +
+	    PFX + std::to_string(mesh.polygons.size()));
+	// clang-format on
+
 	if (mesh.polygons.size() < MIN_POLYGONS) {
 		// clang-format off
 		std::string err = path + PFX + ERR_REQ + SPC +
@@ -153,6 +184,7 @@ static void validate_mesh_values(const parse_mesh_def& mesh,
 		                  std::to_string(MIN_POLYGONS) +
 				  SPC + STR_POLY + SPC + JSON_STR_NAME;
 		// clang-format on
+
 		add_error(err, errs);
 	}
 	else {
@@ -161,12 +193,16 @@ static void validate_mesh_values(const parse_mesh_def& mesh,
 			// clang-format off
 			std::string pol = path + DOT + STR_POLY +
 			                  LB + std::to_string(i) + RB;
-			// clang-format on
 			DBG(pol + PFX + QT + poly + QT);
+			// clang-format on
 
 			if (!is_valid_field_value(poly)) {
-				add_error(pol + SPC + ERR_INV + PFX + QT + poly + QT, errs);
+				// clang-format off
+				add_error(pol + SPC + ERR_INV + PFX +
+					  QT + poly + QT, errs);
+				// clang-format on
 			}
+
 			i++;
 		}
 	}
@@ -181,14 +217,20 @@ static void validate_lib_elem_values(const parse_lib_elem_def& elem,
 	DBG(name + PFX + QT + elem.name + QT);
 
 	if (!is_valid_field_value(elem.name)) {
-		add_error(name + SPC + ERR_INV + PFX + QT + elem.name + QT, errs);
+		// clang-format off
+		add_error(name + SPC + ERR_INV + PFX +
+			  QT + elem.name + QT, errs);
+		// clang-format on
 	}
 
 	std::string mesh = path + DOT + JSON_STR_MESH;
 	DBG(mesh + PFX + QT + elem.mesh + QT);
 
 	if (!is_valid_field_value(elem.mesh)) {
-		add_error(mesh + SPC + ERR_INV + PFX + QT + elem.mesh + QT, errs);
+		// clang-format off
+		add_error(mesh + SPC + ERR_INV + PFX +
+			  QT + elem.mesh + QT, errs);
+		// clang-format on
 	}
 }
 
@@ -209,6 +251,7 @@ static void validate_library_values(const parse_lib_def& lib,
 				  std::to_string(MIN_POLYGONS) +
 				  SPC + STR_POLY;
 		// clang-format on
+
 		add_error(err, errs);
 	}
 	else {
@@ -218,6 +261,7 @@ static void validate_library_values(const parse_lib_def& lib,
 			std::string polygons = path + DOT + STR_POLY +
 					       LB + std::to_string(i) + RB;
 			// clang-format on
+
 			validate_polygon_values(polygon, polygons, errs, valid_values);
 			i++;
 		}
@@ -235,6 +279,7 @@ static void validate_library_values(const parse_lib_def& lib,
 		                  std::to_string(MIN_MESHES) +
 				  SPC + JSON_STR_MESH;
 		// clang-format on
+
 		add_error(err, errs);
 	}
 	else {
@@ -244,6 +289,7 @@ static void validate_library_values(const parse_lib_def& lib,
 			std::string meshes = path + DOT + JSON_STR_MESH +
 					     LB + std::to_string(i) + RB;
 			// clang-format on
+
 			validate_mesh_values(mesh, meshes, errs, valid_values);
 			i++;
 		}
@@ -261,6 +307,7 @@ static void validate_library_values(const parse_lib_def& lib,
 		                  std::to_string(MIN_LIB_ELEMS) +
 				  SPC + STR_ELEM;
 		// clang-format on
+
 		add_error(err, errs);
 	}
 	else {
@@ -270,6 +317,7 @@ static void validate_library_values(const parse_lib_def& lib,
 			std::string elems = path + DOT + STR_ELEM +
 					    LB + std::to_string(i) + RB;
 			// clang-format on
+
 			validate_lib_elem_values(element, elems, errs, valid_values);
 			i++;
 		}
@@ -284,7 +332,10 @@ static void validate_scene_elem_values(const parse_scn_elem_def& elem,
 	std::string name = path + DOT + JSON_STR_NAME;
 	DBG(name + PFX + QT + elem.name + QT);
 	if (!is_valid_field_value(elem.name)) {
-		add_error(name + SPC + ERR_INV + PFX + QT + elem.name + QT, errs);
+		// clang-format off
+		add_error(name + SPC + ERR_INV + PFX +
+			  QT + elem.name + QT, errs);
+		// clang-format on
 	}
 
 	std::string parent = path + DOT + JSON_STR_PAREN;
@@ -292,7 +343,10 @@ static void validate_scene_elem_values(const parse_scn_elem_def& elem,
 		DBG(parent + PFX + QT + elem.parent.value() + QT);
 
 		if (!is_valid_field_value(elem.parent.value())) {
-			add_error(parent + SPC + ERR_INV + PFX + QT + elem.parent.value() + QT, errs);
+			// clang-format off
+			add_error(parent + SPC + ERR_INV + PFX +
+				  QT + elem.parent.value() + QT, errs);
+			// clang-format on
 		}
 	}
 	else {
@@ -306,8 +360,14 @@ static void validate_scene_elem_values(const parse_scn_elem_def& elem,
 		DBG(ref + PFX + QT + elem.ref.value() + QT);
 
 		if (!is_valid_field_value(elem.ref.value())) {
-			add_error(ref + SPC + ERR_INV + PFX + QT + elem.ref.value() + QT, errs);
+			// clang-format off
+			add_error(ref + SPC + ERR_INV + PFX +
+				  QT + elem.ref.value() + QT, errs);
+			// clang-format on
 		}
+	}
+	else {
+		DBG(ref + SPC + ERR_NULL);
 	}
 
 	std::string origin = path + DOT + JSON_STR_ORIG;
@@ -328,9 +388,18 @@ static void validate_environment_values(const parse_env_def& env,
 {
 	if (env.resolution.has_value()) {
 		std::string str = path + JSON_STR_RES + PFX + STR_WID;
-		check_range_uint(env.resolution.value().width, MIN_RES_WIDTH, MAX_RES_WIDTH, str + PFX, errs);
+		check_range_uint(env.resolution.value().width,
+		                 MIN_RES_WIDTH,
+		                 MAX_RES_WIDTH,
+		                 str + PFX,
+		                 errs);
+
 		str = path + JSON_STR_RES + PFX + STR_HGT;
-		check_range_uint(env.resolution.value().height, MIN_RES_HEIGHT, MAX_RES_HEIGHT, str + PFX, errs);
+		check_range_uint(env.resolution.value().height,
+		                 MIN_RES_HEIGHT,
+		                 MAX_RES_HEIGHT,
+		                 str + PFX,
+		                 errs);
 		// clang-format off
 		DBG(path + JSON_STR_RES + PFX +
 		    std::to_string(env.resolution.value().width) + 'x' +
@@ -342,11 +411,14 @@ static void validate_environment_values(const parse_env_def& env,
 		// clang-format off
 		DBG(path + JSON_STR_COLOR + PFX +
 		    std::to_string((uint32_t)env.color_idx.value()));
+		// clang-format on
 
 		std::string str = path + JSON_STR_COLOR;
-		check_range_uint((uint32_t)env.color_idx.value(), 0,
-				 (uint32_t)valid_values.max_color_idx, str + PFX, errs);
-		// clang-format on
+		check_range_uint((uint32_t)env.color_idx.value(),
+		                 0,
+		                 (uint32_t)valid_values.max_color_idx,
+		                 str + PFX,
+		                 errs);
 	}
 
 	if (env.light_type.has_value()) {
@@ -356,32 +428,53 @@ static void validate_environment_values(const parse_env_def& env,
 		// clang-format on
 
 		std::string str = path + JSON_STR_LIGHT_TYPE;
-		check_range_uint(env.light_type.value(), __lt_min__, __lt_max__ - 1, str + PFX, errs);
+		check_range_uint(env.light_type.value(),
+		                 __lt_min__,
+		                 __lt_max__ - 1,
+		                 str + PFX,
+		                 errs);
 	}
 
 	if (env.light_direction.has_value()) {
 		std::string str = path + JSON_STR_LIGHT_DIR;
-		validate_vector_values(env.light_direction.value(), str, errs, valid_values);
+		validate_vector_values(env.light_direction.value(),
+		                       str,
+		                       errs,
+		                       valid_values);
 	}
 
 	if (env.light_position.has_value()) {
 		std::string str = path + JSON_STR_LIGHT_POS;
-		validate_vector_values(env.light_position.value(), str, errs, valid_values);
+		validate_vector_values(env.light_position.value(),
+		                       str,
+		                       errs,
+		                       valid_values);
 	}
 
 	if (env.camera_position.has_value()) {
 		std::string str = path + JSON_STR_CAM_POS;
-		validate_vector_values(env.camera_position.value(), str, errs, valid_values);
+		validate_vector_values(env.camera_position.value(),
+		                       str,
+		                       errs,
+		                       valid_values);
 	}
 
 	if (env.focal_len.has_value()) {
 		std::string str = path + JSON_STR_FOCAL_LEN;
-		check_range_real(env.focal_len.value(), MIN_FOCAL_LEN, MAX_FOCAL_LEN, str + PFX, errs);
+		check_range_real(env.focal_len.value(),
+		                 MIN_FOCAL_LEN,
+		                 MAX_FOCAL_LEN,
+		                 str + PFX,
+		                 errs);
 	}
 
 	if (env.near_eps.has_value()) {
 		std::string str = path + JSON_STR_NEAR_EPS;
-		check_range_real(env.near_eps.value(), MIN_NEAR_EPS, MAX_NEAR_EPSN, str + PFX, errs);
+		check_range_real(env.near_eps.value(),
+		                 MIN_NEAR_EPS,
+		                 MAX_NEAR_EPSN,
+		                 str + PFX,
+		                 errs);
 	}
 }
 
@@ -397,7 +490,11 @@ static void validate_runtime_values(const parse_run_def& run,
 		// clang-format on
 
 		std::string str = path + JSON_STR_LOOPS;
-		check_range_int(run.loops.value(), MIN_LOOPS, MAX_LOOPS, str + PFX, errs);
+		check_range_int(run.loops.value(),
+		                MIN_LOOPS,
+		                MAX_LOOPS,
+		                str + PFX,
+		                errs);
 	}
 
 	if (run.loop_delay.has_value()) {
@@ -407,7 +504,11 @@ static void validate_runtime_values(const parse_run_def& run,
 		// clang-format on
 
 		std::string str = path + JSON_STR_LOOP_DELAY;
-		check_range_uint(run.loop_delay.value(), MIN_LOOP_DELAY, MAX_LOOP_DELAY, str + PFX, errs);
+		check_range_uint(run.loop_delay.value(),
+		                 MIN_LOOP_DELAY,
+		                 MAX_LOOP_DELAY,
+		                 str + PFX,
+		                 errs);
 	}
 }
 
@@ -420,10 +521,17 @@ static void validate_scene_values(const parse_scn_def& scene,
 	DBG(name + PFX + QT + scene.name + QT);
 
 	if (!is_valid_field_value(scene.name)) {
-		add_error(name + SPC + ERR_INV + PFX + QT + scene.name + QT, errs);
+		// clang-format off
+		add_error(name + SPC + ERR_INV + PFX +
+			  QT + scene.name + QT, errs);
+		// clang-format on
 	}
 
-	DBG(path + STR_NUM + SPC + JSON_STR_ELEMS + PFX + std::to_string(scene.scene_elem_defs.size()));
+	// clang-format off
+	DBG(path + PFX + STR_NUM + SPC + JSON_STR_ELEMS + PFX +
+	    std::to_string(scene.scene_elem_defs.size()));
+	// clang-format on
+
 	if (scene.scene_elem_defs.size() < MIN_SCN_ELEMS) {
 		// clang-format off
 		std::string err = path + ERR_REQ + SPC +
@@ -431,6 +539,7 @@ static void validate_scene_values(const parse_scn_def& scene,
 		                  std::to_string(MIN_SCN_ELEMS) +
 				  SPC + JSON_STR_ELEMS;
 		// clang-format on
+
 		add_error(err, errs);
 	}
 
@@ -446,12 +555,18 @@ static void validate_scene_values(const parse_scn_def& scene,
 
 	if (scene.env.has_value()) {
 		std::string env = path + DOT + JSON_STR_ENV;
-		validate_environment_values(scene.env.value(), env + DOT, errs, valid_values);
+		validate_environment_values(scene.env.value(),
+		                            env + DOT,
+		                            errs,
+		                            valid_values);
 	}
 
 	if (scene.run.has_value()) {
 		std::string run = path + DOT + JSON_STR_RUN;
-		validate_runtime_values(scene.run.value(), run + DOT, errs, valid_values);
+		validate_runtime_values(scene.run.value(),
+		                        run + DOT,
+		                        errs,
+		                        valid_values);
 	}
 }
 
@@ -466,7 +581,10 @@ static void validate_values(const AST& ast,
 	std::string lib = local_path + PFX + JSON_STR_LIB;
 	DBG(lib);
 
-	validate_library_values(ast.library_defs, lib, errs, ast.valid_values);
+	validate_library_values(ast.library_defs,
+	                        lib,
+	                        errs,
+	                        ast.valid_values);
 
 	std::string scenes = local_path + PFX + JSON_STR_SCNS;
 	DBG(scenes);
@@ -483,6 +601,7 @@ static void validate_values(const AST& ast,
 				  std::to_string(MIN_SCENES) +
 				  SPC + STR_SCN;
 		// clang-format on
+
 		add_error(err, errs);
 	}
 	else {
@@ -492,17 +611,16 @@ static void validate_values(const AST& ast,
 			std::string scn = scenes + DOT + STR_SCN +
 					  LB + std::to_string(i) + RB;
 			// clang-format on
+
 			validate_scene_values(scene, scn, errs, ast.valid_values);
 			i++;
 		}
 	}
 }
-
 /* values validation end*/
 
 /* references validation*/
 /* collect */
-
 static void validate_collect_lib_poly_refs(const parse_lib_def& lib_defs,
                                            const std::string path,
                                            valid_poly_refs& vld_poly_refs,
@@ -524,8 +642,8 @@ static void validate_collect_lib_poly_refs(const parse_lib_def& lib_defs,
 			DBG(str + PFX + STR_IKEY + SPC +
 			    QT + poly.name + QT + SPC + ERR_FAIL);
 
-			add_error(str + PFX + ERR_DUP + SPC + JSON_STR_LIB + SPC +
-				  JSON_STR_POLYS + STR_DET + PFX +
+			add_error(str + PFX + ERR_DUP + SPC + JSON_STR_LIB +
+				  SPC + JSON_STR_POLYS + SPC + STR_DET + PFX +
 				  QT + poly.name + QT, errs);
 			// clang-format on
 		}
@@ -562,6 +680,7 @@ static void validate_collect_lib_mesh_poly_refs(const parse_mesh_def& mesh_def,
 		std::string str = local_path + LB + std::to_string(i) + RB;
 		DBG(str + DOT + JSON_STR_NAME + PFX + QT + poly + QT);
 		// clang-format on
+
 		auto [it, inserted] = vld_mesh_ref.mesh_poly_keys.insert(poly);
 		if (!inserted) {
 			// clang-format off
@@ -569,7 +688,7 @@ static void validate_collect_lib_mesh_poly_refs(const parse_mesh_def& mesh_def,
 			    SPC + ERR_FAIL);
 
 			add_error(str + PFX + ERR_DUP + SPC + JSON_STR_MESH +
-				  SPC + STR_POLY + STR_DET + PFX +
+				  SPC + STR_POLY + SPC + STR_DET + PFX +
 				  QT + poly + QT, errs);
 			// clang-format on
 		}
@@ -579,6 +698,7 @@ static void validate_collect_lib_mesh_poly_refs(const parse_mesh_def& mesh_def,
 			    SPC + STR_SUCC);
 			// clang-format on
 		}
+
 		i++;
 	}
 }
@@ -608,7 +728,7 @@ static void validate_collect_lib_mesh_refs(const parse_lib_def& lib_defs,
 			    SPC + ERR_FAIL);
 
 			add_error(str + PFX + ERR_DUP + SPC + JSON_STR_LIB + SPC +
-				  JSON_STR_MESHS + STR_DET + PFX +
+				  JSON_STR_MESHS + SPC + STR_DET + PFX +
 				  QT + mesh.name + QT, errs);
 			// clang-format on
 		}
@@ -646,14 +766,14 @@ static void validate_collect_lib_elem_refs(const parse_lib_def& lib_defs,
 		    QT + lib_elem.name + QT);
 		// clang-format on
 
-		auto [it, inserted] = vld_elem_refs.lib_elem_keys.insert(lib_elem.name);
+		auto [it, inserted] = vld_elem_refs.elem_keys.insert(lib_elem.name);
 		if (!inserted) {
 			// clang-format off
 			DBG(str + PFX + STR_IKEY + SPC + QT + lib_elem.name + QT +
 			    SPC + ERR_FAIL);
 
 			add_error(str + PFX + ERR_DUP + SPC + JSON_STR_LIB + SPC +
-				  JSON_STR_ELEMS + STR_DET + PFX +
+				  JSON_STR_ELEMS + SPC + STR_DET + PFX +
 				  QT + lib_elem.name + QT, errs);
 			// clang-format on
 		}
@@ -663,10 +783,10 @@ static void validate_collect_lib_elem_refs(const parse_lib_def& lib_defs,
 			    QT + lib_elem.name + QT + SPC + STR_SUCC);
 			// clang-format on
 
-			valid_lib_elem_ref& elem_ref = vld_elem_refs.lib_elem_refs.emplace_back();
-			elem_ref.lib_elem_def_name = &lib_elem.name;
-			elem_ref.lib_elem_def_mesh = &lib_elem.mesh;
-			elem_ref.lib_elem_def_ptr = &lib_elem;
+			valid_lib_elem_ref& elem_ref = vld_elem_refs.elem_refs.emplace_back();
+			elem_ref.elem_def_name = &lib_elem.name;
+			elem_ref.elem_def_mesh = &lib_elem.mesh;
+			elem_ref.elem_def_ptr = &lib_elem;
 		}
 
 		i++;
@@ -680,12 +800,12 @@ static void validate_collect_lib_refs(const parse_lib_def& lib_defs,
 {
 	validate_collect_lib_poly_refs(lib_defs,
 	                               path + DOT + JSON_STR_POLYS,
-	                               lib_refs.poly_refs,
+	                               lib_refs.lib_poly_refs,
 	                               errs);
 
 	validate_collect_lib_mesh_refs(lib_defs,
 	                               path + DOT + JSON_STR_MESHS,
-	                               lib_refs.mesh_refs,
+	                               lib_refs.lib_mesh_refs,
 	                               errs);
 
 	validate_collect_lib_elem_refs(lib_defs,
@@ -706,17 +826,6 @@ static void validate_collect_scn_elem_ref(const parse_scn_elem_def& scn_elem_def
 		QT + *vld_scn_elem_ref.scn_elem_def_name + QT);
 	// clang-format on
 
-	if (scn_elem_def.ref.has_value()) {
-		vld_scn_elem_ref.scn_elem_def_ref = &scn_elem_def.ref.value();
-		// clang-format off
-		DBG(path + DOT + JSON_STR_REF + PFX +
-		    QT + *vld_scn_elem_ref.scn_elem_def_ref + QT);
-		// clang-format on
-	}
-	else {
-		DBG(path + DOT + JSON_STR_REF + ERR_NULL);
-	}
-
 	if (scn_elem_def.parent.has_value()) {
 		vld_scn_elem_ref.scn_elem_def_parent = &scn_elem_def.parent.value();
 		// clang-format off
@@ -725,7 +834,18 @@ static void validate_collect_scn_elem_ref(const parse_scn_elem_def& scn_elem_def
 		// clang-format on
 	}
 	else {
-		DBG(path + DOT + JSON_STR_PAREN + ERR_NULL);
+		DBG(path + DOT + JSON_STR_PAREN + SPC + ERR_NULL);
+	}
+
+	if (scn_elem_def.ref.has_value()) {
+		vld_scn_elem_ref.scn_elem_def_ref = &scn_elem_def.ref.value();
+		// clang-format off
+		DBG(path + DOT + JSON_STR_REF + PFX +
+		    QT + *vld_scn_elem_ref.scn_elem_def_ref + QT);
+		// clang-format on
+	}
+	else {
+		DBG(path + DOT + JSON_STR_REF + SPC + ERR_NULL);
 	}
 }
 
@@ -739,14 +859,15 @@ static void validate_collect_scene_ref(const parse_scn_def& scn_def,
 	    PFX + std::to_string(scn_def.scene_elem_defs.size()));
 	// clang-format on
 
+	vld_scn_ref.scn_def_ptr = &scn_def;
+	vld_scn_ref.scn_def_name = &scn_def.name;
+
 	std::string local_path = path + DOT + JSON_STR_ELEMS;
 
 	int i = 1;
 	for (const auto& scn_elem : scn_def.scene_elem_defs) {
 		// clang-format off
 		std::string str = local_path + LB + std::to_string(i) + RB;
-		DBG(str + DOT +  JSON_STR_NAME + PFX +
-		    QT + scn_elem.name + QT);
 		// clang-format on
 
 		auto [it, inserted] = vld_scn_ref.scn_elem_keys.insert(scn_elem.name);
@@ -755,8 +876,8 @@ static void validate_collect_scene_ref(const parse_scn_def& scn_def,
 			DBG(str + PFX + STR_IKEY +
 			    SPC + QT + scn_elem.name + QT + SPC + ERR_FAIL);
 
-			add_error(str + PFX + ERR_DUP + SPC + JSON_STR_SCNS +
-				  JSON_STR_ELEMS + STR_DET +
+			add_error(str + PFX + ERR_DUP + SPC + STR_SCN +
+				  SPC + JSON_STR_ELEMS + SPC + STR_DET +
 				  PFX + QT + scn_elem.name + QT, errs);
 			// clang-format on
 		}
@@ -799,8 +920,8 @@ static void validate_collect_scene_refs(AST& ast,
 			DBG(str + PFX + STR_IKEY + SPC +
 			    QT + scn_def.name + QT + SPC + ERR_FAIL);
 
-			add_error(path + PFX + ERR_DUP + SPC + JSON_STR_SCNS +
-				  SPC + STR_DET + PFX +
+			add_error(path + PFX + ERR_DUP + SPC + STR_SCN +
+				  SPC + JSON_STR_NAME + SPC + STR_DET + PFX +
 				  QT + scn_def.name + QT, errs);
 			// clang-format on
 		}
@@ -823,7 +944,6 @@ static void validate_collect_references(AST& ast,
                                         errors_t& errs)
 {
 	std::string local_path = path + PFX + "collect";
-	DBG(local_path);
 
 	std::string lib_path = local_path + PFX + JSON_STR_LIB;
 	DBG(lib_path);
@@ -831,6 +951,9 @@ static void validate_collect_references(AST& ast,
 	                          lib_path,
 	                          ast.valid_references.valid_lib_refs,
 	                          errs);
+	if (errs.size()) {
+		return;
+	}
 
 	std::string scenes_path = local_path + PFX + JSON_STR_SCNS;
 	DBG(scenes_path);
@@ -841,282 +964,670 @@ static void validate_collect_references(AST& ast,
 }
 /* collect end */
 
-#ifdef DEBUG_PRINTS
-static void validate_print_lib_poly_refs(const valid_poly_refs& val_poly_refs,
-                                         const std::string path)
-{
-	DBG(path);
+// #ifdef DEBUG_PRINTS
+// static void validate_print_lib_poly_refs(const valid_poly_refs& val_poly_refs,
+//                                          const std::string path)
+// {
+// 	// clang-format off
+// 	DBG(path + PFX + "poly_keys" + PFX + STR_SIZE +
+// 	    PFX + std::to_string(val_poly_refs.poly_keys.size()));
+// 	DBG(path + PFX + "poly_refs" + PFX + STR_SIZE +
+// 	    PFX + std::to_string(val_poly_refs.poly_refs.size()));
+// 	// clang-format on
 
-	// clang-format off
-	DBG(path + PFX + "poly_keys" + PFX + STR_SIZE +
-	    PFX + std::to_string(val_poly_refs.poly_keys.size()));
-	DBG(path + PFX + "poly_refs" + PFX + STR_SIZE +
-	    PFX + std::to_string(val_poly_refs.poly_refs.size()));
-	// clang-format on
+// 	int i = 1;
+// 	for (const auto& poly_ref : val_poly_refs.poly_refs) {
+// 		std::string str = path + LB + std::to_string(i) + RB;
+// 		// clang-format off
+// 		DBG(str + DOT + JSON_STR_NAME + PFX +
+// 		    QT + *poly_ref.poly_def_name + QT);
+// 		// clang-format on
 
-	int i = 1;
-	for (const auto& poly_ref : val_poly_refs.poly_refs) {
-		std::string str = path + LB + std::to_string(i) + RB;
-		DBG(str + DOT + JSON_STR_NAME + PFX + QT + *poly_ref.poly_def_name + QT);
-		i++;
-	}
-}
+// 		i++;
+// 	}
+// }
 
-static void validate_print_lib_mesh_refs(const valid_mesh_refs& vld_mesh_refs,
-                                         const std::string path)
-{
-	DBG(path);
+// static void validate_print_lib_mesh_refs(const valid_mesh_refs& vld_mesh_refs,
+//                                          const std::string path)
+// {
+// 	// clang-format off
+// 	DBG(path + PFX + "mesh_keys" + PFX + STR_SIZE +
+// 	    PFX + std::to_string(vld_mesh_refs.mesh_keys.size()));
+// 	DBG(path + PFX + "mesh_refs" + PFX + STR_SIZE +
+// 	    PFX + std::to_string(vld_mesh_refs.mesh_refs.size()));
+// 	// clang-format on
 
-	// clang-format off
-	DBG(path + PFX + "mesh_keys" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_mesh_refs.mesh_keys.size()));
-	DBG(path + PFX + "mesh_refs" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_mesh_refs.mesh_refs.size()));
-	// clang-format on
+// 	int i = 1;
+// 	for (const auto& mesh_ref : vld_mesh_refs.mesh_refs) {
+// 		std::string str = path + LB + std::to_string(i) + RB;
+// 		// clang-format off
+// 		DBG(str + DOT + JSON_STR_NAME + PFX +
+// 		    QT + *mesh_ref.mesh_def_name + QT);
 
-	int i = 1;
-	for (const auto& mesh_ref : vld_mesh_refs.mesh_refs) {
-		std::string str = path + LB + std::to_string(i) + RB;
-		// clang-format off
-		DBG(str + DOT + JSON_STR_NAME + PFX +
-		    QT + *mesh_ref.mesh_def_name + QT);
+// 		DBG(str + PFX + STR_NUM + SPC + JSON_STR_POLYS +
+// 		    PFX + std::to_string(mesh_ref.mesh_poly_keys.size()));
+// 		// clang-format on
 
-		DBG(str + PFX + STR_NUM + SPC + JSON_STR_POLYS +
-		    PFX + std::to_string(mesh_ref.mesh_poly_keys.size()));
-		// clang-format on
+// 		std::string poly_path = str + DOT + JSON_STR_POLYS;
+// 		int j = 1;
+// 		for (const auto& poly_name : mesh_ref.mesh_poly_keys) {
+// 			// clang-format off
+// 			std::string poly_path = str + DOT + JSON_STR_POLYS +
+// 						LB + std::to_string(j) + RB;
+// 			// clang-format on
 
-		std::string poly_path = str + DOT + JSON_STR_POLYS;
-		int j = 1;
-		for (const auto& poly_name : mesh_ref.mesh_poly_keys) {
-			// clang-format off
-			std::string poly_path = str + DOT + JSON_STR_POLYS +
-						LB + std::to_string(j) + RB;
-			// clang-format on
+// 			DBG(poly_path + PFX + QT + poly_name + QT);
+// 			j++;
+// 		}
 
-			DBG(poly_path + PFX + QT + poly_name + QT);
-			j++;
-		}
+// 		i++;
+// 	}
+// }
 
-		i++;
-	}
-}
+// static void validate_print_lib_elem_refs(valid_lib_elem_refs vld_elem_refs,
+//                                          const std::string path)
+// {
+// 	// clang-format off
+// 	DBG(path + PFX + "elem_keys" + PFX + STR_SIZE +
+// 	    PFX + std::to_string(vld_elem_refs.elem_keys.size()));
+// 	DBG(path + PFX + "elem_refs" + PFX + STR_SIZE +
+// 	    PFX + std::to_string(vld_elem_refs.elem_refs.size()));
+// 	// clang-format on
 
-static void validate_print_lib_elem_refs(valid_lib_elem_refs vld_elem_refs,
-                                         const std::string path)
-{
-	DBG(path);
+// 	int i = 1;
+// 	for (const auto& elem_ref : vld_elem_refs.elem_refs) {
+// 		std::string str = path + LB + std::to_string(i) + RB;
+// 		// clang-format off
+// 		DBG(str + DOT + JSON_STR_NAME + PFX +
+// 		    QT + *elem_ref.elem_def_name + QT);
+// 		DBG(str + DOT + JSON_STR_MESH + PFX +
+// 		    QT + *elem_ref.elem_def_mesh + QT);
+// 		// clang-format on
 
-	// clang-format off
-	DBG(path + PFX + "elem_keys" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_elem_refs.lib_elem_keys.size()));
-	DBG(path + PFX + "elem_refs" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_elem_refs.lib_elem_refs.size()));
-	// clang-format on
+// 		i++;
+// 	}
+// }
 
-	int i = 1;
-	for (const auto& elem_ref : vld_elem_refs.lib_elem_refs) {
-		std::string str = path + LB + std::to_string(i) + RB;
-		// clang-format off
-		DBG(str + DOT + JSON_STR_NAME + PFX +
-		    QT + *elem_ref.lib_elem_def_name + QT);
-		DBG(str + DOT + JSON_STR_MESH + PFX +
-		    QT + *elem_ref.lib_elem_def_mesh + QT);
-		// clang-format on
-		i++;
-	}
-}
+// static void validate_print_lib_refs(const valid_library_refs& lib_refs,
+//                                     const std::string path)
+// {
+// 	validate_print_lib_poly_refs(lib_refs.lib_poly_refs,
+// 	                             path + DOT + JSON_STR_POLYS);
 
-static void validate_print_lib_refs(const valid_library_refs& lib_refs,
-                                    const std::string path)
-{
-	validate_print_lib_poly_refs(lib_refs.poly_refs,
-	                             path + DOT + JSON_STR_POLYS);
+// 	validate_print_lib_mesh_refs(lib_refs.lib_mesh_refs,
+// 	                             path + DOT + JSON_STR_MESHS);
 
-	validate_print_lib_mesh_refs(lib_refs.mesh_refs,
-	                             path + DOT + JSON_STR_MESHS);
+// 	validate_print_lib_elem_refs(lib_refs.lib_elem_refs,
+// 	                             path + DOT + JSON_STR_ELEMS);
+// }
 
-	validate_print_lib_elem_refs(lib_refs.lib_elem_refs,
-	                             path + DOT + JSON_STR_ELEMS);
-}
+// static void validate_print_scn_elem_ref(const valid_scn_elem_ref& vld_scn_elem_ref,
+//                                         const std::string path)
+// {
+// 	if (vld_scn_elem_ref.scn_elem_def_name) {
+// 		// clang-format off
+// 		DBG(path + DOT + JSON_STR_NAME + PFX +
+// 		    QT + *vld_scn_elem_ref.scn_elem_def_name + QT);
+// 		// clang-format on
+// 	}
+// 	else {
+// 		DBG(path + DOT + JSON_STR_NAME + PFX + ERR_NULL + "!");
+// 	}
 
-static void validate_print_scn_elem_ref(const valid_scn_elem_ref& vld_scn_elem_ref,
-                                        const std::string path)
-{
-	if (vld_scn_elem_ref.scn_elem_def_name) {
-		// clang-format off
-		DBG(path + DOT + JSON_STR_NAME + PFX +
-		    QT + *vld_scn_elem_ref.scn_elem_def_name + QT);
-		// clang-format on
-	}
-	else {
-		DBG(path + DOT + JSON_STR_NAME + PFX + ERR_NULL + "!");
-	}
+// 	if (vld_scn_elem_ref.scn_elem_def_parent) {
+// 		// clang-format off
+// 		DBG(path + DOT + JSON_STR_PAREN + PFX +
+// 		    QT + *vld_scn_elem_ref.scn_elem_def_parent + QT);
+// 		// clang-format on
+// 	}
+// 	else {
+// 		DBG(path + DOT + JSON_STR_PAREN + PFX + ERR_NULL);
+// 	}
 
-	if (vld_scn_elem_ref.scn_elem_def_parent) {
-		// clang-format off
-		DBG(path + DOT + JSON_STR_PAREN + PFX +
-		    QT + *vld_scn_elem_ref.scn_elem_def_parent + QT);
-		// clang-format on
-	}
-	else {
-		DBG(path + DOT + JSON_STR_PAREN + PFX + ERR_NULL);
-	}
+// 	if (vld_scn_elem_ref.scn_elem_def_ref) {
+// 		// clang-format off
+// 		DBG(path + DOT + JSON_STR_REF + PFX +
+// 		    QT + *vld_scn_elem_ref.scn_elem_def_ref + QT);
+// 		// clang-format on
+// 	}
+// 	else {
+// 		DBG(path + DOT + JSON_STR_REF + PFX + ERR_NULL);
+// 	}
+// }
 
-	if (vld_scn_elem_ref.scn_elem_def_ref) {
-		// clang-format off
-		DBG(path + DOT + JSON_STR_REF + PFX +
-		    QT + *vld_scn_elem_ref.scn_elem_def_ref + QT);
-		// clang-format on
-	}
-	else {
-		DBG(path + DOT + JSON_STR_REF + PFX + ERR_NULL);
-	}
-}
+// static void validate_print_scene_ref(const valid_scene_ref& vld_scn_ref,
+//                                      const std::string path)
+// {
+// 	// clang-format off
+// 	DBG(path + DOT + JSON_STR_NAME + PFX +
+// 	    QT + *vld_scn_ref.scn_def_name + QT);
+// 	DBG(path + PFX + "scene_elem_keys" + PFX + STR_SIZE +
+// 	    PFX + std::to_string(vld_scn_ref.scn_elem_keys.size()));
+// 	DBG(path + PFX + "scene_elem_refs" + PFX + STR_SIZE +
+// 	    PFX + std::to_string(vld_scn_ref.scn_elem_refs.size()));
+// 	// clang-format on
 
-static void validate_print_scene_ref(const valid_scene_ref& vld_scn_ref,
-                                     const std::string path)
-{
-	// clang-format off
-	DBG(path + PFX + "scene_elem_keys" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_scn_ref.scn_elem_keys.size()));
-	DBG(path + PFX + "scene_elem_refs" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_scn_ref.scn_elem_refs.size()));
-	DBG(path + DOT + JSON_STR_ELEMS);
-	// clang-format on
+// 	int i = 1;
+// 	for (const auto& elem_ref : vld_scn_ref.scn_elem_refs) {
+// 		// clang-format off
+// 		std::string str = path + DOT + JSON_STR_ELEMS +
+// 				  LB + std::to_string(i) + RB;
+// 		// clang-format on
 
-	int i = 1;
-	for (const auto& elem_ref : vld_scn_ref.scn_elem_refs) {
-		// clang-format off
-		std::string str = path + DOT + JSON_STR_ELEMS +
-				  LB + std::to_string(i) + RB;
-		// clang-format on
-		validate_print_scn_elem_ref(elem_ref, str);
-		i++;
-	}
-}
+// 		validate_print_scn_elem_ref(elem_ref, str);
+// 		i++;
+// 	}
+// }
 
-static void validate_print_scene_refs(const valid_scene_refs& vld_scn_refs,
-                                      const std::string path)
-{
-	// clang-format off
-	DBG(path + PFX + "scene_keys" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_scn_refs.scene_ref_keys.size()));
-	DBG(path + PFX + "scene_refs" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_scn_refs.scene_ref_refs.size()));
-	DBG(path + DOT + STR_SCN);
-	// clang-format on
+// static void validate_print_scene_refs(const valid_scene_refs& vld_scn_refs,
+//                                       const std::string path)
+// {
+// 	// clang-format off
+// 	DBG(path + PFX + "scene_keys" + PFX + STR_SIZE +
+// 	    PFX + std::to_string(vld_scn_refs.scene_ref_keys.size()));
+// 	DBG(path + PFX + "scene_refs" + PFX + STR_SIZE +
+// 	    PFX + std::to_string(vld_scn_refs.scene_ref_refs.size()));
+// 	// clang-format on
 
-	int i = 1;
-	for (const auto& scn_ref : vld_scn_refs.scene_ref_refs) {
-		std::string str = path + DOT + STR_SCN + LB + std::to_string(i) + RB;
-		validate_print_scene_ref(scn_ref, str);
-		i++;
-	}
-}
+// 	int i = 1;
+// 	for (const auto& scn_ref : vld_scn_refs.scene_ref_refs) {
+// 		// clang-format off
+// 		std::string str = path + DOT + STR_SCN +
+// 				  LB + std::to_string(i) + RB;
+// 		// clang-format on
 
-static void validate_print_refs(const valid_refs& valid_refs,
-                                const std::string path)
-{
-	std::string lib_path = path + PFX + "print" + PFX + JSON_STR_LIB;
-	DBG(lib_path);
-	validate_print_lib_refs(valid_refs.valid_lib_refs,
-	                        lib_path);
+// 		validate_print_scene_ref(scn_ref, str);
+// 		i++;
+// 	}
+// }
 
-	std::string scenes_path = path + PFX + "print" + PFX + JSON_STR_SCNS;
-	DBG(scenes_path);
-	validate_print_scene_refs(valid_refs.valid_scn_refs,
-	                          scenes_path);
-}
-#endif // DEBUG_PRINTS
+// static void validate_print_refs(const valid_refs& valid_refs,
+//                                 const std::string path)
+// {
+// 	std::string lib_path = path + PFX + "print" + PFX + JSON_STR_LIB;
+// 	DBG(lib_path);
+// 	validate_print_lib_refs(valid_refs.valid_lib_refs,
+// 	                        lib_path);
+
+// 	std::string scenes_path = path + PFX + "print" + PFX + JSON_STR_SCNS;
+// 	DBG(scenes_path);
+// 	validate_print_scene_refs(valid_refs.valid_scn_refs,
+// 	                          scenes_path);
+// }
+// #endif // DEBUG_PRINTS
 
 /* resolve */
-#if 0
-static valid_mesh_ref* find_mesh_ref(const std::vector<valid_mesh_ref*>& mesh_ptrs, const std::string* name)
+static valid_poly_ref* find_lib_poly_ref(const valid_library_refs& lib_refs,
+                                         const std::string& name)
 {
-	for (const auto mesh : mesh_ptrs) {
-		if (name && mesh && mesh->name && mesh->name == name) {
-			return mesh;
+	for (auto& poly_ref : lib_refs.lib_poly_refs.poly_refs) {
+		if (poly_ref.poly_def_name &&
+		    *poly_ref.poly_def_name == name) {
+			return const_cast<valid_poly_ref*>(&poly_ref);
 		}
 	}
 
 	return nullptr;
 }
 
-static void validate_resolve_lib_meshes_refs(const parse_lib_def& lib_defs,
-                                             const std::string path,
-                                             const valid_library_refs lib_refs,
-                                             errors_t& errs)
+static valid_mesh_ref* find_lib_mesh_ref(const valid_library_refs& lib_refs,
+                                         const std::string& name)
 {
-	DBG(path);
-	valid_mesh_refs mesh_refs = lib_refs.mesh_refs;
-	valid_poly_refs poly_refs = lib_refs.poly_refs;
+	for (auto& mesh_ref : lib_refs.lib_mesh_refs.mesh_refs) {
+		if (mesh_ref.mesh_def_name &&
+		    *mesh_ref.mesh_def_name == name) {
+			return const_cast<valid_mesh_ref*>(&mesh_ref);
+		}
+	}
+
+	return nullptr;
+}
+
+static valid_lib_elem_ref* find_lib_elem_ref(const valid_library_refs& lib_refs,
+                                             const std::string& name)
+{
+	for (auto& elem_ref : lib_refs.lib_elem_refs.elem_refs) {
+		if (elem_ref.elem_def_name &&
+		    *elem_ref.elem_def_name == name) {
+			return const_cast<valid_lib_elem_ref*>(&elem_ref);
+		}
+	}
+
+	return nullptr;
+}
+
+static valid_scn_elem_ref* find_scn_elem_ref(const valid_scene_ref& scn_ref,
+                                             const std::string& name)
+{
+	for (auto& elem_ref : scn_ref.scn_elem_refs) {
+		if (elem_ref.scn_elem_def_name &&
+		    *elem_ref.scn_elem_def_name == name) {
+			return const_cast<valid_scn_elem_ref*>(&elem_ref);
+		}
+	}
+
+	return nullptr;
+}
+
+static valid_scene_ref* find_scn_ref(const valid_scene_refs& scn_refs,
+                                     const std::string& name)
+{
+	for (auto& scn_ref : scn_refs.scene_ref_refs) {
+		if (scn_ref.scn_def_name &&
+		    *scn_ref.scn_def_name == name) {
+			return const_cast<valid_scene_ref*>(&scn_ref);
+		}
+	}
+
+	return nullptr;
+}
+
+static void validate_resolve_lib_poly_refs(const valid_library_refs& lib_refs,
+                                           const std::string path,
+                                           errors_t& errs)
+{
+	validate_key_t poly_keys = lib_refs.lib_poly_refs.poly_keys;
+	size_t refs_size = lib_refs.lib_poly_refs.poly_refs.size();
+	size_t keys_size = poly_keys.size();
+
+	// clang-format off
+	DBG(path + PFX + "poly_refs" + SPC + STR_SIZE +
+	    PFX + std::to_string(refs_size));
+	DBG(path + PFX + "poly_keys" + SPC + STR_SIZE +
+	    PFX + std::to_string(keys_size));
+	// clang-format on
+
+	if (!refs_size || !keys_size || refs_size != keys_size) {
+		// clang-format off
+		std::string err = path + PFX + JSON_STR_POLYS + SPC +
+				  STR_ARR + SPC + ERR_MISM +
+				  LP + std::to_string(refs_size) + SEP +
+				  std::to_string(keys_size) + RP;
+		// clang-format on
+
+		DBG(err);
+		add_error(err, errs);
+	}
+}
+
+static void validate_resolve_lib_mesh_poly_refs(const valid_library_refs& lib_refs,
+                                                const std::string& path,
+                                                valid_mesh_ref& vld_mesh_ref,
+                                                errors_t& errs)
+{
+	valid_poly_refs lib_poly_refs = lib_refs.lib_poly_refs;
+	validate_key_t poly_keys = vld_mesh_ref.mesh_poly_keys;
+	int i = 1;
+
+	for (auto& poly_key : poly_keys) {
+		std::string str = path + LB + std::to_string(i) + RB;
+		valid_poly_ref* poly_ref =
+			find_lib_poly_ref(lib_refs, poly_key);
+		if (!poly_ref) {
+			std::string err = str + SPC + QT + poly_key + QT + SPC + ERR_MISS;
+			DBG(err);
+			add_error(err, errs);
+		}
+		else {
+			DBG(str + SPC + QT + poly_key + QT + SPC + STR_FOUND);
+			vld_mesh_ref.mesh_poly_refs.emplace_back(*poly_ref);
+		}
+	}
+}
+
+static void validate_resolve_lib_mesh_refs(const valid_library_refs& lib_refs,
+                                           const std::string& path,
+                                           errors_t& errs)
+{
+	valid_mesh_refs lib_mesh_refs = lib_refs.lib_mesh_refs;
+	validate_key_t lib_mesh_keys = lib_mesh_refs.mesh_keys;
+	size_t refs_size = lib_mesh_refs.mesh_refs.size();
+	size_t keys_size = lib_mesh_keys.size();
+
+	// clang-format off
+	DBG(path + PFX + "mesh_refs" + SPC + STR_SIZE +
+	    PFX + std::to_string(refs_size));
+	DBG(path + PFX + "mesh_keys" + SPC + STR_SIZE +
+	    PFX + std::to_string(keys_size));
+	// clang-format on
+
+	if (!refs_size || !keys_size || refs_size != keys_size) {
+		// clang-format off
+		std::string err = path + PFX + JSON_STR_MESHS + SPC +
+				  STR_ARR + SPC + ERR_MISM +
+				  LP + std::to_string(refs_size) + SEP +
+				  std::to_string(keys_size) + RP;
+		// clang-format on
+
+		DBG(err);
+		add_error(err, errs);
+		return;
+	}
 
 	int i = 1;
-	DBG(path + PFX + "mesh_keys size:" + std::to_string(mesh_refs.mesh_keys.size()));
-	for (const auto& mesh_key : mesh_refs.mesh_keys) {
+	for (auto& mesh_key : lib_mesh_keys) {
 		std::string str = path + LB + std::to_string(i) + RB;
-		// clang-format off
-		DBG(str + DOT +  JSON_STR_NAME + PFX);
-		// clang-format on
+
+		valid_mesh_ref* mesh_ref = find_lib_mesh_ref(lib_refs, mesh_key);
+		if (!mesh_ref) {
+			std::string err = str + SPC + QT + mesh_key + QT + SPC + ERR_MISS;
+			DBG(err);
+			add_error(err, errs);
+		}
+		else {
+			DBG(str + SPC + QT + mesh_key + QT + SPC + STR_FOUND);
+			validate_resolve_lib_mesh_poly_refs(lib_refs,
+			                                    str + DOT + JSON_STR_POLYS,
+			                                    *mesh_ref,
+			                                    errs);
+		}
+
 		i++;
 	}
 }
 
-static void validate_resolve_lib_elems_refs(const parse_lib_def& lib_defs,
-                                            const std::string path,
-                                            const valid_library_refs lib_refs,
-                                            errors_t& errs)
+static void validate_resolve_lib_elem_mesh_ref(const valid_library_refs& lib_refs,
+                                               const std::string& path,
+                                               valid_lib_elem_ref& vld_elem_ref,
+                                               errors_t& errs)
 {
-	DBG(path);
+	valid_mesh_refs lib_mesh_refs = lib_refs.lib_mesh_refs;
+	const std::string mesh_key = *vld_elem_ref.elem_def_mesh;
+	valid_mesh_ref* mesh_ref = find_lib_mesh_ref(lib_refs, mesh_key);
+	if (!mesh_ref) {
+		// clang-format off
+		std::string err = path + DOT + JSON_STR_MESH +
+				  SPC + QT + mesh_key + QT + SPC + ERR_MISS;
+		// clang-format on
+
+		DBG(err);
+		add_error(err, errs);
+	}
+	else {
+		// clang-format off
+		DBG(path + DOT + JSON_STR_MESH + SPC +
+		    QT + mesh_key + QT + SPC + STR_FOUND);
+		// clang-format on
+
+		vld_elem_ref.elem_mesh_ref = *mesh_ref;
+	}
 }
 
-static void validate_resolve_lib_refs(const parse_lib_def& lib_defs,
-                                      const std::string path,
-                                      const valid_library_refs lib_refs,
+static void validate_resolve_lib_elem_refs(const valid_library_refs& lib_refs,
+                                           const std::string& path,
+                                           errors_t& errs)
+{
+	valid_lib_elem_refs lib_elem_refs = lib_refs.lib_elem_refs;
+	validate_key_t lib_elem_keys = lib_elem_refs.elem_keys;
+	size_t refs_size = lib_elem_refs.elem_refs.size();
+	size_t keys_size = lib_elem_keys.size();
+
+	// clang-format off
+	DBG(path + PFX + "lib_elem_refs" + SPC + STR_SIZE +
+	    PFX + std::to_string(refs_size));
+	DBG(path + PFX + "lib_elem_keys" + SPC + STR_SIZE +
+	    PFX + std::to_string(keys_size));
+	// clang-format on
+
+	if (!refs_size || !keys_size || refs_size != keys_size) {
+		// clang-format off
+		std::string err = path + PFX + JSON_STR_LIB + SPC +
+				  JSON_STR_ELEMS + SPC +
+				  STR_ARR + SPC + ERR_MISM +
+				  LP + std::to_string(refs_size) + SEP +
+				  std::to_string(keys_size) + RP;
+		// clang-format on
+
+		DBG(err);
+		add_error(err, errs);
+		return;
+	}
+
+	int i = 1;
+	for (auto& lib_elem_key : lib_elem_keys) {
+		std::string str = path + LB + std::to_string(i) + RB;
+
+		valid_lib_elem_ref* elem_ref = find_lib_elem_ref(lib_refs, lib_elem_key);
+		if (!elem_ref) {
+			// clang-format off
+			std::string err = str + DOT + JSON_STR_NAME + SPC +
+					  QT + lib_elem_key + QT + SPC + ERR_MISS;
+			// clang-format on
+
+			DBG(err);
+			add_error(err, errs);
+		}
+		else {
+			// clang-format off
+			DBG(str + DOT + JSON_STR_NAME + SPC +
+			    QT + lib_elem_key + QT + SPC + STR_FOUND);
+			// clang-format on
+
+			validate_resolve_lib_elem_mesh_ref(lib_refs, str, *elem_ref, errs);
+		}
+
+		i++;
+	}
+}
+
+static void validate_resolve_lib_refs(const std::string& path,
+                                      valid_library_refs& lib_refs,
                                       errors_t& errs)
 {
-	validate_resolve_lib_meshes_refs(lib_defs,
-	                                 path + DOT + JSON_STR_MESHS,
-	                                 lib_refs,
-	                                 errs);
+	validate_resolve_lib_poly_refs(lib_refs,
+	                               path + DOT + JSON_STR_POLYS,
+	                               errs);
+	if (errs.size()) {
+		return;
+	}
 
-	validate_resolve_lib_elems_refs(lib_defs,
-	                                path + DOT + JSON_STR_ELEMS,
-	                                lib_refs,
-	                                errs);
+	validate_resolve_lib_mesh_refs(lib_refs,
+	                               path + DOT + JSON_STR_MESHS,
+	                               errs);
+	if (errs.size()) {
+		return;
+	}
+
+	validate_resolve_lib_elem_refs(lib_refs,
+	                               path + DOT + JSON_STR_ELEMS,
+	                               errs);
 }
 
-static void validate_resolve_scenes_keys(const AST& ast, const std::string path, errors_t& errs)
+static void validate_resolve_scene_elem_ref(const valid_library_refs& lib_refs,
+                                            const std::string& path,
+                                            valid_scn_elem_ref& scn_elem_ref,
+                                            errors_t& errs)
 {
+	if (scn_elem_ref.scn_elem_def_ref) {
+		std::string lib_elem_name = *scn_elem_ref.scn_elem_def_ref;
+		valid_lib_elem_ref* lib_elem = find_lib_elem_ref(lib_refs, lib_elem_name);
+		if (!lib_elem) {
+			// clang-format off
+			std::string err = path + DOT + JSON_STR_REF + SPC +
+					  QT + lib_elem_name + QT + SPC + ERR_MISS;
+			// clang-format on
+
+			DBG(err);
+			add_error(err, errs);
+		}
+		else {
+			// clang-format off
+			DBG(path + DOT + JSON_STR_REF + SPC +
+			    QT + lib_elem_name + QT + SPC + STR_FOUND);
+			// clang-format on
+		}
+	}
 }
 
-static void validate_resolve_scenes_refs(const AST& ast, const std::string path, errors_t& errs)
+static void validate_resolve_scene_ref(const valid_library_refs& lib_refs,
+                                       const std::string& path,
+                                       valid_scene_ref& vld_scn_ref,
+                                       errors_t& errs)
 {
+	validate_key_t scn_elem_keys = vld_scn_ref.scn_elem_keys;
+
+	size_t refs_size = vld_scn_ref.scn_elem_refs.size();
+	size_t keys_size = scn_elem_keys.size();
+
+	// clang-format off
+	DBG(path + DOT + JSON_STR_NAME + PFX +
+	    QT + *vld_scn_ref.scn_def_name + QT);
+	DBG(path + PFX + "scn_elem_refs" + SPC +
+	    STR_SIZE + PFX + std::to_string(refs_size));
+	DBG(path + PFX + "scn_elem_keys" + SPC +
+	    STR_SIZE + PFX + std::to_string(keys_size));
+	// clang-format on
+
+	std::string local_path = path + DOT + JSON_STR_ELEMS;
+	if (!refs_size || !keys_size || refs_size != keys_size) {
+		// clang-format off
+		std::string err = local_path + SPC +
+				  STR_ARR + SPC + ERR_MISM +
+				  LP + std::to_string(refs_size) + SEP +
+				  std::to_string(keys_size) + RP;
+		// clang-format on
+
+		DBG(err);
+		add_error(err, errs);
+		return;
+	}
+
+	int i = 1;
+	for (auto& scn_elem_key : scn_elem_keys) {
+		std::string str = local_path + LB + std::to_string(i) + RB;
+
+		valid_scn_elem_ref* scn_elem_ref =
+			find_scn_elem_ref(vld_scn_ref, scn_elem_key);
+		if (!scn_elem_ref) {
+			// clang-format off
+			std::string err = str + DOT + JSON_STR_NAME +
+					  SPC + QT + scn_elem_key + QT + SPC + ERR_MISS;
+			// clang-format on
+
+			DBG(err);
+			add_error(err, errs);
+		}
+		else {
+			// clang-format off
+			DBG(str + DOT + JSON_STR_NAME + SPC +
+			    QT + scn_elem_key + QT + SPC + STR_FOUND);
+			// clang-format on
+
+			if (scn_elem_ref->scn_elem_def_parent) {
+				std::string parent_name = *scn_elem_ref->scn_elem_def_parent;
+				valid_scn_elem_ref* scn_elem =
+					find_scn_elem_ref(vld_scn_ref, parent_name);
+				if (!scn_elem) {
+					// clang-format off
+					std::string err = str + DOT + JSON_STR_PAREN + SPC +
+							  QT + parent_name + QT + SPC + ERR_MISS;
+					// clang-format on
+
+					DBG(err);
+					add_error(err, errs);
+				}
+				else {
+					// clang-format off
+					DBG(str + DOT + JSON_STR_PAREN + SPC +
+					    QT + parent_name + QT + SPC + STR_FOUND);
+					// clang-format on
+				}
+			}
+
+			validate_resolve_scene_elem_ref(lib_refs, str, *scn_elem_ref, errs);
+		}
+
+		i++;
+	}
 }
 
-static void validate_resolve_references(const AST& ast, const std::string path, errors_t& errs)
+static void validate_resolve_scene_refs(const valid_library_refs& lib_refs,
+                                        const std::string& path,
+                                        valid_scene_refs& scn_refs,
+                                        errors_t& errs)
+{
+	validate_key_t scn_keys = scn_refs.scene_ref_keys;
+
+	size_t refs_size = scn_refs.scene_ref_refs.size();
+	size_t keys_size = scn_keys.size();
+
+	// clang-format off
+	DBG(path + PFX + "scenes_refs" + SPC +
+	    STR_SIZE + PFX + std::to_string(refs_size));
+	DBG(path + PFX + "scenes_keys" + SPC +
+	    STR_SIZE + PFX + std::to_string(keys_size));
+	// clang-format on
+
+	if (!refs_size || !keys_size || refs_size != keys_size) {
+		// clang-format off
+		std::string err = path + PFX + JSON_STR_SCNS + SPC +
+				  STR_ARR + SPC + ERR_MISM +
+				  LP + std::to_string(refs_size) + SEP +
+				  std::to_string(keys_size) + RP;
+		// clang-format on
+
+		DBG(err);
+		add_error(err, errs);
+		return;
+	}
+
+	int i = 1;
+	for (auto& scn_key : scn_keys) {
+		// clang-format off
+		std::string str = path + DOT + STR_SCN +
+				  LB + std::to_string(i) + RB;
+		// clang-format on
+
+		valid_scene_ref* scene_ref = find_scn_ref(scn_refs, scn_key);
+		if (!scene_ref) {
+			// clang-format off
+			std::string err = str + SPC + QT +
+					  scn_key + QT + SPC + ERR_MISS;
+			// clang-format on
+
+			DBG(err);
+			add_error(err, errs);
+		}
+		else {
+			// clang-format off
+			DBG(str + SPC + QT + scn_key + QT +
+			    SPC + STR_FOUND);
+			// clang-format on
+
+			validate_resolve_scene_ref(lib_refs, str, *scene_ref, errs);
+		}
+
+		i++;
+	}
+}
+
+static void validate_resolve_references(AST& ast,
+                                        const std::string& path,
+                                        errors_t& errs)
 {
 	std::string lib_path = path + PFX + "resolve" + PFX + JSON_STR_LIB;
 	DBG(lib_path);
-	validate_resolve_lib_refs(ast.library_defs,
-	                          lib_path,
+
+	validate_resolve_lib_refs(lib_path,
 	                          ast.valid_references.valid_lib_refs,
 	                          errs);
 	if (errs.size()) {
 		return;
 	}
 
-#if 0
 	std::string scenes_path = path + PFX + "resolve" + PFX + JSON_STR_SCNS;
 	DBG(scenes_path);
-	validate_resolve_scenes_keys(ast, scenes_path, errs);
-	validate_resolve_scenes_refs(ast, scenes_path, errs);
-#endif // 0
+	validate_resolve_scene_refs(ast.valid_references.valid_lib_refs,
+	                            scenes_path,
+	                            ast.valid_references.valid_scn_refs,
+	                            errs);
 }
-#endif // 0
+
 /* resolve end */
 
-static void validate_references(AST& ast, const std::string path, errors_t& errs)
+static void validate_references(AST& ast,
+                                const std::string& path,
+                                errors_t& errs)
 {
 	std::string local_path = path + STR_REFS;
 	DBG(local_path);
@@ -1126,15 +1637,11 @@ static void validate_references(AST& ast, const std::string path, errors_t& errs
 		return;
 	}
 
-	if (errs.size()) {
-		return;
-	}
+	// #ifdef DEBUG_PRINTS
+	// 	validate_print_refs(ast.valid_references, local_path);
+	// #endif // DEBUG_PRINTS
 
-#ifdef DEBUG_PRINTS
-	validate_print_refs(ast.valid_references, local_path);
-#endif // DEBUG_PRINTS
-
-	// validate_resolve_references(ast, local_path, errs);
+	validate_resolve_references(ast, local_path, errs);
 }
 
 /* references validation end */
@@ -1154,14 +1661,21 @@ bool validate_ast(AST& ast)
 
 	validate_values(ast, path, errs);
 	if (errs.size()) {
-		PRN(ERR_PFX + STR_VAL + SPC + STR_VALS + PFX + ERR_DET + NL);
+		// clang-format off
+		PRN(ERR_PFX + STR_VAL + SPC + STR_VALS +
+		    PFX + ERR_DET + NL);
+		// clang-format on
+
 		print_errors(errs);
 		return false;
 	}
 
 	validate_references(ast, path, errs);
 	if (errs.size()) {
-		PRN(ERR_PFX + STR_VAL + SPC + STR_REFS + PFX + ERR_DET + NL);
+		// clang-format off
+		PRN(ERR_PFX + STR_VAL + SPC + STR_REFS +
+		    PFX + ERR_DET + NL);
+		// clang-format on
 		print_errors(errs);
 		return false;
 	}
