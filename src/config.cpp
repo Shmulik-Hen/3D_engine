@@ -53,7 +53,7 @@ void add_error(const std::string& err, errors_t& errs)
 	errs.push_back(err);
 }
 
-void print_errors(const config_ns::errors_t errs, const std::string pfx)
+void print_errors(const config_ns::errors_t& errs, const std::string& pfx)
 {
 	for (const auto& err : errs) {
 		PRN(TAB + escape_control_chars(pfx) + escape_control_chars(err) + NL);

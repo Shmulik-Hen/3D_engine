@@ -119,8 +119,9 @@ constexpr std::string_view ERR_FAILW = "failed with";
 constexpr std::string_view ERR_DET   = "errors detected !";
 constexpr std::string_view ERR_UNK   = "unknown fields detected";
 constexpr std::string_view ERR_UNS   = "unsupported field";
-constexpr std::string_view ERR_DUP   = "duplicate";
+constexpr std::string_view ERR_DUP   = "duplicates";
 constexpr std::string_view ERR_MISM  = "mismatch";
+constexpr std::string_view ERR_INTR  = "internal error";
 // clang-format on
 
 const std::unordered_set<std::string> valid_field_names = {
@@ -322,7 +323,7 @@ struct valid_poly_refs
 struct valid_mesh_ref
 {
 	validate_key_t mesh_poly_keys;
-	std::deque<valid_poly_ref> mesh_poly_refs;
+	std::deque<valid_poly_ref*> mesh_poly_refs;
 	const std::string* mesh_def_name = nullptr;
 	const parse_mesh_def* mesh_def_ptr = nullptr;
 };
@@ -335,7 +336,7 @@ struct valid_mesh_refs
 
 struct valid_lib_elem_ref
 {
-	valid_mesh_ref elem_mesh_ref;
+	valid_mesh_ref* elem_mesh_ref = nullptr;
 	const std::string* elem_def_name = nullptr;
 	const std::string* elem_def_mesh = nullptr;
 	const parse_lib_elem_def* elem_def_ptr = nullptr;
@@ -359,7 +360,8 @@ struct valid_library_refs
 
 struct valid_scn_elem_ref
 {
-	valid_lib_elem_ref lib_elem_ref;
+	valid_lib_elem_ref* lib_elem_ref = nullptr;
+	valid_scn_elem_ref* scn_parent_ref = nullptr;
 	const std::string* scn_elem_def_name = nullptr;
 	const std::string* scn_elem_def_ref = nullptr;
 	const std::string* scn_elem_def_parent = nullptr;
@@ -411,7 +413,7 @@ struct element_def
 };
 
 void add_error(const std::string& err, errors_t& errs);
-void print_errors(const config_ns::errors_t errs, const std::string str = "");
+void print_errors(const config_ns::errors_t& errs, const std::string& str = "");
 std::string_view get_att_name(const uint32_t i);
 std::string_view get_coord_name(const uint32_t i);
 std::string set_precision(const unit val, const uint32_t digits = 3);
