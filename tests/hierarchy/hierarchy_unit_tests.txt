@@ -1,0 +1,90 @@
+1. correct structure:
+
+	No messages
+
+Status = pass.
+
+2. root's parent is its own name:
+
+	Error: validate hierarchy: errors detected !
+	validate: hierarchy: roots: scenes.scene[1].elements[1]: scene element cannot be its own parent ("world", "world")
+	validate: hierarchy: roots: scenes.scene[1]: scene root element not found
+	Fatal: scene->validate() failed
+
+Status = pass.
+
+3. gimbal's parent is null:
+
+	Error: validate hierarchy: errors detected !
+	validate: hierarchy: roots: scenes.scene[1]: multiple scene root elements are not allowed: "world", "gimbal",
+	Fatal: scene->validate() failed
+
+Status = pass.
+
+4. gimbal's parent is its own name:
+
+	Error: validate hierarchy: errors detected !
+	validate: hierarchy: roots: scenes.scene[1].elements[2]: scene element cannot be its own parent ("gimbal", "gimbal")
+	Fatal: scene->validate() failed
+
+Status = pass.
+
+5. Two-element cycle, with a separate valid root:
+
+	Error: validate hierarchy: errors detected !
+	validate: hierarchy: cycles: scenes.scene[1].elements[2]: scene element parent cycle errors detected !: "gimbal"->"cube_1"->"gimbal"
+	Fatal: scene->validate() failed
+
+Status = pass.
+
+6. Three-element cycle, with a separate valid root:
+
+	Error: validate hierarchy: errors detected !
+	validate: hierarchy: cycles: scenes.scene[1].elements[2]: scene element parent cycle errors detected !: "gimbal"->"cube_1"->"cube_2"->"gimbal"
+	Fatal: scene->validate() failed
+
+Status = pass.
+
+7. Four-element cycle, with a separate valid root:
+
+	Error: validate hierarchy: errors detected !
+	validate: hierarchy: cycles: scenes.scene[1].elements[2]: scene element parent cycle errors detected !: "gimbal"->"cube_1"->"cube_2"->"cube_3"->"gimbal"
+	Fatal: scene->validate() failed
+
+Status = pass.
+
+8. Two disconnected cycles, with a valid root:
+
+	Error: validate hierarchy: errors detected !
+	validate: hierarchy: cycles: scenes.scene[1].elements[3]: scene element parent cycle errors detected !: "cube_1"->"cube_2"->"cube_3"->"cube_1"
+	validate: hierarchy: cycles: scenes.scene[1].elements[6]: scene element parent cycle errors detected !: "cube_4"->"cube_5"->"cube_6"->"cube_4"
+	Fatal: scene->validate() failed
+
+Status = pass.
+
+9. No root, all elements forming a cycle:
+
+	Error: validate hierarchy: errors detected !
+	validate: hierarchy: roots: scenes.scene[1]: scene root element not found
+	validate: hierarchy: cycles: scenes.scene[1].elements[1]: scene element parent cycle errors detected !: "world"->"gimbal"->"cube_1"->"cube_2"->"cube_3"->"cube_4"->"cube_5""cube_6""world"
+	Fatal: scene->validate() failed
+
+Status = pass.
+
+10. Multiple roots, plus a separate cycle:
+
+	Error: validate hierarchy: errors detected !
+	validate: hierarchy: roots: scenes.scene[1]: multiple scene root elements are not allowed: "world", "gimbal",
+	validate: hierarchy: cycles: scenes.scene[1].elements[3]: scene element parent cycle errors detected !: "cube_1"->"cube_2"->"cube_3"->"cube_4"->"cube_5"->"cube_6""cube_1"
+	Fatal: scene->validate() failed
+
+Status = pass.
+
+11. Invalid hierarchy in scene 1, valid hierarchy in scene 2, cycle in scene 3:
+
+	Error: validate hierarchy: errors detected !
+	scenes.scene[1]: roots: scenes.scene[1]: multiple scene root elements are not allowed: "world", "gimbal",
+	scenes.scene[3]: cycles: scenes.scene[3].elements[2]: scene element parent cycle errors detected !: "gimbal"->"cube"->"pyramid"->"gimbal"
+	Fatal: scene->validate() failed
+
+Status = pass.

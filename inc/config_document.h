@@ -122,6 +122,11 @@ constexpr std::string_view ERR_UNS   = "unsupported field";
 constexpr std::string_view ERR_DUP   = "duplicates";
 constexpr std::string_view ERR_MISM  = "mismatch";
 constexpr std::string_view ERR_INTR  = "internal error";
+constexpr std::string_view ERR_ROOTS = "multiple scene root elements are not allowed";
+constexpr std::string_view ERR_NROOT = "scene root element not found";
+constexpr std::string_view ERR_SELF  = "scene element cannot be its own parent";
+constexpr std::string_view ERR_CYCLE = "scene element parent cycle";
+
 // clang-format on
 
 const std::unordered_set<std::string> valid_field_names = {
@@ -411,6 +416,11 @@ struct element_def
 	std::optional<attrib> origin;
 	std::optional<attrib> motion;
 };
+
+inline const std::string make_key(const std::string& a, const std::string& b)
+{
+	return a + ":" + b;
+}
 
 void add_error(const std::string& err, errors_t& errs);
 void print_errors(const config_ns::errors_t& errs, const std::string& str = "");

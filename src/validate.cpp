@@ -12,7 +12,7 @@ namespace config_ns
 static void check_range_real(const unit val,
                              const unit min,
                              const unit max,
-                             const std::string path,
+                             const std::string& path,
                              errors_t& errs)
 {
 	if (!std::isfinite(val) || val < min || val > max) {
@@ -30,7 +30,7 @@ static void check_range_real(const unit val,
 static void check_range_int(const int val,
                             const int min,
                             const int max,
-                            const std::string path,
+                            const std::string& path,
                             errors_t& errs)
 {
 	if (val < min || val > max) {
@@ -48,7 +48,7 @@ static void check_range_int(const int val,
 static void check_range_uint(const uint32_t val,
                              const uint32_t min,
                              const uint32_t max,
-                             const std::string path,
+                             const std::string& path,
                              errors_t& errs)
 {
 	if (val < min || val > max) {
@@ -64,7 +64,7 @@ static void check_range_uint(const uint32_t val,
 }
 
 static void validate_attrib_values(const attrib& att,
-                                   const std::string path,
+                                   const std::string& path,
                                    errors_t& errs,
                                    const valid_values_def& valid_values [[maybe_unused]])
 {
@@ -86,7 +86,7 @@ static void validate_attrib_values(const attrib& att,
 }
 
 static void validate_vector_values(const vector_3& vec,
-                                   const std::string path,
+                                   const std::string& path,
                                    errors_t& errs,
                                    const valid_values_def& valid_values [[maybe_unused]])
 {
@@ -108,7 +108,7 @@ static void validate_vector_values(const vector_3& vec,
 }
 
 static void validate_polygon_values(const parse_poly_def& poly,
-                                    const std::string path,
+                                    const std::string& path,
                                     errors_t& errs,
                                     const valid_values_def& valid_values [[maybe_unused]])
 {
@@ -157,7 +157,7 @@ static void validate_polygon_values(const parse_poly_def& poly,
 }
 
 static void validate_mesh_values(const parse_mesh_def& mesh,
-                                 const std::string path,
+                                 const std::string& path,
                                  errors_t& errs,
                                  const valid_values_def& valid_values [[maybe_unused]])
 {
@@ -206,7 +206,7 @@ static void validate_mesh_values(const parse_mesh_def& mesh,
 }
 
 static void validate_lib_elem_values(const parse_lib_elem_def& elem,
-                                     const std::string path,
+                                     const std::string& path,
                                      errors_t& errs,
                                      const valid_values_def& valid_values [[maybe_unused]])
 {
@@ -232,7 +232,7 @@ static void validate_lib_elem_values(const parse_lib_elem_def& elem,
 }
 
 static void validate_library_values(const parse_lib_def& lib,
-                                    const std::string path,
+                                    const std::string& path,
                                     errors_t& errs,
                                     const valid_values_def& valid_values [[maybe_unused]])
 {
@@ -319,7 +319,7 @@ static void validate_library_values(const parse_lib_def& lib,
 }
 
 static void validate_scene_elem_values(const parse_scn_elem_def& elem,
-                                       const std::string path,
+                                       const std::string& path,
                                        errors_t& errs,
                                        const valid_values_def& valid_values [[maybe_unused]])
 {
@@ -376,7 +376,7 @@ static void validate_scene_elem_values(const parse_scn_elem_def& elem,
 }
 
 static void validate_environment_values(const parse_env_def& env,
-                                        const std::string path,
+                                        const std::string& path,
                                         errors_t& errs,
                                         const valid_values_def& valid_values [[maybe_unused]])
 {
@@ -473,7 +473,7 @@ static void validate_environment_values(const parse_env_def& env,
 }
 
 static void validate_runtime_values(const parse_run_def& run,
-                                    const std::string path,
+                                    const std::string& path,
                                     errors_t& errs,
                                     const valid_values_def& valid_values [[maybe_unused]])
 {
@@ -507,7 +507,7 @@ static void validate_runtime_values(const parse_run_def& run,
 }
 
 static void validate_scene_values(const parse_scn_def& scene,
-                                  const std::string path,
+                                  const std::string& path,
                                   errors_t& errs,
                                   const valid_values_def& valid_values [[maybe_unused]])
 {
@@ -564,7 +564,7 @@ static void validate_scene_values(const parse_scn_def& scene,
 }
 
 static void validate_values(const AST& ast,
-                            const std::string path,
+                            const std::string& path,
                             errors_t& errs)
 {
 	std::string local_path = path + STR_VALS;
@@ -625,7 +625,7 @@ static void report_duplicates(const std::string& path,
 }
 
 static void validate_collect_lib_poly_refs(const parse_lib_def& lib_defs,
-                                           const std::string path,
+                                           const std::string& path,
                                            valid_poly_refs& vld_poly_refs,
                                            errors_t& errs)
 {
@@ -662,7 +662,7 @@ static void validate_collect_lib_poly_refs(const parse_lib_def& lib_defs,
 }
 
 static void validate_collect_lib_mesh_poly_refs(const parse_mesh_def& mesh_def,
-                                                const std::string path,
+                                                const std::string& path,
                                                 valid_mesh_ref& vld_mesh_ref,
                                                 errors_t& errs)
 {
@@ -699,7 +699,7 @@ static void validate_collect_lib_mesh_poly_refs(const parse_mesh_def& mesh_def,
 }
 
 static void validate_collect_lib_mesh_refs(const parse_lib_def& lib_defs,
-                                           const std::string path,
+                                           const std::string& path,
                                            valid_mesh_refs& vld_mesh_refs,
                                            errors_t& errs)
 {
@@ -740,7 +740,7 @@ static void validate_collect_lib_mesh_refs(const parse_lib_def& lib_defs,
 }
 
 static void validate_collect_lib_elem_refs(const parse_lib_def& lib_defs,
-                                           const std::string path,
+                                           const std::string& path,
                                            valid_lib_elem_refs& vld_elem_refs,
                                            errors_t& errs)
 {
@@ -781,7 +781,7 @@ static void validate_collect_lib_elem_refs(const parse_lib_def& lib_defs,
 }
 
 static void validate_collect_lib_refs(const parse_lib_def& lib_defs,
-                                      const std::string path,
+                                      const std::string& path,
                                       valid_library_refs& lib_refs,
                                       errors_t& errs)
 {
@@ -802,7 +802,7 @@ static void validate_collect_lib_refs(const parse_lib_def& lib_defs,
 }
 
 static void validate_collect_scn_elem_ref(const parse_scn_elem_def& scn_elem_def,
-                                          const std::string path [[maybe_unused]],
+                                          const std::string& path [[maybe_unused]],
                                           valid_scn_elem_ref& vld_scn_elem_ref)
 {
 	vld_scn_elem_ref.scn_elem_def_ptr = &scn_elem_def;
@@ -837,7 +837,7 @@ static void validate_collect_scn_elem_ref(const parse_scn_elem_def& scn_elem_def
 }
 
 static void validate_collect_scene_ref(const parse_scn_def& scn_def,
-                                       const std::string path,
+                                       const std::string& path,
                                        valid_scene_ref& vld_scn_ref,
                                        errors_t& errs)
 {
@@ -879,7 +879,7 @@ static void validate_collect_scene_ref(const parse_scn_def& scn_def,
 }
 
 static void validate_collect_scene_refs(AST& ast,
-                                        const std::string path,
+                                        const std::string& path,
                                         valid_scene_refs& vld_scn_refs,
                                         errors_t& errs)
 {
@@ -920,7 +920,7 @@ static void validate_collect_scene_refs(AST& ast,
 }
 
 static void validate_collect_references(AST& ast,
-                                        const std::string path,
+                                        const std::string& path,
                                         errors_t& errs)
 {
 	std::string local_path = path + PFX + "collect";
@@ -943,189 +943,6 @@ static void validate_collect_references(AST& ast,
 	                            errs);
 }
 /* collect end */
-
-#ifdef DEBUG_PRINTS
-static void validate_print_lib_poly_refs(const valid_poly_refs& val_poly_refs,
-                                         const std::string path)
-{
-	// clang-format off
-	DBG(path + PFX + "poly_keys" + PFX + STR_SIZE +
-	    PFX + std::to_string(val_poly_refs.poly_keys.size()));
-	DBG(path + PFX + "poly_refs" + PFX + STR_SIZE +
-	    PFX + std::to_string(val_poly_refs.poly_refs.size()));
-	// clang-format on
-
-	int i = 0;
-	for (const auto& poly_ref : val_poly_refs.poly_refs) {
-		std::string str = path + LB + std::to_string(++i) + RB;
-		// clang-format off
-		DBG(str + DOT + JSON_STR_NAME + PFX +
-		    QT + *poly_ref.poly_def_name + QT);
-		// clang-format on
-	}
-}
-
-static void validate_print_lib_mesh_refs(const valid_mesh_refs& vld_mesh_refs,
-                                         const std::string path)
-{
-	// clang-format off
-	DBG(path + PFX + "mesh_keys" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_mesh_refs.mesh_keys.size()));
-	DBG(path + PFX + "mesh_refs" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_mesh_refs.mesh_refs.size()));
-	// clang-format on
-
-	int i = 0;
-	for (const auto& mesh_ref : vld_mesh_refs.mesh_refs) {
-		std::string str = path + LB + std::to_string(++i) + RB;
-		// clang-format off
-		DBG(str + DOT + JSON_STR_NAME + PFX +
-		    QT + *mesh_ref.mesh_def_name + QT);
-
-		DBG(str + PFX + STR_NUM + SPC + JSON_STR_POLYS +
-		    PFX + std::to_string(mesh_ref.mesh_poly_keys.size()));
-		// clang-format on
-
-		std::string poly_path = str + DOT + JSON_STR_POLYS;
-		int j = 0;
-		for (const auto& poly_name : mesh_ref.mesh_poly_keys) {
-			// clang-format off
-			std::string poly_path = str + DOT + JSON_STR_POLYS +
-						LB + std::to_string(++j) + RB;
-			// clang-format on
-
-			DBG(poly_path + PFX + QT + poly_name + QT);
-		}
-	}
-}
-
-static void validate_print_lib_elem_refs(valid_lib_elem_refs vld_elem_refs,
-                                         const std::string path)
-{
-	// clang-format off
-	DBG(path + PFX + "elem_keys" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_elem_refs.elem_keys.size()));
-	DBG(path + PFX + "elem_refs" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_elem_refs.elem_refs.size()));
-	// clang-format on
-
-	int i = 0;
-	for (const auto& elem_ref : vld_elem_refs.elem_refs) {
-		std::string str = path + LB + std::to_string(++i) + RB;
-		// clang-format off
-		DBG(str + DOT + JSON_STR_NAME + PFX +
-		    QT + *elem_ref.elem_def_name + QT);
-		DBG(str + DOT + JSON_STR_MESH + PFX +
-		    QT + *elem_ref.elem_def_mesh + QT);
-		// clang-format on
-	}
-}
-
-static void validate_print_lib_refs(const valid_library_refs& lib_refs,
-                                    const std::string path)
-{
-	validate_print_lib_poly_refs(lib_refs.lib_poly_refs,
-	                             path + DOT + JSON_STR_POLYS);
-
-	validate_print_lib_mesh_refs(lib_refs.lib_mesh_refs,
-	                             path + DOT + JSON_STR_MESHS);
-
-	validate_print_lib_elem_refs(lib_refs.lib_elem_refs,
-	                             path + DOT + JSON_STR_ELEMS);
-}
-
-static void validate_print_scn_elem_ref(const valid_scn_elem_ref& vld_scn_elem_ref,
-                                        const std::string path)
-{
-	if (vld_scn_elem_ref.scn_elem_def_name) {
-		// clang-format off
-		DBG(path + DOT + JSON_STR_NAME + PFX +
-		    QT + *vld_scn_elem_ref.scn_elem_def_name + QT);
-		// clang-format on
-	}
-	else {
-		DBG(path + DOT + JSON_STR_NAME + PFX + ERR_NULL + "!");
-	}
-
-	if (vld_scn_elem_ref.scn_elem_def_parent) {
-		// clang-format off
-		DBG(path + DOT + JSON_STR_PAREN + PFX +
-		    QT + *vld_scn_elem_ref.scn_elem_def_parent + QT);
-		// clang-format on
-	}
-	else {
-		DBG(path + DOT + JSON_STR_PAREN + PFX + ERR_NULL);
-	}
-
-	if (vld_scn_elem_ref.scn_elem_def_ref) {
-		// clang-format off
-		DBG(path + DOT + JSON_STR_REF + PFX +
-		    QT + *vld_scn_elem_ref.scn_elem_def_ref + QT);
-		// clang-format on
-	}
-	else {
-		DBG(path + DOT + JSON_STR_REF + PFX + ERR_NULL);
-	}
-}
-
-static void validate_print_scene_ref(const valid_scene_ref& vld_scn_ref,
-                                     const std::string path)
-{
-	// clang-format off
-	DBG(path + DOT + JSON_STR_NAME + PFX +
-	    QT + *vld_scn_ref.scn_def_name + QT);
-	DBG(path + PFX + "scene_elem_keys" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_scn_ref.scn_elem_keys.size()));
-	DBG(path + PFX + "scene_elem_refs" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_scn_ref.scn_elem_refs.size()));
-	// clang-format on
-
-	int i = 0;
-	for (const auto& elem_ref : vld_scn_ref.scn_elem_refs) {
-		// clang-format off
-		std::string str = path + DOT + JSON_STR_ELEMS +
-				  LB + std::to_string(++i) + RB;
-		// clang-format on
-
-		validate_print_scn_elem_ref(elem_ref, str);
-	}
-}
-
-static void validate_print_scene_refs(const valid_scene_refs& vld_scn_refs,
-                                      const std::string path)
-{
-	// clang-format off
-	DBG(path + PFX + "scene_keys" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_scn_refs.scene_ref_keys.size()));
-	DBG(path + PFX + "scene_refs" + PFX + STR_SIZE +
-	    PFX + std::to_string(vld_scn_refs.scene_ref_refs.size()));
-	// clang-format on
-
-	int i = 0;
-	for (const auto& scn_ref : vld_scn_refs.scene_ref_refs) {
-		// clang-format off
-		std::string str = path + DOT + STR_SCN +
-				  LB + std::to_string(++i) + RB;
-		// clang-format on
-
-		validate_print_scene_ref(scn_ref, str);
-	}
-}
-
-static void validate_print_refs(const valid_refs& valid_refs,
-                                const std::string path)
-{
-	std::string lib_path = path + PFX + "print" + PFX + JSON_STR_LIB;
-	DBG(lib_path);
-	validate_print_lib_refs(valid_refs.valid_lib_refs,
-	                        lib_path);
-
-	std::string scenes_path = path + PFX + "print" + PFX + JSON_STR_SCNS;
-	DBG(scenes_path);
-	validate_print_scene_refs(valid_refs.valid_scn_refs,
-	                          scenes_path);
-}
-#endif // DEBUG_PRINTS
 
 /* resolve */
 static valid_poly_ref* find_lib_poly_ref(const valid_library_refs& lib_refs,
@@ -1210,7 +1027,7 @@ static void check_array_mismatch(const std::string& path,
 }
 
 static void validate_resolve_lib_poly_refs(const valid_library_refs& lib_refs,
-                                           const std::string path,
+                                           const std::string& path,
                                            errors_t& errs [[maybe_unused]])
 {
 	const auto& poly_keys = lib_refs.lib_poly_refs.poly_keys;
@@ -1575,20 +1392,194 @@ static void validate_references(AST& ast,
 		return;
 	}
 
-	// #ifdef DEBUG_PRINTS
-	// 	validate_print_refs(ast.valid_references, local_path);
-	// #endif // DEBUG_PRINTS
-
 	validate_resolve_references(ast, local_path, errs);
 }
 
 /* references validation end */
 
-#if 0
-static void validate_hierarchy(const AST& ast, const std::string path, errors_t& errs)
+/* hierarchy validation */
+static void validate_hierarchy_check_roots(const valid_scene_ref& scn_ref,
+                                           const std::string& path,
+                                           errors_t& errs)
 {
+	DBG(path + PFX + QT + *scn_ref.scn_def_name + QT);
+
+	std::vector<std::string> parent_names;
+	parent_names.clear();
+
+	size_t prev_errs_size = errs.size();
+	int roots = 0, i = 0;
+	for (const auto& elem_ref : scn_ref.scn_elem_refs) {
+		// clang-format off
+		std::string elem_path = path + DOT + JSON_STR_ELEMS +
+					LB + std::to_string(++i) + RB;
+		// clang-format on
+
+		validate_key_t elem_keys;
+		const std::string& name = *elem_ref.scn_elem_def_name;
+		const std::string* parent = elem_ref.scn_elem_def_parent;
+		std::string parent_name = parent ? *parent : "\"\"";
+
+		// clang-format off
+		DBG(elem_path + PFX +
+		    "name: " + QT + name + QT + SEP +
+		    "parent: " + QT + parent_name + QT);
+		// clang-format on
+
+		if (!elem_ref.scn_elem_def_parent) {
+			roots++;
+			parent_names.push_back(std::move(name));
+
+			// clang-format off
+			DBG(elem_path + PFX + "parent: " + "is null");
+			DBG(elem_path + PFX + "num roots" +
+			    PFX + std::to_string(roots));
+			// clang-format on
+		}
+		else {
+			DBG(elem_path + PFX + "parent: " + QT + parent_name + QT);
+			// clang-format off
+			if (parent && name == *parent) {
+				std::string err = elem_path + PFX + ERR_SELF + SPC +
+						  LP + QT + name + QT + SEP +
+						  QT + parent_name + QT + RP;
+				// clang-format on
+
+				DBG(err);
+				add_error(err, errs);
+			}
+		}
+
+		if (prev_errs_size != errs.size()) {
+			break;
+		}
+	}
+
+	// clang-format off
+	DBG(path + PFX + QT + *scn_ref.scn_def_name + QT + PFX +
+	    "final num roots" + PFX + std::to_string(roots));
+	// clang-format on
+
+	if (roots < 1) {
+		DBG(path + PFX + ERR_NROOT);
+		add_error(path + PFX + ERR_NROOT, errs);
+	}
+	else if (roots > 1) {
+		// clang-format off
+		DBG(path + PFX + ERR_ROOTS);
+		// clang-format on
+
+		std::string tmp;
+		for (const auto& name : parent_names) {
+			if (!tmp.empty()) {
+				tmp += SEP;
+			}
+
+			tmp += QT + name + QT;
+		}
+
+		add_error(path + PFX + ERR_ROOTS + PFX + tmp, errs);
+	}
 }
-#endif
+
+static void validate_hierarchy_check_cycles(const valid_scene_ref& scn_ref,
+                                            const std::string& path,
+                                            errors_t& errs)
+{
+	DBG(path + PFX + QT + *scn_ref.scn_def_name + QT);
+
+	std::deque<std::string> names;
+	names.clear();
+
+	int skips = 0;
+	int i = 0;
+	for (const auto& elem_ref : scn_ref.scn_elem_refs) {
+		// clang-format off
+		std::string elem_path = path + DOT + JSON_STR_ELEMS +
+					LB + std::to_string(++i) + RB;
+		// clang-format on
+
+		DBG(elem_path + PFX + "name" + PFX + QT + *elem_ref.scn_elem_def_name + QT);
+		DBG(elem_path + PFX + "skips" + PFX + std::to_string(skips));
+		if (skips && --skips > 1) {
+			DBG(elem_path + PFX + "skips" + PFX + std::to_string(skips));
+			continue;
+		}
+
+		names.clear();
+
+		const valid_scn_elem_ref* current = &elem_ref;
+		validate_key_t visited;
+		visited.clear();
+		DBG(elem_path + PFX + "names.size" + PFX + std::to_string(names.size()));
+
+		while (current) {
+			const std::string& name = *current->scn_elem_def_name;
+			names.push_back(std::move(name));
+			std::string tmp;
+
+			auto [it, inserted] = visited.insert(name);
+			if (!inserted) {
+				DBG(elem_path + PFX + QT + name + QT + " was not inserted");
+				DBG(elem_path + PFX + "names.size" + PFX + std::to_string(names.size()));
+
+				skips = 0;
+				while (names.size()) {
+					DBG(elem_path + PFX + "names.size" + PFX + std::to_string(names.size()));
+					for (const auto& name : names) {
+						if (!tmp.empty()) {
+							tmp += "->";
+						}
+
+						tmp += QT + name + QT;
+					}
+					DBG(elem_path + PFX + "tmp" + PFX + tmp);
+
+					skips++;
+					DBG(elem_path + PFX + "skips" + PFX + std::to_string(skips));
+					names.pop_front();
+				}
+
+				DBG(elem_path + PFX + ERR_CYCLE + SPC + ERR_DET + PFX + tmp);
+				add_error(elem_path + PFX + ERR_CYCLE + SPC + ERR_DET + PFX + tmp, errs);
+				break;
+			}
+			else {
+				DBG(elem_path + PFX + QT + name + QT + " was inserted");
+				DBG(elem_path + PFX + "names.size" + PFX + std::to_string(names.size()));
+			}
+
+			current = current->scn_parent_ref;
+		}
+	}
+}
+
+static void validate_hierarchy(const AST& ast, const std::string& path, errors_t& errs)
+{
+	std::string local_path = path + STR_HIER;
+	DBG(local_path);
+	int i = 0;
+	for (const auto& scene_ref : ast.valid_references.valid_scn_refs.scene_ref_refs) {
+		// clang-format off
+		std::string scn_path = JSON_STR_SCNS + DOT + STR_SCN +
+					LB + std::to_string(++i) + RB;
+		// clang-format on
+		DBG(scn_path);
+
+		std::string roots_path = scn_path + PFX + "roots";
+		DBG(roots_path);
+		validate_hierarchy_check_roots(scene_ref,
+		                               roots_path + PFX + scn_path,
+		                               errs);
+
+		std::string cycles_path = scn_path + PFX + "cycles";
+		DBG(cycles_path);
+		validate_hierarchy_check_cycles(scene_ref,
+		                                cycles_path + PFX + scn_path,
+		                                errs);
+	}
+}
+/* hierarchy validation end */
 
 bool validate_ast(AST& ast)
 {
@@ -1618,13 +1609,15 @@ bool validate_ast(AST& ast)
 		return false;
 	}
 
-#if 0
 	validate_hierarchy(ast, path, errs);
 	if (errs.size()) {
+		// clang-format off
+		PRN(ERR_PFX + STR_VAL + SPC + STR_HIER +
+		    PFX + ERR_DET + NL);
+		// clang-format on
 		print_errors(errs);
 		return false;
 	}
-#endif // 0
 
 	return true;
 }
