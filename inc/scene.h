@@ -42,8 +42,8 @@ public:
 	bool parse(std::ifstream&);
 	bool validate();
 	void build(const config_ns::parse_scn_def&);
-	void init_graphics();
 	void update();
+	void refresh_elements();
 	void render();
 	bool keep_going();
 	config_ns::parse_scn_def* find_scene(const std::string&);
@@ -55,6 +55,8 @@ private:
 	void sort();
 	void draw();
 	void set_defaults();
+	void check_overrides(const config_ns::parse_scn_def&);
+	void init_graphics();
 };
 
 } // namespace scene_ns

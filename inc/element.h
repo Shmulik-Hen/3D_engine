@@ -24,7 +24,10 @@ public:
 	element() = default;
 	~element() = default;
 
-	void init_from_def(const poly_ptr_list_t&, element*, const config_ns::element_def&);
+	void init_from_def(const config_ns::parse_scn_elem_def&);
+	void set_parent(element*);
+	void add_polygon(polygon_ns::polygon*);
+
 	void print() const;
 	void print_all();
 

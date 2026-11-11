@@ -166,10 +166,17 @@
 					"parent": "gimbal",
 					"active": true,
 					"ref": "cube_body",
-					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
-					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+					"origin": [ 45, 0, 45, 0, 0, 0, 0.5 ],
+					"motion": [ 0, 1, 0, 0, 0, 0, 1 ]
 				}
-			]
+			],
+			"environment": {
+				"resolution": [ 1600, 1000 ]
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 20
+			}
 		},
 		{
 			"name": "pyramid",
@@ -191,10 +198,17 @@
 					"parent": "gimbal",
 					"active": true,
 					"ref": "pyramid_body",
-					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
-					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+					"origin": [ 0, 0, 0, 0, 0, 0, 0.5 ],
+					"motion": [ 1, 0, 0, 0, 0, 0, 1 ]
 				}
-			]
+			],
+			"environment": {
+				"resolution": [ 1600, 1000 ]
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 50
+			}
 		},
 		{
 			"name": "both",
@@ -208,26 +222,33 @@
 					"name": "gimbal",
 					"parent": "world",
 					"active": true,
-					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
-					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+					"origin": [ 0, 0, 0, 0, 0, 0, 0.5 ],
+					"motion": [ 0, 1, 0, 0, 0, 0, 1 ]
 				},
 				{
 					"name": "cube",
 					"parent": "gimbal",
 					"active": true,
 					"ref": "cube_body",
-					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
-					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+					"origin": [ 45, 0, 45, 500, 0, 0, 1 ],
+					"motion": [ 0, 2, 0, 0, 0, 0, 1 ]
 				},
 				{
 					"name": "pyramid",
 					"parent": "gimbal",
 					"active": true,
 					"ref": "pyramid_body",
-					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
-					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+					"origin": [ 0, 0, 0, -500, 0, 0, 1 ],
+					"motion": [ 2, 0, 0, 0, 0, 0, 1 ]
 				}
-			]
+			],
+			"environment": {
+				"resolution": [ 1600, 1000 ]
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 50
+			}
 		}
 	]
 }

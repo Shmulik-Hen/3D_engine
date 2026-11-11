@@ -23,8 +23,16 @@ constexpr std::string_view def_conf_path = "../config/";
 constexpr std::string_view def_file_name = "config";
 constexpr std::string_view ext = ".json";
 constexpr std::string_view ver = "JSON configuration version";
-const std::string version = JSON_STR_VER + PFX + std::to_string(APP_VER_MAJ) + DOT + std::to_string(APP_VER_MIN) + DOT + std::to_string(APP_VER_REV);
-const std::string json_version(ver + PFX + std::to_string(JSON_VER_MAJ) + DOT + std::to_string(JSON_VER_MIN) + DOT + std::to_string(JSON_VER_REV));
+// clang-format off
+const std::string version = JSON_STR_VER + PFX + std::to_string(APP_VER_MAJ) +
+			    DOT + std::to_string(APP_VER_MIN) +
+			    DOT + std::to_string(APP_VER_REV);
+
+const std::string json_version(ver + PFX + std::to_string(JSON_VER_MAJ) +
+				DOT + std::to_string(JSON_VER_MIN) +
+				DOT + std::to_string(JSON_VER_REV));
+// clang-format on
+
 const std::string def_conf_file = def_conf_path + def_file_name + ext;
 
 void usage(std::string str)
@@ -156,6 +164,10 @@ int main(int argc, char** argv)
 			sys_error("file not found: ", filename.c_str());
 		}
 
+		/*
+		 * the order is important:
+		 * parse, validate, build, render
+		 */
 		ifs.unsetf(std::ios::skipws);
 		bool rc = scene->parse(ifs);
 		ifs.close();
@@ -174,13 +186,7 @@ int main(int argc, char** argv)
 		}
 
 		scene->build(*scn);
-		scene->init_graphics();
-		graphics* gfx = scene->frame_ctx.state->grfx.gfx.get();
-		if (!gfx) {
-			sys_error("graphics system has not been initialized yet");
-		}
 
-#if 0
 		if (!scene->root) {
 			sys_error("root is null");
 		}
@@ -189,82 +195,20 @@ int main(int argc, char** argv)
 			sys_error("no polygons");
 		}
 
-		// find the relevant elements to work with
-		constexpr std::string_view world_name = "world";
-		constexpr std::string_view gimbal_name = "gimbal";
-		constexpr std::string_view cube_name = "cube";
-		constexpr std::string_view pyramid_name = "pyramid";
-		element* cube = nullptr;
-		element* pyramid = nullptr;
-
-		element* world = scene->root->find(scene->root, world_name);
-		if (!world) {
-			sys_error("find world failed");
+		graphics* gfx = scene->frame_ctx.state->grfx.gfx.get();
+		if (!gfx) {
+			sys_error("graphics system has not been initialized yet");
 		}
-
-		element* gimbal = scene->root->find(scene->root, gimbal_name);
-
-		if (conf_name == cube_name) {
-			cube = scene->root->find(scene->root, cube_name);
-		}
-		else if (conf_name == pyramid_name) {
-			pyramid = scene->root->find(scene->root, pyramid_name);
-		}
-		else {
-			cube = scene->root->find(scene->root, cube_name);
-			pyramid = scene->root->find(scene->root, pyramid_name);
-		}
-
-#ifdef DEBUG_PRINTS
-		DBG("initial:");
-		DBG("print tree");
-		scene->root->print_all();
-		DBG("walk list");
-		for (const auto poly : scene->poly_list) {
-			poly->print();
-		}
-#endif // DEBUG_PRINTS
-
-		// attrib(rotationX, rotationY, rotationZ, translationX, translationY, translationZ, scale)
-		attrib keep_moving(0, 0, 0, 0, 0, 0, 1);
-#endif // 0
 
 		input_state in {};
 
 		while (!in.quit) {
 			gfx->poll_events(in);
 			DBG("in.quit: " << in.quit << " in.esc: " << in.key_escape);
-#if 0
 
-			if (gimbal) {
-				if (gimbal->has_motion()) {
-					gimbal->update();
-				}
-				else {
-					gimbal->update(keep_moving);
-				}
-			}
-
-			if (cube) {
-				if (cube->has_motion()) {
-					cube->update();
-				}
-				else {
-					cube->update(keep_moving);
-				}
-			}
-
-			if (pyramid) {
-				if (pyramid->has_motion()) {
-					pyramid->update();
-				}
-				else {
-					pyramid->update(keep_moving);
-				}
-			}
-
+			// for elements with a valid motion property
+			scene->refresh_elements();
 			scene->update();
-#endif // 0
 			scene->render();
 			if (!scene->keep_going()) {
 				break;

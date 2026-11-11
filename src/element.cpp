@@ -9,37 +9,33 @@ using namespace matrix_ns;
 using namespace polygon_ns;
 using polygon = polygon_ns::polygon;
 
-void element::init_from_def(const poly_ptr_list_t& poly_list, element* root, const config_ns::element_def& def)
+void element::init_from_def(const config_ns::parse_scn_elem_def& def)
 {
 	_name = def.name;
 	_active = def.active;
 
-	if (def.origin.has_value()) {
-		_origin = def.origin.value();
+	if (def.origin) {
+		_origin = *def.origin;
 	}
 
-	if (def.motion.has_value()) {
-		_motion = def.motion.value();
+	if (def.motion) {
+		_motion = *def.motion;
 	}
+}
 
-	if (def.parent.length()) {
-		element* parent = find(root, def.parent);
-		if (!parent) {
-			sys_error("element::read find error - _parent_name");
-		}
-		_parent = parent;
-		_parent_name = def.parent;
+void element::set_parent(element* parent)
+{
+	_parent = parent;
+	_parent_name = parent ? parent->_name : "";
+
+	if (parent) {
 		add_node(parent);
 	}
+}
 
-	_polygons.clear();
-	for (const auto& name : def.polygons) {
-		polygon* poly = find(poly_list, name);
-		if (!poly) {
-			sys_error("element::read find error -  polygon");
-		}
-		_polygons.push_back(poly);
-	}
+void element::add_polygon(polygon* poly)
+{
+	_polygons.push_back(poly);
 }
 
 void element::print() const

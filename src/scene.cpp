@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <thread>
+#include <unordered_map>
 
 // #define DEBUG_PRINTS
 #include "scene.h"
@@ -9,6 +10,7 @@
 namespace scene_ns
 {
 
+using namespace config_ns;
 using namespace element_ns;
 using namespace graphics_ns;
 using namespace polygon_ns;
@@ -58,23 +60,6 @@ my_scene::my_scene()
 	set_defaults();
 }
 
-void my_scene::init_graphics()
-{
-	// clang-format off
-	frame_ctx.state->grfx.gfx =
-		std::make_unique<graphics>(STR_LABEL.c_str(),
-	                                   frame_ctx.state->grfx.width,
-	                                   frame_ctx.state->grfx.height,
-	                                   DEFAULT_SCALE);
-	// clang-format on
-
-	if (!frame_ctx.state->grfx.gfx.get()) {
-		sys_error("failed to initialize graphics");
-	}
-
-	frame_ctx.state->grfx.bkg_color = frame_ctx.state->grfx.gfx.get()->get_color_val(frame_ctx.state->win.bkg_color_idx);
-}
-
 polygon* my_scene::add_polygon()
 {
 	polygons_owned.push_back(std::make_unique<polygon>());
@@ -112,183 +97,74 @@ config_ns::parse_scn_def* my_scene::find_scene(const std::string& name)
 
 void my_scene::build(const config_ns::parse_scn_def& scene_def)
 {
-#ifdef DEBUG_PRINTS
-	// clang-format off
-	const std::string pfx = config_ns::STR_SCN + PFX + DBG_BLD + PFX;
-	// clang-format on
-#endif // DEBUG_PRINTS
+	// Find the validated record for the selected scene.
+	const valid_scene_ref* scn_ref = nullptr;
+	auto& scn_refs = ast.valid_references.valid_scn_refs;
 
-	DBG(pfx + scene_def.name + DOT);
-	// DBG(DBG_BLD << PFX << num polygon defs: " << (int)ast.library_defs.polygons.size());
-	// for (const auto& def : ast.library_defs.polygons) {
-	// 	polygon* poly = add_polygon();
-	// 	poly->init_from_def(frame_ctx, def);
-	// 	DBG("build: polygon:");
-	// 	poly->print();
-	// }
-
-	// DBG(DBG_BLD << PFX << num element defs: " << (int)ast.library_defs.elements.size());
-	// for (const auto& def : ast.library_defs.lib_elem_defs) {
-	// 	element* elem = add_element();
-	// 	if (!root) {
-	// 		root = elem;
-	// 	}
-	// 	elem->init_from_def(poly_list, root, def);
-	// 	DBG("build: element:");
-	// 	elem->print();
-	// }
-
-	if (scene_def.env.has_value()) {
-#ifdef DEBUG_PRINTS
-		const std::string env_str = pfx + config_ns::JSON_STR_ENV;
-		DBG(env_str);
-		// clang-format off
-		const std::string path = env_str + PFX + DBG_OVRD + PFX;
-		// clang-format on
-#endif // DEBUG_PRINTS
-
-		config_ns::parse_env_def env = scene_def.env.value();
-
-		if (env.resolution.has_value()) {
-			config_ns::parse_res_def res = env.resolution.value();
-			bool res_changed = false;
-
-			if (res.width != frame_ctx.state->grfx.width) {
-				frame_ctx.state->grfx.width = res.width;
-				frame_ctx.state->win.max_pos.x = res.width - 1;
-				res_changed = true;
-				// clang-format off
-				DBG(path + config_ns::JSON_STR_RES + PFX +
-				    config_ns::STR_WID + PFX +
-				    std::to_string(frame_ctx.state->grfx.width));
-				// clang-format on
-			}
-
-			if (res.height != frame_ctx.state->grfx.height) {
-				frame_ctx.state->grfx.height = res.height;
-				frame_ctx.state->win.max_pos.y = res.height - 1;
-				res_changed = true;
-				// clang-format off
-				DBG(path + config_ns::JSON_STR_RES + PFX +
-				    config_ns::STR_HGT + PFX +
-				    std::to_string(frame_ctx.state->grfx.height));
-				// clang-format on
-			}
-
-			if (res_changed) {
-				frame_ctx.state->win.mid_pos.x = frame_ctx.state->win.max_pos.x / 2;
-				frame_ctx.state->win.mid_pos.y = frame_ctx.state->win.max_pos.y / 2;
-			}
-		}
-
-		if (env.color_idx.has_value() &&
-		    frame_ctx.state->win.bkg_color_idx != env.color_idx.value()) {
-			frame_ctx.state->win.bkg_color_idx = env.color_idx.value();
-			// clang-format off
-			DBG(path + config_ns::JSON_STR_COLOR + PFX +
-			    std::to_string(frame_ctx.state->win.bkg_color_idx));
-			// clang-format on
-		}
-
-		if (env.light_type.has_value() &&
-		    frame_ctx.state->light.type != env.light_type.value()) {
-			// clang-format off
-			frame_ctx.state->light.type =
-				env.light_type.value() ?
-					config_ns::light_type::point :
-					config_ns::light_type::directional;
-			DBG(path + config_ns::JSON_STR_LIGHT_TYPE + PFX +
-			    std::to_string((int)frame_ctx.state->light.type));
-			// clang-format on
-		}
-
-		if (env.light_direction.has_value() &&
-		    frame_ctx.state->light.direction != env.light_direction.value()) {
-			frame_ctx.state->light.direction = env.light_direction.value();
-#ifdef DEBUG_PRINTS
-			// clang-format off
-			const std::string loc_path = path +
-						     config_ns::JSON_STR_LIGHT_DIR +
-						     PFX;
-			// clang-format on
-			print_vector_values(frame_ctx.state->light.direction, loc_path);
-#endif // DEBUG_PRINTS
-		}
-
-		if (env.light_position.has_value() &&
-		    frame_ctx.state->light.type == config_ns::point &&
-		    frame_ctx.state->light.position != env.light_position.value()) {
-			frame_ctx.state->light.position = env.light_position.value();
-#ifdef DEBUG_PRINTS
-			// clang-format off
-			const std::string loc_path = path +
-						     config_ns::JSON_STR_LIGHT_POS +
-						     PFX;
-			// clang-format on
-			print_vector_values(frame_ctx.state->light.position, loc_path);
-#endif // DEBUG_PRINTS
-		}
-
-		if (env.camera_position.has_value() &&
-		    frame_ctx.state->camera.position != env.camera_position.value()) {
-			frame_ctx.state->camera.position = env.camera_position.value();
-#ifdef DEBUG_PRINTS
-			// clang-format off
-			const std::string loc_path = path +
-						     config_ns::JSON_STR_CAM_POS +
-						     PFX;
-			// clang-format on
-			print_vector_values(frame_ctx.state->camera.position, loc_path);
-#endif // DEBUG_PRINTS
-		}
-
-		if (env.focal_len.has_value() &&
-		    frame_ctx.state->proj.focal_len != env.focal_len.value()) {
-			frame_ctx.state->proj.focal_len = env.focal_len.value();
-#ifdef DEBUG_PRINTS
-			// clang-format off
-			DBG(path + config_ns::JSON_STR_FOCAL_LEN + PFX +
-			    config_ns::set_precision(frame_ctx.state->proj.focal_len));
-			// clang-format on
-#endif // DEBUG_PRINTS
-		}
-
-		if (env.near_eps.has_value() &&
-		    frame_ctx.state->proj.near_eps != env.near_eps.value()) {
-			frame_ctx.state->proj.near_eps = env.near_eps.value();
-			// clang-format off
-			DBG(path + config_ns::JSON_STR_NEAR_EPS + PFX +
-			    config_ns::set_precision(frame_ctx.state->proj.near_eps));
-			// clang-format on
+	for (const auto& ref : scn_refs.scene_ref_refs) {
+		if (ref.scn_def_ptr == &scene_def) {
+			scn_ref = &ref;
+			break;
 		}
 	}
 
-	if (scene_def.run.has_value()) {
-#ifdef DEBUG_PRINTS
-		// clang-format off
-		const std::string path = config_ns::STR_SCN + PFX + DBG_BLD +
-					 PFX + config_ns::JSON_STR_RUN + PFX +
-					 DBG_OVRD + PFX;
-		// clang-format on
-#endif // DEBUG_PRINTS
+	if (!scn_ref) {
+		sys_error("scene::build: validated scene not found");
+	}
 
-		config_ns::parse_run_def run = scene_def.run.value();
-		if (run.loops.has_value() &&
-		    frame_ctx.state->run.loops != run.loops.value()) {
-			frame_ctx.state->run.loops = run.loops.value();
-			// clang-format off
-			DBG(path + config_ns::JSON_STR_LOOPS + PFX +
-			    std::to_string(frame_ctx.state->run.loops));
-			// clang-format on
+	std::unordered_map<const valid_scn_elem_ref*, element*> built_elements;
+
+	// Pass 1: Instantiate scene elements.
+	DBG("num elements: " + std::to_string(scn_ref->scn_elem_refs.size()));
+
+	for (const auto& elem_ref : scn_ref->scn_elem_refs) {
+		element* elem = add_element();
+		DBG("added element: " + QT + *elem_ref.scn_elem_def_name + QT);
+
+		DBG("initializing element: " + QT + *elem_ref.scn_elem_def_name + QT);
+		elem->init_from_def(*elem_ref.scn_elem_def_ptr);
+
+		built_elements.emplace(&elem_ref, elem);
+
+		if (!elem_ref.scn_parent_ref) {
+			DBG("element: " + QT + elem->get_name() + QT + " is the root");
+			root = elem;
+		}
+	}
+
+	// Pass 2: Connect the hierarchy.
+	for (const auto& elem_ref : scn_ref->scn_elem_refs) {
+		element* elem = built_elements.at(&elem_ref);
+
+		if (elem_ref.scn_parent_ref) {
+			element* parent = built_elements.at(elem_ref.scn_parent_ref);
+			elem->set_parent(parent);
+			DBG("setting element's: " + QT + elem->get_name() + QT + " parent: " + QT + parent->get_name() + QT);
+		}
+	}
+
+	check_overrides(scene_def);
+	init_graphics();
+
+	// Pass 3: Instantiate geometry.
+	for (const auto& elem_ref : scn_ref->scn_elem_refs) {
+		if (!elem_ref.lib_elem_ref) {
+			continue;
 		}
 
-		if (run.loop_delay.has_value() &&
-		    frame_ctx.state->run.loop_delay != run.loop_delay.value()) {
-			frame_ctx.state->run.loop_delay = run.loop_delay.value();
-			// clang-format off
-			DBG(path + config_ns::JSON_STR_LOOP_DELAY + PFX +
-			    std::to_string(frame_ctx.state->run.loop_delay));
-			// clang-format on
+		element* elem = built_elements.at(&elem_ref);
+		DBG("element: " + elem->get_name());
+
+		const valid_mesh_ref* mesh_ref = elem_ref.lib_elem_ref->elem_mesh_ref;
+		DBG("mesh: " + *mesh_ref->mesh_def_name);
+
+		for (const auto* poly_ref : mesh_ref->mesh_poly_refs) {
+			polygon* poly = add_polygon();
+
+			poly->init_from_def(frame_ctx, *poly_ref->poly_def_ptr);
+
+			elem->add_polygon(poly);
+			DBG("added polygon: " + poly->get_name());
 		}
 	}
 }
@@ -305,6 +181,14 @@ void my_scene::update()
 	// DBG("print tree");
 	// root->print_all();
 #endif
+}
+
+void my_scene::refresh_elements()
+{
+	for (auto& elem : elements_owned) {
+		DBG("refreshing element: " + QT + elem->get_name() + QT);
+		elem->update();
+	}
 }
 
 void my_scene::sort()
@@ -444,6 +328,187 @@ void my_scene::set_defaults()
 
 	// limits for validations
 	ast.valid_values.max_color_idx = (graphics::color_idx)((uint32_t)graphics::color_idx::__last_color__ - 1);
+}
+
+void my_scene::check_overrides(const config_ns::parse_scn_def& scene_def)
+{
+#ifdef DEBUG_PRINTS
+	// clang-format off
+	const std::string pfx = config_ns::STR_SCN + PFX + DBG_BLD + PFX;
+	// clang-format on
+#endif // DEBUG_PRINTS
+
+	if (scene_def.env.has_value()) {
+#ifdef DEBUG_PRINTS
+		const std::string env_str = pfx + config_ns::JSON_STR_ENV;
+		DBG(env_str);
+		// clang-format off
+		const std::string path = env_str + PFX + DBG_OVRD + PFX;
+		// clang-format on
+#endif // DEBUG_PRINTS
+
+		const auto& env = *scene_def.env;
+
+		if (env.resolution.has_value()) {
+			const auto& res = *env.resolution;
+			bool res_changed = false;
+
+			if (res.width != frame_ctx.state->grfx.width) {
+				frame_ctx.state->grfx.width = res.width;
+				frame_ctx.state->win.max_pos.x = res.width - 1;
+				res_changed = true;
+				// clang-format off
+				DBG(path + config_ns::JSON_STR_RES + PFX +
+				    config_ns::STR_WID + PFX +
+				    std::to_string(frame_ctx.state->grfx.width));
+				// clang-format on
+			}
+
+			if (res.height != frame_ctx.state->grfx.height) {
+				frame_ctx.state->grfx.height = res.height;
+				frame_ctx.state->win.max_pos.y = res.height - 1;
+				res_changed = true;
+				// clang-format off
+				DBG(path + config_ns::JSON_STR_RES + PFX +
+				    config_ns::STR_HGT + PFX +
+				    std::to_string(frame_ctx.state->grfx.height));
+				// clang-format on
+			}
+
+			if (res_changed) {
+				frame_ctx.state->win.mid_pos.x = frame_ctx.state->win.max_pos.x / 2;
+				frame_ctx.state->win.mid_pos.y = frame_ctx.state->win.max_pos.y / 2;
+			}
+		}
+
+		if (env.color_idx.has_value() &&
+		    frame_ctx.state->win.bkg_color_idx != env.color_idx.value()) {
+			frame_ctx.state->win.bkg_color_idx = env.color_idx.value();
+			// clang-format off
+			DBG(path + config_ns::JSON_STR_COLOR + PFX +
+			    std::to_string(frame_ctx.state->win.bkg_color_idx));
+			// clang-format on
+		}
+
+		if (env.light_type.has_value() &&
+		    frame_ctx.state->light.type != env.light_type.value()) {
+			// clang-format off
+			frame_ctx.state->light.type =
+				env.light_type.value() ?
+					config_ns::light_type::point :
+					config_ns::light_type::directional;
+			DBG(path + config_ns::JSON_STR_LIGHT_TYPE + PFX +
+			    std::to_string((int)frame_ctx.state->light.type));
+			// clang-format on
+		}
+
+		if (env.light_direction.has_value() &&
+		    frame_ctx.state->light.direction != env.light_direction.value()) {
+			frame_ctx.state->light.direction = env.light_direction.value();
+#ifdef DEBUG_PRINTS
+			// clang-format off
+			const std::string loc_path = path +
+						     config_ns::JSON_STR_LIGHT_DIR +
+						     PFX;
+			// clang-format on
+			print_vector_values(frame_ctx.state->light.direction, loc_path);
+#endif // DEBUG_PRINTS
+		}
+
+		if (env.light_position.has_value() &&
+		    frame_ctx.state->light.type == config_ns::point &&
+		    frame_ctx.state->light.position != env.light_position.value()) {
+			frame_ctx.state->light.position = env.light_position.value();
+#ifdef DEBUG_PRINTS
+			// clang-format off
+			const std::string loc_path = path +
+						     config_ns::JSON_STR_LIGHT_POS +
+						     PFX;
+			// clang-format on
+			print_vector_values(frame_ctx.state->light.position, loc_path);
+#endif // DEBUG_PRINTS
+		}
+
+		if (env.camera_position.has_value() &&
+		    frame_ctx.state->camera.position != env.camera_position.value()) {
+			frame_ctx.state->camera.position = env.camera_position.value();
+#ifdef DEBUG_PRINTS
+			// clang-format off
+			const std::string loc_path = path +
+						     config_ns::JSON_STR_CAM_POS +
+						     PFX;
+			// clang-format on
+			print_vector_values(frame_ctx.state->camera.position, loc_path);
+#endif // DEBUG_PRINTS
+		}
+
+		if (env.focal_len.has_value() &&
+		    frame_ctx.state->proj.focal_len != env.focal_len.value()) {
+			frame_ctx.state->proj.focal_len = env.focal_len.value();
+#ifdef DEBUG_PRINTS
+			// clang-format off
+			DBG(path + config_ns::JSON_STR_FOCAL_LEN + PFX +
+			    config_ns::set_precision(frame_ctx.state->proj.focal_len));
+			// clang-format on
+#endif // DEBUG_PRINTS
+		}
+
+		if (env.near_eps.has_value() &&
+		    frame_ctx.state->proj.near_eps != env.near_eps.value()) {
+			frame_ctx.state->proj.near_eps = env.near_eps.value();
+			// clang-format off
+			DBG(path + config_ns::JSON_STR_NEAR_EPS + PFX +
+			    config_ns::set_precision(frame_ctx.state->proj.near_eps));
+			// clang-format on
+		}
+	}
+
+	if (scene_def.run.has_value()) {
+#ifdef DEBUG_PRINTS
+		// clang-format off
+		const std::string path = config_ns::STR_SCN + PFX + DBG_BLD +
+					 PFX + config_ns::JSON_STR_RUN + PFX +
+					 DBG_OVRD + PFX;
+		// clang-format on
+#endif // DEBUG_PRINTS
+
+		const auto& run = *scene_def.run;
+		if (run.loops.has_value() &&
+		    frame_ctx.state->run.loops != run.loops.value()) {
+			frame_ctx.state->run.loops = run.loops.value();
+			// clang-format off
+			DBG(path + config_ns::JSON_STR_LOOPS + PFX +
+			    std::to_string(frame_ctx.state->run.loops));
+			// clang-format on
+		}
+
+		if (run.loop_delay.has_value() &&
+		    frame_ctx.state->run.loop_delay != run.loop_delay.value()) {
+			frame_ctx.state->run.loop_delay = run.loop_delay.value();
+			// clang-format off
+			DBG(path + config_ns::JSON_STR_LOOP_DELAY + PFX +
+			    std::to_string(frame_ctx.state->run.loop_delay));
+			// clang-format on
+		}
+	}
+}
+
+void my_scene::init_graphics()
+{
+	// clang-format off
+	DBG("init_graphics: width: " + std::to_string(frame_ctx.state->grfx.width) + SEP + "height: " + std::to_string(frame_ctx.state->grfx.height));
+	frame_ctx.state->grfx.gfx =
+		std::make_unique<graphics>(STR_LABEL.c_str(),
+	                                   frame_ctx.state->grfx.width,
+	                                   frame_ctx.state->grfx.height,
+	                                   DEFAULT_SCALE);
+	// clang-format on
+
+	if (!frame_ctx.state->grfx.gfx.get()) {
+		sys_error("failed to initialize graphics");
+	}
+
+	frame_ctx.state->grfx.bkg_color = frame_ctx.state->grfx.gfx.get()->get_color_val(frame_ctx.state->win.bkg_color_idx);
 }
 
 } // namespace scene_ns
