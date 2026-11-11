@@ -1,6 +1,7 @@
+#include <algorithm>
 #include <cmath>
-#include <unordered_set>
 #include <memory>
+#include <unordered_set>
 
 // #define DEBUG_PRINTS
 #include "validate.h"
@@ -1404,10 +1405,9 @@ static void validate_hierarchy_check_roots(const valid_scene_ref& scn_ref,
 {
 	DBG(path + PFX + QT + *scn_ref.scn_def_name + QT);
 
-	std::vector<std::string> parent_names;
+	std::vector<const std::string*> parent_names;
 	parent_names.clear();
 
-	size_t prev_errs_size = errs.size();
 	int roots = 0, i = 0;
 	for (const auto& elem_ref : scn_ref.scn_elem_refs) {
 		// clang-format off
@@ -1415,8 +1415,7 @@ static void validate_hierarchy_check_roots(const valid_scene_ref& scn_ref,
 					LB + std::to_string(++i) + RB;
 		// clang-format on
 
-		validate_key_t elem_keys;
-		const std::string& name = *elem_ref.scn_elem_def_name;
+		const std::string* name = elem_ref.scn_elem_def_name;
 		const std::string* parent = elem_ref.scn_elem_def_parent;
 		std::string parent_name = parent ? *parent : "\"\"";
 
@@ -1428,7 +1427,7 @@ static void validate_hierarchy_check_roots(const valid_scene_ref& scn_ref,
 
 		if (!elem_ref.scn_elem_def_parent) {
 			roots++;
-			parent_names.push_back(std::move(name));
+			parent_names.push_back(name);
 
 			// clang-format off
 			DBG(elem_path + PFX + "parent: " + "is null");
@@ -1439,19 +1438,15 @@ static void validate_hierarchy_check_roots(const valid_scene_ref& scn_ref,
 		else {
 			DBG(elem_path + PFX + "parent: " + QT + parent_name + QT);
 			// clang-format off
-			if (parent && name == *parent) {
+			if (parent && name && *name == *parent) {
 				std::string err = elem_path + PFX + ERR_SELF + SPC +
-						  LP + QT + name + QT + SEP +
+						  LP + QT + *name + QT + SEP +
 						  QT + parent_name + QT + RP;
 				// clang-format on
 
 				DBG(err);
 				add_error(err, errs);
 			}
-		}
-
-		if (prev_errs_size != errs.size()) {
-			break;
 		}
 	}
 
@@ -1470,12 +1465,12 @@ static void validate_hierarchy_check_roots(const valid_scene_ref& scn_ref,
 		// clang-format on
 
 		std::string tmp;
-		for (const auto& name : parent_names) {
+		for (const auto name : parent_names) {
 			if (!tmp.empty()) {
 				tmp += SEP;
 			}
 
-			tmp += QT + name + QT;
+			tmp += QT + *name + QT;
 		}
 
 		add_error(path + PFX + ERR_ROOTS + PFX + tmp, errs);
@@ -1488,10 +1483,8 @@ static void validate_hierarchy_check_cycles(const valid_scene_ref& scn_ref,
 {
 	DBG(path + PFX + QT + *scn_ref.scn_def_name + QT);
 
-	std::deque<std::string> names;
-	names.clear();
+	std::unordered_set<const valid_scn_elem_ref*> checked;
 
-	int skips = 0;
 	int i = 0;
 	for (const auto& elem_ref : scn_ref.scn_elem_refs) {
 		// clang-format off
@@ -1499,61 +1492,52 @@ static void validate_hierarchy_check_cycles(const valid_scene_ref& scn_ref,
 					LB + std::to_string(++i) + RB;
 		// clang-format on
 
-		DBG(elem_path + PFX + "name" + PFX + QT + *elem_ref.scn_elem_def_name + QT);
-		DBG(elem_path + PFX + "skips" + PFX + std::to_string(skips));
-		if (skips && --skips > 1) {
-			DBG(elem_path + PFX + "skips" + PFX + std::to_string(skips));
+		if (checked.count(&elem_ref)) {
 			continue;
 		}
 
-		names.clear();
+		std::vector<const valid_scn_elem_ref*> chain;
+		std::unordered_set<const valid_scn_elem_ref*> visited;
 
 		const valid_scn_elem_ref* current = &elem_ref;
-		validate_key_t visited;
-		visited.clear();
-		DBG(elem_path + PFX + "names.size" + PFX + std::to_string(names.size()));
 
-		while (current) {
-			const std::string& name = *current->scn_elem_def_name;
-			names.push_back(std::move(name));
-			std::string tmp;
-
-			auto [it, inserted] = visited.insert(name);
-			if (!inserted) {
-				DBG(elem_path + PFX + QT + name + QT + " was not inserted");
-				DBG(elem_path + PFX + "names.size" + PFX + std::to_string(names.size()));
-
-				skips = 0;
-				while (names.size()) {
-					DBG(elem_path + PFX + "names.size" + PFX + std::to_string(names.size()));
-					for (const auto& name : names) {
-						if (!tmp.empty()) {
-							tmp += "->";
-						}
-
-						tmp += QT + name + QT;
-					}
-					DBG(elem_path + PFX + "tmp" + PFX + tmp);
-
-					skips++;
-					DBG(elem_path + PFX + "skips" + PFX + std::to_string(skips));
-					names.pop_front();
+		while (current && !checked.count(current)) {
+			if (!visited.insert(current).second) {
+				// Self-parenting is reported by validate_hierarchy_check_roots().
+				if (current->scn_parent_ref == current) {
+					break;
 				}
 
-				DBG(elem_path + PFX + ERR_CYCLE + SPC + ERR_DET + PFX + tmp);
+				// Find the beginning of the cycle in this chain.
+				auto cycle_start = std::find(chain.begin(), chain.end(), current);
+
+				std::string tmp;
+				for (auto it = cycle_start; it != chain.end(); ++it) {
+					if (!tmp.empty()) {
+						tmp += "->";
+					}
+
+					tmp += QT + *(*it)->scn_elem_def_name + QT;
+				}
+
+				// Close the cycle.
+				tmp += "->" + std::string(QT) + *current->scn_elem_def_name + QT;
+
 				add_error(elem_path + PFX + ERR_CYCLE + SPC + ERR_DET + PFX + tmp, errs);
+
 				break;
 			}
-			else {
-				DBG(elem_path + PFX + QT + name + QT + " was inserted");
-				DBG(elem_path + PFX + "names.size" + PFX + std::to_string(names.size()));
-			}
 
+			chain.push_back(current);
 			current = current->scn_parent_ref;
+		}
+
+		// These nodes have now been checked.
+		for (const auto* node : chain) {
+			checked.insert(node);
 		}
 	}
 }
-
 static void validate_hierarchy(const AST& ast, const std::string& path, errors_t& errs)
 {
 	std::string local_path = path + STR_HIER;
@@ -1566,16 +1550,16 @@ static void validate_hierarchy(const AST& ast, const std::string& path, errors_t
 		// clang-format on
 		DBG(scn_path);
 
-		std::string roots_path = scn_path + PFX + "roots";
+		std::string roots_path = local_path + PFX + "roots" + PFX + scn_path;
 		DBG(roots_path);
 		validate_hierarchy_check_roots(scene_ref,
-		                               roots_path + PFX + scn_path,
+		                               roots_path,
 		                               errs);
 
-		std::string cycles_path = scn_path + PFX + "cycles";
+		std::string cycles_path = local_path + PFX + "cycles" + PFX + scn_path;
 		DBG(cycles_path);
 		validate_hierarchy_check_cycles(scene_ref,
-		                                cycles_path + PFX + scn_path,
+		                                cycles_path,
 		                                errs);
 	}
 }
