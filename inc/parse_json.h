@@ -1,10 +1,13 @@
 #pragma once
+
 #include <fstream>
+#include <json/json.h>
+
 #include "config_document.h"
 
 namespace config_ns
 {
 
-AST parse_legacy(const std::string&, const std::string&);
+bool parse_json(std::ifstream&, config_ns::AST&);
 
 } // namespace config_ns

@@ -1,0 +1,116 @@
+{
+	"encoding": "UTF-8",
+
+	"version": [ 0, 0, 3 ],
+
+	"library":
+	{
+		"polygons": [
+			{
+				"name": "c_front",
+				"color_idx": 4,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, -100.0 ],
+					[ 100.0, -100.0, -100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ -100.0, 100.0, -100.0 ]
+				]
+			},
+			{
+				"name": "c_back",
+				"color_idx": 6,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ -100.0, 100.0, 100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ 100.0, -100.0, 100.0 ]
+				]
+			},
+			{
+				"name": "c_left",
+				"color_idx": 8,
+				"force": false,
+				"vectors": [
+					[ -100.0, 100.0, -100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ -100.0, 100.0, 100.0 ]
+				]
+			},
+			{
+				"name": "c_right",
+				"color_idx": 10,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ 100.0, -100.0, 100.0 ],
+					[ 100.0, -100.0, -100.0 ],
+					[ 100.0, 100.0, -100.0 ]
+				]
+			},
+			{
+				"name": "c_top",
+				"color_idx": 12,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, -100.0 ],
+					[ -100.0, 100.0, -100.0 ],
+					[ -100.0, 100.0, 100.0 ],
+					[ 100.0, 100.0, 100.0 ]
+				]
+			},
+			{
+				"name": "c_bottom",
+				"color_idx": 14,
+				"force": false,
+				"vectors": [
+					[ 100.0, -100.0, 100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ 100.0, -100.0, -100.0 ]
+				]
+			}
+		],
+		"meshes": [
+			{
+				"name": "cube_mesh",
+				"polygons": [
+					"c_front",
+					"c_back",
+					"c_left",
+					"c_right",
+					"c_top",
+					"c_bottom"
+				]
+			}
+		],
+		"elements": [
+			{
+				"name": "cube_body",
+				"mesh": "cube_mesh"
+			}
+		]
+	},
+	"scenes": [
+		{
+			"name": "cube",
+			"elements": [
+				{
+					"name": "world",
+					"parent": null,
+					"active": true
+				},
+				{
+					"name": "cube_1",
+					"parent": "world",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				}
+			]
+		}
+	]
+}

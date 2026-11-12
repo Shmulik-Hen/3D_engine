@@ -1,9 +1,8 @@
-#include <algorithm>
 #include <SDL2/SDL.h>
 
 // #define DEBUG_PRINTS
 #include "graphics.h"
-#include "utils.h"
+#include "constants.h"
 
 namespace graphics_ns
 {
@@ -13,9 +12,8 @@ using color_idx = graphics::color_idx; // same for color_idx
 using color_map = graphics::color_map; // same for color_map
 using input_state = graphics::input_state;
 
-constexpr std::int32_t DEFAULT_WIDTH = MAX_X;
-constexpr std::int32_t DEFAULT_HEIGHT = MAX_Y;
-constexpr std::int32_t DEFAULT_SCALE = 1;
+constexpr std::int32_t DEFAULT_WIDTH = DEF_RES_WIDTH;
+constexpr std::int32_t DEFAULT_HEIGHT = DEF_RES_HEIGHT;
 constexpr const char* DEFAULT_NAME = "Graphics_SDL2";
 
 graphics::graphics() :
@@ -46,11 +44,11 @@ graphics::graphics(const char* title) :
 	init_graphics();
 }
 
-graphics::graphics(const char* title, val_t width, val_t height, val_t scale) :
+graphics::graphics(const char* title, uval_t width, uval_t height, uval_t scale) :
 	_title {title},
-	_w {std::min(width, MAX_X)},
-	_h {std::min(height, MAX_Y)},
-	_scale {scale},
+	_w {std::min((int)width, (int)MAX_RES_WIDTH)},
+	_h {std::min((int)height, (int)MAX_RES_HEIGHT)},
+	_scale {(int)scale},
 	_scaled_w {_w * _scale},
 	_scaled_h {_h * _scale},
 	_win_size {_w * _h},
@@ -278,7 +276,7 @@ void graphics::init_graphics()
 	// clang-format on
 
 	_colors.clear();
-	for (int i = __first_color__; i < __last_color__; i++) {
+	for (color_t i = __first_color__; i < __last_color__; i++) {
 		color_idx idx = static_cast<color_idx>(i);
 		const char* s = tmp_col[i];
 		ARGB color;
@@ -301,7 +299,7 @@ void graphics::init_graphics()
 	}
 
 	_alphas.clear();
-	for (int i = __first_alpha__; i < __last_alpha__; i++) {
+	for (uval_t i = __first_alpha__; i < __last_alpha__; i++) {
 		alpha_idx idx = static_cast<alpha_idx>(i);
 		std::pair p = {idx, alpha_vals[idx]};
 		_alphas.insert(p);

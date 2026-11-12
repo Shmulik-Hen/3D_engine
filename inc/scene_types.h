@@ -1,11 +1,8 @@
 #pragma once
 
-#include <vector>
 #include <memory>
 
-#include "graphics.h"
-#include "unit.h"
-#include "vector_3.h"
+#include "config_document.h"
 
 // clang-format off
 namespace polygon_ns { class polygon; }
@@ -15,22 +12,20 @@ namespace graphics_ns { class graphics; }
 namespace scene_ns
 {
 
+using drawvec_t = std::vector<polygon_ns::polygon*>;
+
 struct graphics_state
 {
 	std::unique_ptr<graphics_ns::graphics> gfx {nullptr};
 	graphics_ns::graphics::frame_buffer fb;
-	graphics_ns::graphics::ARGB clear_color {};
-};
-
-enum class light_type
-{
-	directional = 0, // sun-like
-	point            // light-bulb
+	graphics_ns::graphics::ARGB bkg_color {};
+	uint32_t width {DEF_RES_WIDTH};
+	uint32_t height {DEF_RES_HEIGHT};
 };
 
 struct light_state
 {
-	light_type type;
+	config_ns::light_type type;
 
 	// Convention: direction is "surface -> light", should be normalized
 	vector_3_ns::vector_3 direction;
@@ -53,18 +48,19 @@ struct projection_state
 	unit near_eps; // avoid divide by ~0
 };
 
-struct viewport_state
+struct window_state
 {
 	// screen min/max points
 	graphics_ns::graphics::point min_pos;
 	graphics_ns::graphics::point max_pos;
 	graphics_ns::graphics::point mid_pos;
+	graphics_ns::graphics::color_idx bkg_color_idx;
 };
 
 struct runtime_state
 {
 	int loops;
-	int loop_delay;
+	uint32_t loop_delay;
 };
 
 struct scene_state
@@ -73,11 +69,9 @@ struct scene_state
 	light_state light;
 	camera_state camera;
 	projection_state proj;
-	viewport_state vp;
+	window_state win;
 	runtime_state run;
 };
-
-using drawvec_t = std::vector<polygon_ns::polygon*>;
 
 struct frame_context
 {

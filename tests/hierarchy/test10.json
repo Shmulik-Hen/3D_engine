@@ -1,0 +1,276 @@
+{
+	"encoding": "UTF-8",
+
+	"version": [ 0, 0, 3 ],
+
+	"library": {
+		"polygons": [
+			{
+				"name": "c_front",
+				"color_idx": 4,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, -100.0 ],
+					[ 100.0, -100.0, -100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ -100.0, 100.0, -100.0 ]
+				]
+			},
+			{
+				"name": "c_back",
+				"color_idx": 6,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ -100.0, 100.0, 100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ 100.0, -100.0, 100.0 ]
+				]
+			},
+			{
+				"name": "c_left",
+				"color_idx": 8,
+				"force": false,
+				"vectors": [
+					[ -100.0, 100.0, -100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ -100.0, 100.0, 100.0 ]
+				]
+			},
+			{
+				"name": "c_right",
+				"color_idx": 10,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ 100.0, -100.0, 100.0 ],
+					[ 100.0, -100.0, -100.0 ],
+					[ 100.0, 100.0, -100.0 ]
+				]
+			},
+			{
+				"name": "c_top",
+				"color_idx": 12,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, -100.0 ],
+					[ -100.0, 100.0, -100.0 ],
+					[ -100.0, 100.0, 100.0 ],
+					[ 100.0, 100.0, 100.0 ]
+				]
+			},
+			{
+				"name": "c_bottom",
+				"color_idx": 14,
+				"force": false,
+				"vectors": [
+					[ 100.0, -100.0, 100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ 100.0, -100.0, -100.0 ]
+				]
+			},
+			{
+				"name": "p_bottom",
+				"color_idx": 10,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ 100.0, -100.0, -100.0 ],
+					[ -100.0, 100.0, -100.0 ]
+				]
+			},
+			{
+				"name": "p_front",
+				"color_idx": 4,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ 100.0, -100.0, -100.0 ]
+				]
+			},
+			{
+				"name": "p_right",
+				"color_idx": 6,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ -100.0, 100.0, -100.0 ],
+					[ -100.0, -100.0, 100.0 ]
+				]
+			},
+			{
+				"name": "p_left",
+				"color_idx": 8,
+				"force": false,
+				"vectors": [
+					[ 100.0, -100.0, -100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ -100.0, 100.0, -100.0 ]
+				]
+			}
+		],
+		"meshes": [
+			{
+				"name": "cube_mesh",
+				"polygons": [
+					"c_front",
+					"c_back",
+					"c_left",
+					"c_right",
+					"c_top",
+					"c_bottom"
+				]
+			},
+			{
+				"name": "pyramid_mesh",
+				"polygons": [
+					"p_bottom",
+					"p_front",
+					"p_right",
+					"p_left"
+				]
+			}
+		],
+		"elements": [
+			{
+				"name": "cube_body",
+				"mesh": "cube_mesh"
+			},
+			{
+				"name": "pyramid_body",
+				"mesh": "pyramid_mesh"
+			}
+		]
+	},
+	"scenes": [
+		{
+			"name": "cube",
+			"elements": [
+				{
+					"name": "world",
+					"parent": null,
+					"active": true
+				},
+				{
+					"name": "gimbal",
+					"parent": null,
+					"active": true,
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube_1",
+					"parent": "cube_2",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube_2",
+					"parent": "cube_3",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube_3",
+					"parent": "cube_4",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube_4",
+					"parent": "cube_5",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube_5",
+					"parent": "cube_6",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube_6",
+					"parent": "cube_1",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				}
+			],
+			"runtime": {
+				"loops": 1
+			}
+		},
+		{
+			"name": "pyramid",
+			"elements": [
+				{
+					"name": "world",
+					"parent": null,
+					"active": true
+				},
+				{
+					"name": "gimbal",
+					"parent": "world",
+					"active": true,
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "pyramid",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "pyramid_body",
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				}
+			]
+		},
+		{
+			"name": "both",
+			"elements": [
+				{
+					"name": "world",
+					"parent": null,
+					"active": true
+				},
+				{
+					"name": "gimbal",
+					"parent": "world",
+					"active": true,
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "pyramid",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "pyramid_body",
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				}
+			]
+		}
+	]
+}

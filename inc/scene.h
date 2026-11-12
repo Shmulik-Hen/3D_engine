@@ -1,18 +1,12 @@
 #pragma once
 
-#include <list>
-#include <memory>
-
 #include "element.h"
-#include "graphics.h"
-#include "polygon.h"
 #include "scene_types.h"
-#include "config_document.h"
 
 // clang-format off
-namespace element_ns { class element; }
+namespace element_ns  { class element; }
 namespace graphics_ns { class graphics; }
-namespace polygon_ns { class polygon; }
+namespace polygon_ns  { class polygon; }
 // clang-format on
 
 namespace scene_ns
@@ -27,7 +21,7 @@ public:
 	std::list<std::unique_ptr<element_ns::element>> elements_owned;
 
 	// Non-owning views
-	polygon_ns::polygon::polylist_t poly_list;
+	element_ns::element::poly_ptr_list_t poly_list;
 
 	// Root of element tree (non-owning)
 	element_ns::element* root {nullptr};
@@ -45,20 +39,24 @@ public:
 
 	polygon_ns::polygon* add_polygon();
 	element_ns::element* add_element();
-	void parse(const std::string&, const std::string&);
-	void build();
+	bool parse(std::ifstream&);
+	bool validate();
+	void build(const config_ns::parse_scn_def&);
 	void update();
+	void refresh_elements();
 	void render();
 	bool keep_going();
+	config_ns::parse_scn_def* find_scene(const std::string&);
 
 private:
 
 	static bool _keep_going;
-	graphics_ns::graphics::point min_pos;
-	graphics_ns::graphics::point max_pos;
+
 	void sort();
 	void draw();
 	void set_defaults();
+	void check_overrides(const config_ns::parse_scn_def&);
+	void init_graphics();
 };
 
 } // namespace scene_ns

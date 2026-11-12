@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common.h"
+#include "utils.h"
 #include "unit.h"
 
 namespace attrib_ns
@@ -14,7 +14,8 @@ class attrib
 	unit _trans_x {ZERO}; // x-axis translation
 	unit _trans_y {ZERO}; // y-axis translation
 	unit _trans_z {ZERO}; // z-axis translation
-	unit _zoom {UNIT};
+	unit _scale {UNIT};   // scale factor
+	unit _arr[NUM_ATTRIBUTES];
 
 public:
 
@@ -23,7 +24,6 @@ public:
 	attrib(const unit, const unit, const unit, const unit, const unit, const unit, const unit);
 	attrib(const unit[NUM_ATTRIBUTES]);
 
-	bool read(std::ifstream&);
 	void print() const;
 
 	unit get_rot_x() const { return _rot_x; };
@@ -32,13 +32,11 @@ public:
 	unit get_trans_x() const { return _trans_x; };
 	unit get_trans_y() const { return _trans_y; };
 	unit get_trans_z() const { return _trans_z; };
-	unit get_zoom() const { return _zoom; };
+	unit get_scale() const { return _scale; };
 
 	attrib& operator=(unit[NUM_ATTRIBUTES]);
 	attrib& operator+=(const attrib&);
-
-	friend std::ostream& operator<<(std::ostream&, const attrib&);
-	friend std::istream& operator>>(std::istream&, attrib&);
+	inline unit operator[](uint32_t i) const { return (i < NUM_ATTRIBUTES) ? _arr[i] : ZERO; };
 };
 
 } // namespace attrib_ns

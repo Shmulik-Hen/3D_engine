@@ -1,20 +1,13 @@
 #pragma once
 
-#include <optional>
-#include <vector>
-
-#include "common.h"
-#include "attrib.h"
-#include "matrix.h"
 #include "polygon.h"
 #include "treenode.h"
-#include "scene_types.h"
-#include "config_document.h"
 
 // clang-format off
-namespace attrib_ns { class attrib; }
+namespace attrib_ns   { class attrib; }
 namespace graphics_ns { class graphics; }
-namespace matrix_ns { class matrix; }
+namespace matrix_ns   { class matrix; }
+namespace polygon_ns   { class polygon; }
 namespace vector_3_ns { class vector_3; }
 // clang-format on
 
@@ -26,12 +19,15 @@ class element : public treenode_ns::treenode<element>
 public:
 
 	using frame_context = scene_ns::frame_context;
+	using poly_ptr_list_t = std::list<polygon_ns::polygon*>;
 
 	element() = default;
 	~element() = default;
 
-	void init_from_def(const polygon_ns::polygon::polylist_t&, element*, const config_ns::element_def&);
-	bool read(const polygon_ns::polygon::polylist_t&, element*, std::ifstream&);
+	void init_from_def(const config_ns::parse_scn_elem_def&);
+	void set_parent(element*);
+	void add_polygon(polygon_ns::polygon*);
+
 	void print() const;
 	void print_all();
 
@@ -44,24 +40,24 @@ public:
 	void update_all(frame_context&);
 
 	const std::string get_name() const { return _name; }
-	bool has_run_attrib() const { return _run_att.has_value(); }
+	bool has_motion() const { return _motion.has_value(); }
 
 	bool _world_dirty {false};
 
 private:
 
-	polygon_ns::polygon::polylist_t _polygons;
+	poly_ptr_list_t _polygons;
 	std::string _name;
 	std::string _parent_name;
 	element* _parent {nullptr}; // raw pointer, non-owning
 	matrix_ns::matrix _trans_mat;
 	matrix_ns::matrix _rot_mat;
-	attrib_ns::attrib _ini_att;
+	attrib_ns::attrib _origin;
 	bool _active {false};
 	bool _dirty {false};
-	std::optional<attrib_ns::attrib> _run_att;
+	std::optional<attrib_ns::attrib> _motion;
 
-	polygon_ns::polygon* find(const polygon_ns::polygon::polylist_t&, const std::string&) const;
+	polygon_ns::polygon* find(const poly_ptr_list_t&, const std::string&) const;
 };
 
 } // namespace element_ns

@@ -1,382 +1,254 @@
 {
 	"encoding": "UTF-8",
-	"indent": {
-		"length": 4,
-		"use_space": false
-	},
-	"version": "0.0.2",
+
+	"version": [ 0, 0, 3 ],
 
 	"library": {
-		"objects": [
+		"polygons": [
 			{
-				"type": "polygon",
 				"name": "c_front",
 				"color_idx": 4,
 				"force": false,
-				"objects": [
-					{
-						"type": "vector",
-						"points": [
-							[ 100.0, 100.0, -100.0 ],
-							[ 100.0, -100.0, -100.0 ],
-							[ -100.0, -100.0, -100.0 ],
-							[ -100.0, 100.0, -100.0 ]
-						]
-					}
+				"vectors": [
+					[ 100.0, 100.0, -100.0 ],
+					[ 100.0, -100.0, -100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ -100.0, 100.0, -100.0 ]
 				]
 			},
 			{
-				"type": "polygon",
 				"name": "c_back",
 				"color_idx": 6,
 				"force": false,
-				"objects": [
-					{
-						"type": "vector",
-						"points": [
-							[ 100.0, 100.0, 100.0 ],
-							[ -100.0, 100.0, 100.0 ],
-							[ -100.0, -100.0, 100.0 ],
-							[ 100.0, -100.0, 100.0 ]
-						]
-					}
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ -100.0, 100.0, 100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ 100.0, -100.0, 100.0 ]
 				]
 			},
 			{
-				"type": "polygon",
 				"name": "c_left",
 				"color_idx": 8,
 				"force": false,
-				"objects": [
-					{
-						"type": "vector",
-						"points": [
-							[ -100.0, 100.0, -100.0 ],
-							[ -100.0, -100.0, -100.0 ],
-							[ -100.0, -100.0, 100.0 ],
-							[ -100.0, 100.0, 100.0 ]
-						]
-					}
+				"vectors": [
+					[ -100.0, 100.0, -100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ -100.0, 100.0, 100.0 ]
 				]
 			},
 			{
-				"type": "polygon",
 				"name": "c_right",
 				"color_idx": 10,
 				"force": false,
-				"objects": [
-					{
-						"type": "vector",
-						"points": [
-							[ 100.0, 100.0, 100.0 ],
-							[ 100.0, -100.0, 100.0 ],
-							[ 100.0, -100.0, -100.0 ],
-							[ 100.0, 100.0, -100.0 ]
-						]
-					}
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ 100.0, -100.0, 100.0 ],
+					[ 100.0, -100.0, -100.0 ],
+					[ 100.0, 100.0, -100.0 ]
 				]
 			},
 			{
-				"type": "polygon",
 				"name": "c_top",
 				"color_idx": 12,
 				"force": false,
-				"objects": [
-					{
-						"type": "vector",
-						"points": [
-							[ 100.0, 100.0, -100.0 ],
-							[ -100.0, 100.0, -100.0 ],
-							[ -100.0, 100.0, 100.0 ],
-							[ 100.0, 100.0, 100.0 ]
-						]
-					}
+				"vectors": [
+					[ 100.0, 100.0, -100.0 ],
+					[ -100.0, 100.0, -100.0 ],
+					[ -100.0, 100.0, 100.0 ],
+					[ 100.0, 100.0, 100.0 ]
 				]
 			},
 			{
-				"type": "polygon",
 				"name": "c_bottom",
 				"color_idx": 14,
 				"force": false,
-				"objects": [
-					{
-						"type": "vector",
-						"points": [
-							[ 100.0, -100.0, 100.0 ],
-							[ -100.0, -100.0, 100.0 ],
-							[ -100.0, -100.0, -100.0 ],
-							[ 100.0, -100.0, -100.0 ]
-						]
-					}
+				"vectors": [
+					[ 100.0, -100.0, 100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ 100.0, -100.0, -100.0 ]
 				]
 			},
 			{
-				"type": "polygon",
 				"name": "p_bottom",
 				"color_idx": 10,
 				"force": false,
-				"objects": [
-					{
-						"type": "vector",
-						"points": [
-							[ 100.0, 100.0, 100.0 ],
-							[ 100.0, -100.0, -100.0 ],
-							[ -100.0, 100.0, -100.0 ]
-						]
-					}
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ 100.0, -100.0, -100.0 ],
+					[ -100.0, 100.0, -100.0 ]
 				]
 			},
 			{
-				"type": "polygon",
 				"name": "p_front",
 				"color_idx": 4,
 				"force": false,
-				"objects": [
-					{
-						"type": "vector",
-						"points": [
-							[ 100.0, 100.0, 100.0 ],
-							[ -100.0, -100.0, 100.0 ],
-							[ 100.0, -100.0, -100.0 ]
-						]
-					}
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ 100.0, -100.0, -100.0 ]
 				]
 			},
 			{
-				"type": "polygon",
 				"name": "p_right",
 				"color_idx": 6,
 				"force": false,
-				"objects": [
-					{ "type": "vector",
-						"points": [
-							[ 100.0, 100.0, 100.0 ],
-							[ -100.0, 100.0, -100.0 ],
-							[ -100.0, -100.0, 100.0 ]
-						]
-					}
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ -100.0, 100.0, -100.0 ],
+					[ -100.0, -100.0, 100.0 ]
 				]
 			},
 			{
-				"type": "polygon",
 				"name": "p_left",
 				"color_idx": 8,
 				"force": false,
-				"objects": [
-					{ "type": "vector",
-						"points": [
-							[ 100.0, -100.0, -100.0 ],
-							[ -100.0, -100.0, 100.0 ],
-							[ -100.0, 100.0, -100.0 ]
-						]
-					}
+				"vectors": [
+					[ 100.0, -100.0, -100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ -100.0, 100.0, -100.0 ]
 				]
+			}
+		],
+		"meshes": [
+			{
+				"name": "cube_mesh",
+				"polygons": [
+					"c_front",
+					"c_back",
+					"c_left",
+					"c_right",
+					"c_top",
+					"c_bottom"
+				]
+			},
+			{
+				"name": "pyramid_mesh",
+				"polygons": [
+					"p_bottom",
+					"p_front",
+					"p_right",
+					"p_left"
+				]
+			}
+		],
+		"elements": [
+			{
+				"name": "cube_body",
+				"mesh": "cube_mesh"
+			},
+			{
+				"name": "pyramid_body",
+				"mesh": "pyramid_mesh"
 			}
 		]
 	},
 	"scenes": [
 		{
 			"name": "cube",
-			"objects": [
+			"elements": [
 				{
-					"type": "include",
-					"names": [ "c_front", "c_back", "c_left", "c_right", "c_top", "c_bottom" ]
-				},
-				{
-					"type": "element",
 					"name": "world",
-					"parent": "",
-					"active": true,
-					"objects": [
-						{
-							"type": "attribute",
-							"attrib": [ 0, 0, 0, 0, 0, 0, 1 ]
-						}
-					]
+					"parent": null,
+					"active": true
 				},
 				{
-					"type": "element",
 					"name": "gimbal",
 					"parent": "world",
 					"active": true,
-					"objects": [
-						{
-							"type": "attribute",
-							"attrib": [ 20, 0, 0, 0, 0, 0, 1 ]
-						}
-					]
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
 				},
 				{
-					"type": "element",
 					"name": "cube",
 					"parent": "gimbal",
 					"active": true,
-					"objects": [
-						{
-							"type": "attribute",
-							"attrib": [ 0, 0, 45, 0, 0, 0, 1 ]
-						},
-						{
-							"type": "attribute",
-							"motion": [ 0, -1, 0, 0, 0, 0, 1 ]
-						}
-					],
-					"polygons": [ "c_front", "c_back", "c_left", "c_right", "c_top", "c_bottom" ]
-				},
-				{
-					"type": "environment",
-					"color_idx": 0,
-					"light_type": 0,
-					"light_direction": [ 0, 0, -1 ],
-					"light_position": [ 0, 20, -74 ],
-					"focal_len": 1500,
-					"near_eps": 1,
-					"loop_delay": 20
+					"ref": "cube_body",
+					"origin": [ 45, 0, 45, 0, 0, 0, 0.5 ],
+					"motion": [ 0, 1, 0, 0, 0, 0, 1 ]
 				}
-			]
+			],
+			"environment": {
+				"resolution": [ 1600, 1000 ]
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 20
+			}
 		},
 		{
 			"name": "pyramid",
-			"objects": [
+			"elements": [
 				{
-					"type": "include",
-					"names": [ "p_front", "p_right", "p_left", "p_bottom" ]
-				},
-				{
-					"type": "element",
 					"name": "world",
-					"parent": "",
-					"active": true,
-					"objects": [
-						{
-							"type": "attribute",
-							"attrib": [ 0, 0, 0, 0, 0, 0, 1 ]
-						}
-					]
+					"parent": null,
+					"active": true
 				},
 				{
-					"type": "element",
 					"name": "gimbal",
 					"parent": "world",
 					"active": true,
-					"objects": [
-						{
-							"type": "attribute",
-							"attrib": [ 20, 0, 0, 0, 0, 0, 1 ]
-						}
-					]
+					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
 				},
 				{
-					"type": "element",
 					"name": "pyramid",
 					"parent": "gimbal",
 					"active": true,
-					"objects": [
-						{
-							"type": "attribute",
-							"attrib": [ 0, 0, 0, 0, 0, 0, 1 ]
-						},
-						{
-							"type": "attribute",
-							"motion": [ 0, 1, 0, 0, 0, 0, 1 ]
-						}
-					],
-					"polygons": [ "p_front", "p_right", "p_left", "p_bottom" ]
-				},
-				{
-					"type": "environment",
-					"color_idx": 0,
-					"light_type": 0,
-					"light_direction": [ 0, 0, -1 ],
-					"light_position": [ 0, 0, -74 ],
-					"focal_len": 1500,
-					"near_eps": 1
+					"ref": "pyramid_body",
+					"origin": [ 0, 0, 0, 0, 0, 0, 0.5 ],
+					"motion": [ 1, 0, 0, 0, 0, 0, 1 ]
 				}
-			]
+			],
+			"environment": {
+				"resolution": [ 1600, 1000 ]
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 50
+			}
 		},
 		{
 			"name": "both",
-			"objects": [
+			"elements": [
 				{
-					"type": "include",
-					"names": [
-						"c_front", "c_back", "c_left", "c_right", "c_top", "c_bottom",
-						"p_front", "p_right", "p_left", "p_bottom"
-					]
-				},
-				{
-					"type": "element",
 					"name": "world",
-					"parent": "",
-					"active": true,
-					"objects": [
-						{
-							"type": "attribute",
-							"attrib": [ 0, 0, 0, 0, 0, 0, 1 ]
-						}
-					]
+					"parent": null,
+					"active": true
 				},
 				{
-					"type": "element",
 					"name": "gimbal",
 					"parent": "world",
 					"active": true,
-					"objects": [
-						{
-							"type": "attribute",
-							"attrib": [ 0, 0, 0, 0, 0, 0, 1 ]
-						},
-						{
-							"type": "attribute",
-							"motion": [ 1, 0, 0, 0, 0, 0, 1 ]
-						}
-					]
+					"origin": [ 0, 0, 0, 0, 0, 0, 0.5 ],
+					"motion": [ 0, 1, 0, 0, 0, 0, 1 ]
 				},
 				{
-					"type": "element",
 					"name": "cube",
 					"parent": "gimbal",
 					"active": true,
-					"objects": [
-						{
-							"type": "attribute",
-							"attrib": [ 22.5, 0, 45, 300, 0, 0, 1 ]
-						},
-						{
-							"type": "attribute",
-							"motion": [ 0, -1, 0, 0, 0, 0, 1 ]
-						}
-					],
-					"polygons": [ "c_front", "c_back", "c_left", "c_right", "c_top", "c_bottom" ]
+					"ref": "cube_body",
+					"origin": [ 45, 0, 45, 500, 0, 0, 1 ],
+					"motion": [ 0, 2, 0, 0, 0, 0, 1 ]
 				},
 				{
-					"type": "element",
 					"name": "pyramid",
 					"parent": "gimbal",
 					"active": true,
-					"objects": [
-						{
-							"type": "attribute",
-							"attrib": [ 22.5, 0, 0, -300, 0, 0, 1 ]
-						},
-						{
-							"type": "attribute",
-							"motion": [ 0, 1, 0, 0, 0, 0, 1 ]
-						}
-					],
-					"polygons": [ "p_front", "p_right", "p_left", "p_bottom" ]
-				},
-				{
-					"type": "environment",
-					"color_idx": 0,
-					"light_type": 0,
-					"light_direction": [ 0, 0, -1 ],
-					"light_position": [ 0, 20, -74 ],
-					"focal_len": 1500,
-					"near_eps": 1,
-					"loop_delay": 20
+					"ref": "pyramid_body",
+					"origin": [ 0, 0, 0, -500, 0, 0, 1 ],
+					"motion": [ 2, 0, 0, 0, 0, 0, 1 ]
 				}
-			]
+			],
+			"environment": {
+				"resolution": [ 1600, 1000 ]
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 50
+			}
 		}
 	]
 }

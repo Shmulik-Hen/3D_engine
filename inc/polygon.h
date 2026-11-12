@@ -1,16 +1,10 @@
 #pragma once
 
 #include <list>
-#include <utility>
-#include <vector>
 
-#include "common.h"
 #include "graphics.h"
 #include "matrix.h"
-#include "unit.h"
-#include "vector_3.h"
 #include "scene_types.h"
-#include "config_document.h"
 
 // clang-format off
 namespace graphics_ns { class graphics; }
@@ -71,12 +65,15 @@ class polygon
 		vector_3_ns::vector_3 _debug_fill;
 		graphics_ns::graphics::color_idx _debug_color {graphics_ns::graphics::white};
 		graphics_ns::graphics::color_idx _bbox_color {graphics_ns::graphics::green};
-		graphics_ns::graphics::color_idx _vp_color {graphics_ns::graphics::blue};
+		graphics_ns::graphics::color_idx _win_color {graphics_ns::graphics::blue};
 		graphics_ns::graphics::color_idx _normal_color {graphics_ns::graphics::lime};
 		graphics_ns::graphics::color_idx _fill_color {graphics_ns::graphics::red};
 		point _normal_point;
 		point _fill_point;
-#endif
+
+		// Optional: keep for debug outline rendering. Not used for filling anymore.
+		void clamp_to_win(scene_ns::frame_context&, point&);
+#endif // DEBUG_POLYGON
 
 		drawing() = default;
 		~drawing() = default;
@@ -94,10 +91,8 @@ class polygon
 		void putpixel(scene_ns::frame_context&, const point&);
 
 		// Fast scanline bar (no per-pixel bounds checks)
-		void bar(scene_ns::frame_context&, graphics_ns::val_t y, graphics_ns::val_t x_left, graphics_ns::val_t x_right);
+		void bar(scene_ns::frame_context&, graphics_ns::uval_t y, graphics_ns::uval_t x_left, graphics_ns::uval_t x_right);
 
-		// Optional: keep for debug outline rendering. Not used for filling anymore.
-		void clamp_to_vp(scene_ns::frame_context&, point&);
 		int check_boundaries(scene_ns::frame_context&, point&);
 		bool cs_clip_line(scene_ns::frame_context&, point&, point&);
 
@@ -145,8 +140,7 @@ class polygon
 
 public:
 
-	typedef std::vector<vector_3_ns::vector_3> vector_t;
-	typedef std::list<polygon*> polylist_t;
+	using vector_t = std::vector<vector_3_ns::vector_3>;
 	using frame_context = scene_ns::frame_context;
 
 	polygon();
@@ -155,8 +149,7 @@ public:
 	const std::string get_name() const { return _name; }
 	double get_depth() const { return _depth; }
 
-	void init_from_def(frame_context&, const config_ns::polygon_def&);
-	bool read(const graphics_ns::graphics*, std::ifstream&);
+	void init_from_def(frame_context&, const config_ns::parse_poly_def&);
 	void print() const;
 	void draw(scene_ns::frame_context&);
 	void update(matrix_ns::matrix&, matrix_ns::matrix&, scene_ns::frame_context&);

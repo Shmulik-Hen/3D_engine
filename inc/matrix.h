@@ -1,8 +1,10 @@
 #pragma once
 
-#include "common.h"
+#include <cstdint>
+
 #include "attrib.h"
 #include "unit.h"
+#include "utils.h"
 #include "vector_3.h"
 
 // clang-format off
@@ -16,7 +18,7 @@ namespace matrix_ns
 using attrib = attrib_ns::attrib;
 using vector_3 = vector_3_ns::vector_3;
 
-const int dim = O_ + 1;
+const uint32_t dim = O_ + 1;
 
 class matrix
 {
@@ -44,7 +46,7 @@ class matrix
 	vector_4 _rows[dim];
 	vector_4 _cols[dim];
 
-	void prep_row(int);
+	void prep_row(uint32_t);
 	void prep_cols();
 
 public:

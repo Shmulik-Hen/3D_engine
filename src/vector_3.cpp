@@ -35,31 +35,15 @@ vector_3::vector_3(const unit x, const unit y, const unit z)
 	_coords[Z_] = z;
 }
 
-bool vector_3::read(std::ifstream& ifs)
-{
-	LINE line;
-
-	for (int i = X_; i <= Z_; i++) {
-		// clang-format off
-		while ((!read_word(ifs, line)) && (!ifs.eof()));
-		if (ifs.eof())  return false;
-		// clang-format on
-		_coords[i] = strtof(line, NULL);
-		// clang-format on
-	}
-
-	return true;
-}
-
 void vector_3::print() const
 {
 	DBG(STR("  vector:", 1));
-	for (int i = X_; i <= Z_; i++) {
-		DBG("    i: " << i << PFX << FLT(_coords[i], 3));
+	for (uint32_t i = X_; i <= Z_; i++) {
+		DBG("       " << i + 1 << PFX << FLT(_coords[i], 3));
 	}
 }
 
-unit vector_3::get(int i) const
+unit vector_3::get(uint32_t i) const
 {
 	if (is_valid_coord(i)) {
 		return _coords[i];
@@ -68,7 +52,7 @@ unit vector_3::get(int i) const
 	return ZERO;
 }
 
-void vector_3::set(const int i, const unit& u)
+void vector_3::set(const uint32_t i, const unit& u)
 {
 	if (is_valid_coord(i)) {
 		_coords[i] = u;
@@ -188,19 +172,18 @@ vector_3& vector_3::operator-=(const vector_3& v)
 	return *this;
 }
 
-std::ostream& operator<<(std::ostream& os, const vector_3& v)
+bool vector_3::operator==(const vector_3& v)
 {
-	return os << '(' << v._coords[X_] << ','
-	          << v._coords[Y_] << ','
-	          << v._coords[Z_] << ')';
+	return (_coords[0] == v._coords[0] &&
+	        _coords[1] == v._coords[1] &&
+	        _coords[2] == v._coords[2]);
 }
 
-std::istream& operator>>(std::istream& is, vector_3& v)
+bool vector_3::operator!=(const vector_3& v)
 {
-	is >> v._coords[X_];
-	is >> v._coords[Y_];
-	is >> v._coords[Z_];
-	return is;
+	return !(_coords[0] == v._coords[0] &&
+	         _coords[1] == v._coords[1] &&
+	         _coords[2] == v._coords[2]);
 }
 
 } // namespace vector_3_ns

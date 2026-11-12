@@ -3,23 +3,21 @@
 #include <cstdint>
 #include <map>
 #include <vector>
+#include <string>
 
-#include "common.h"
+#include "utils.h"
 
 namespace graphics_ns
 {
+
+constexpr std::uint32_t DEFAULT_SCALE(1U);
 
 #define MAKE_COLOR(a, r, g, b) (((a) << 24) | ((r) << 16) | ((g) << 8) | (b))
 
 using val_t = std::int32_t;
 using uval_t = std::uint32_t;
-using coord_t = val_t;
+using coord_t = uval_t;
 using color_t = uval_t;
-
-constexpr val_t MIN_X = 0;
-constexpr val_t MIN_Y = 0;
-constexpr val_t MAX_X = 1280; // 16:10
-constexpr val_t MAX_Y = 800;
 
 class graphics
 {
@@ -117,7 +115,7 @@ public:
 
 	graphics();
 	graphics(const char*);
-	graphics(const char*, val_t, val_t, val_t);
+	graphics(const char*, uval_t, uval_t, uval_t);
 	~graphics();
 
 	// class with allocated resource should not be copied
@@ -139,11 +137,11 @@ public:
 	std::string get_color_name(const color_idx) const;
 	uint8_t get_alpha_val(const alpha_idx);
 	void set_alpha(ARGB&, const uint8_t);
-	val_t get_num_colors() const { return __last_color__; }
-	val_t get_num_alphas() const { return __last_alpha__; }
-	point get_min_position() const { return point {0, 0}; }
-	point get_max_position() const { return point {_w - 1, _h - 1}; }
-	bool is_in_bounds(point p) const { return ((uval_t)p.x < (uval_t)_w && (uval_t)p.y < (uval_t)_h); }
+	val_t get_num_colors() const { return __last_color__ - 1; }
+	val_t get_num_alphas() const { return __last_alpha__ - 1; }
+	point get_min_position() const { return point {MIN_X_POS, MIN_Y_POS}; }
+	point get_max_position() const { return point {(uval_t)_w - 1, (uval_t)_h - 1}; }
+	bool is_in_bounds(point p) const { return (p.x < (uval_t)_w && p.y < (uval_t)_h); }
 
 private:
 

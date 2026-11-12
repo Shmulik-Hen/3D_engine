@@ -1,0 +1,162 @@
+{
+	"encoding": "UTF-8",
+
+	"version": [ 0, 0, 3 ],
+
+	"library":
+	{
+		"polygons": [
+			{
+				"name": "c_front",
+				"color_idx": 4,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, -100.0 ],
+					[ 100.0, -100.0, -100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ -100.0, 100.0, -100.0 ]
+				]
+			},
+			{
+				"name": "c_back",
+				"color_idx": 6,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ -100.0, 100.0, 100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ 100.0, -100.0, 100.0 ]
+				]
+			},
+			{
+				"name": "c_left",
+				"color_idx": 8,
+				"force": false,
+				"vectors": [
+					[ -100.0, 100.0, -100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ -100.0, 100.0, 100.0 ]
+				]
+			},
+			{
+				"name": "c_right",
+				"color_idx": 10,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, 100.0 ],
+					[ 100.0, -100.0, 100.0 ],
+					[ 100.0, -100.0, -100.0 ],
+					[ 100.0, 100.0, -100.0 ]
+				]
+			},
+			{
+				"name": "c_top",
+				"color_idx": 12,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, -100.0 ],
+					[ -100.0, 100.0, -100.0 ],
+					[ -100.0, 100.0, 100.0 ],
+					[ 100.0, 100.0, 100.0 ]
+				]
+			},
+			{
+				"name": "c_bottom",
+				"color_idx": 14,
+				"force": false,
+				"vectors": [
+					[ 100.0, -100.0, 100.0 ],
+					[ -100.0, -100.0, 100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ 100.0, -100.0, -100.0 ]
+				]
+			}
+		],
+		"meshes": [
+			{
+				"name": "cube_mesh",
+				"polygons": [
+					"c_front",
+					"c_back",
+					"c_left",
+					"c_right",
+					"c_top",
+					"c_bottom"
+				]
+			}
+		],
+		"elements": [
+			{
+				"name": "cube_body",
+				"mesh": "cube_mesh"
+			}
+		]
+	},
+	"scenes": [
+		{
+			"name": "cubes",
+			"elements": [
+				{
+					"name": "gimbal",
+					"parent": "world",
+					"active": true,
+					"origin": [ 0, 0, 23.5, 0, 0, 0, 0.5 ],
+					"motion": [ 0, 5, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube_1",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 45, 0, 0, 500, 0, 0, 0.3 ],
+					"motion": [ 15, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube_2",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0, 45, 0, -500, 0, 0, 0.3 ],
+					"motion": [ -15, 2, 5, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "world",
+					"parent": null,
+					"active": true
+				},
+				{
+					"name": "cube_3",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0, 0, 45, 0, 200, 500, 0.3 ],
+					"motion": [ 0, 0, 10, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube_4",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0, 0, 45, 0, 0, 0, 0.5 ],
+					"motion": [ 0, 20, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube_5",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 45, 45, 45, 0, -200, -500, 0.3 ],
+					"motion": [ 0, 0, 10, 0, 0, 0, 1 ]
+				}
+			],
+			"environment": {
+				"resolution": [ 1600, 1000 ]
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 50
+			}
+		}
+	]
+}

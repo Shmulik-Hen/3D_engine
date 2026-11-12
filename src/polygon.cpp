@@ -1,12 +1,9 @@
 #include <algorithm>
-#include <climits>
 #include <cmath>
-#include <cstdint>
 
 // #define DEBUG_PRINTS
 #include "polygon.h"
 #include "render_conventions.h"
-#include "utils.h"
 
 namespace polygon_ns
 {
@@ -47,12 +44,11 @@ void polygon::drawing::set_color(const graphics* gfx, int idx)
 
 addr_t polygon::drawing::offset(frame_context& frame_ctx, const point& p) const
 {
-	// NOTE: offset assumes p is in "viewport-local" coords if vp.min_pos != {0,0}.
-	// Your current convention has vp.min_pos == {0,0}.
+	// Current convention has win.min_pos == {0,0}.
 	// clang-format off
 	return reinterpret_cast<addr_t>(frame_ctx.state->grfx.fb.pixels +
-					frame_ctx.state->vp.min_pos.x + p.x +
-					(frame_ctx.state->vp.min_pos.y + p.y) *
+					frame_ctx.state->win.min_pos.x + p.x +
+					(frame_ctx.state->win.min_pos.y + p.y) *
 					(frame_ctx.state->grfx.fb.pitch_pixels));
 	// clang-format on
 }
@@ -78,33 +74,35 @@ void polygon::drawing::putpixel(frame_context& frame_ctx, const point& p)
 	*(offset(frame_ctx, p)) = _draw_color;
 }
 
-void polygon::drawing::clamp_to_vp(frame_context& frame_ctx, point& p)
+#ifdef DEBUG_POLYGON
+void polygon::drawing::clamp_to_win(frame_context& frame_ctx, point& p)
 {
-	auto& vp = frame_ctx.state->vp;
-	p.x = std::max(p.x, vp.min_pos.x);
-	p.x = std::min(p.x, vp.max_pos.x);
-	p.y = std::max(p.y, vp.min_pos.y);
-	p.y = std::min(p.y, vp.max_pos.y);
-	DBG("clamp_to_vp: p.x: " << DEC(p.x, 4) << ", p.y: " << DEC(p.y, 4));
+	auto& win = frame_ctx.state->win;
+	p.x = std::max(p.x, win.min_pos.x);
+	p.x = std::min(p.x, win.max_pos.x);
+	p.y = std::max(p.y, win.min_pos.y);
+	p.y = std::min(p.y, win.max_pos.y);
+	DBG("clamp_to_win: p.x: " << DEC(p.x, 4) << ", p.y: " << DEC(p.y, 4));
 }
+#endif // DEBUG_POLYGON
 
 // return a code according to which boundary is crossed
 int polygon::drawing::check_boundaries(frame_context& frame_ctx, point& p)
 {
-	auto& vp = frame_ctx.state->vp;
+	auto& win = frame_ctx.state->win;
 	int code = 0;
 
-	if (p.x < vp.min_pos.x) {
+	if (p.x < win.min_pos.x) {
 		code |= LEFT_BOUNDARY_CROSSED;
 	}
-	else if (p.x > vp.max_pos.x) {
+	else if (p.x > win.max_pos.x) {
 		code |= RIGHT_BOUNDARY_CROSSED;
 	}
 
-	if (p.y < vp.min_pos.y) {
+	if (p.y < win.min_pos.y) {
 		code |= TOP_BOUNDARY_CROSSED;
 	}
-	else if (p.y > vp.max_pos.y) {
+	else if (p.y > win.max_pos.y) {
 		code |= BOTTOM_BOUNDARY_CROSSED;
 	}
 
@@ -114,7 +112,7 @@ int polygon::drawing::check_boundaries(frame_context& frame_ctx, point& p)
 // Cohen–Sutherland clip line in place. Returns false if fully outside.
 bool polygon::drawing::cs_clip_line(frame_context& frame_ctx, point& p1, point& p2)
 {
-	auto& vp = frame_ctx.state->vp;
+	auto& win = frame_ctx.state->win;
 	int c0 = check_boundaries(frame_ctx, p1);
 	int c1 = check_boundaries(frame_ctx, p2);
 
@@ -136,33 +134,33 @@ bool polygon::drawing::cs_clip_line(frame_context& frame_ctx, point& p1, point& 
 			if (y_gap == 0) {
 				return false;
 			}
-			float t = float(vp.min_pos.y - p1.y) / float(y_gap);
+			float t = float(win.min_pos.y - p1.y) / float(y_gap);
 			x = p1.x + t * float(x_gap);
-			y = float(vp.min_pos.y);
+			y = float(win.min_pos.y);
 		}
 		else if (out & BOTTOM_BOUNDARY_CROSSED) {
 			if (y_gap == 0) {
 				return false;
 			}
-			float t = float(vp.max_pos.y - p1.y) / float(y_gap);
+			float t = float(win.max_pos.y - p1.y) / float(y_gap);
 			x = p1.x + t * float(x_gap);
-			y = float(vp.max_pos.y);
+			y = float(win.max_pos.y);
 		}
 		else if (out & LEFT_BOUNDARY_CROSSED) {
 			if (x_gap == 0) {
 				return false;
 			}
-			float t = float(vp.min_pos.x - p1.x) / float(x_gap);
+			float t = float(win.min_pos.x - p1.x) / float(x_gap);
 			y = p1.y + t * float(y_gap);
-			x = float(vp.min_pos.x);
+			x = float(win.min_pos.x);
 		}
 		else { // RIGHT
 			if (x_gap == 0) {
 				return false;
 			}
-			float t = float(vp.max_pos.x - p1.x) / float(x_gap);
+			float t = float(win.max_pos.x - p1.x) / float(x_gap);
 			y = p1.y + t * float(y_gap);
-			x = float(vp.max_pos.x);
+			x = float(win.max_pos.x);
 		}
 
 		if (out == c0) {
@@ -216,7 +214,7 @@ void polygon::drawing::stroke_to(frame_context& frame_ctx, point& p)
 }
 
 // Unchecked memory access - caller must verify viewport boundaries
-void polygon::drawing::bar(scene_ns::frame_context& frame_ctx, val_t y, val_t x_left, val_t x_right)
+void polygon::drawing::bar(scene_ns::frame_context& frame_ctx, uval_t y, uval_t x_left, uval_t x_right)
 {
 	addr_t row = offset(frame_ctx, {0, y});
 	std::fill(row + x_left, row + x_right + 1, _draw_color);
@@ -238,7 +236,7 @@ void polygon::drawing::rect(frame_context& frame_ctx, point& tl, point& br, bool
 	point br_ = br;
 	if (cs_clip_line(frame_ctx, tl_, br_)) {
 		if (fill) {
-			for (int y = tl_.y; y <= br_.y; y++) {
+			for (uval_t y = tl_.y; y <= br_.y; y++) {
 				bar(frame_ctx, y, tl_.x, br_.x);
 			}
 		}
@@ -256,11 +254,11 @@ void polygon::drawing::rect(frame_context& frame_ctx, point& tl, point& br, bool
 
 polygon::drawing::scratchpad_t polygon::drawing::clip_polygon_to_screen(frame_context& frame_ctx, const scratchpad_t& in)
 {
-	auto& vp = frame_ctx.state->vp;
-	const int L = vp.min_pos.x;
-	const int R = vp.max_pos.x;
-	const int T = vp.min_pos.y;
-	const int B = vp.max_pos.y;
+	auto& win = frame_ctx.state->win;
+	const uval_t L = win.min_pos.x;
+	const uval_t R = win.max_pos.x;
+	const uval_t T = win.min_pos.y;
+	const uval_t B = win.max_pos.y;
 
 	if (in.size() < 3) {
 		return {};
@@ -318,7 +316,7 @@ polygon::drawing::scratchpad_t polygon::drawing::clip_polygon_to_screen(frame_co
 		return out;
 	};
 
-	auto intersect_x = [](const point& S, const point& E, int x_const) -> point {
+	auto intersect_x = [](const point& S, const point& E, uval_t x_const) -> point {
 		// Segment S->E intersects vertical line x=x_const.
 		const int dx = E.x - S.x;
 		const int dy = E.y - S.y;
@@ -328,10 +326,10 @@ polygon::drawing::scratchpad_t polygon::drawing::clip_polygon_to_screen(frame_co
 		}
 		const double t = double(x_const - S.x) / double(dx);
 		const double y = double(S.y) + t * double(dy);
-		return {x_const, (int)std::lround(y)};
+		return {x_const, (uval_t)std::lround(y)};
 	};
 
-	auto intersect_y = [](const point& S, const point& E, int y_const) -> point {
+	auto intersect_y = [](const point& S, const point& E, uval_t y_const) -> point {
 		// Segment S->E intersects horizontal line y=y_const.
 		const int dx = E.x - S.x;
 		const int dy = E.y - S.y;
@@ -340,7 +338,7 @@ polygon::drawing::scratchpad_t polygon::drawing::clip_polygon_to_screen(frame_co
 		}
 		const double t = double(y_const - S.y) / double(dy);
 		const double x = double(S.x) + t * double(dx);
-		return {(int)std::lround(x), y_const};
+		return {(uval_t)std::lround(x), y_const};
 	};
 
 	scratchpad_t poly = in;
@@ -369,7 +367,7 @@ polygon::drawing::scratchpad_t polygon::drawing::clip_polygon_to_screen(frame_co
 		[B](const point& p) { return p.y <= B; },
 		[intersect_y, B](const point& S, const point& E) { return intersect_y(S, E, B); });
 
-	// Final sanity: if we ended with <3 vertices, it’s fully clipped
+	// Final sanity: if we ended with <3 vectors, it’s fully clipped
 	if (poly.size() < 3) {
 		poly.clear();
 	}
@@ -461,7 +459,7 @@ void polygon::drawing::build_xlist_from(const scratchpad_t& poly)
 
 void polygon::drawing::fill_from_xlist(scene_ns::frame_context& frame_ctx)
 {
-	auto& vp = frame_ctx.state->vp;
+	auto& win = frame_ctx.state->win;
 	const int y_base = _bbox_tl.y;
 
 	for (int row = 0; row < (int)_xlist.size(); ++row) {
@@ -487,8 +485,8 @@ void polygon::drawing::fill_from_xlist(scene_ns::frame_context& frame_ctx)
 			}
 
 			// Clamp to viewport
-			xl = std::max(xl, vp.min_pos.x);
-			xr = std::min(xr, vp.max_pos.x);
+			xl = std::max(xl, (int)win.min_pos.x);
+			xr = std::min(xr, (int)win.max_pos.x);
 
 			if (xl <= xr) {
 				bar(frame_ctx, y, xl, xr);
@@ -521,12 +519,12 @@ void polygon::drawing::draw(frame_context& frame_ctx)
 	point f = _fill_point;
 	point n = _normal_point;
 	point p0, p1, p2;
-	clamp_to_vp(frame_ctx, n);
+	clamp_to_win(frame_ctx, n);
 
-	// draw the vp
-	set_color(frame_ctx.state->grfx.gfx.get(), _vp_color);
-	p1 = frame_ctx.state->vp.min_pos;
-	p2 = frame_ctx.state->vp.max_pos;
+	// draw the win
+	set_color(frame_ctx.state->grfx.gfx.get(), _win_color);
+	p1 = frame_ctx.state->win.min_pos;
+	p2 = frame_ctx.state->win.max_pos;
 	rect(frame_ctx, p1, p2, false);
 
 	// draw the bbox
@@ -587,8 +585,8 @@ void polygon::drawing::project(frame_context& frame_ctx, const vector_3& transfo
 	                                       frame_ctx.state->proj.focal_len,
 	                                       frame_ctx.state->proj.near_eps,
 	                                       FORWARD_LOOKING_SIGN);
-	p.x = std::lroundf((unit)frame_ctx.state->vp.mid_pos.x + projected.get(X_));
-	p.y = std::lroundf((unit)frame_ctx.state->vp.mid_pos.y - projected.get(Y_));
+	p.x = std::lroundf((unit)frame_ctx.state->win.mid_pos.x + projected.get(X_));
+	p.y = std::lroundf((unit)frame_ctx.state->win.mid_pos.y - projected.get(Y_));
 	DBG("project: p.x: " << DEC(p.x, 4) << ", p.y: " << DEC(p.y, 4));
 }
 
@@ -771,7 +769,7 @@ vector_3 polygon::find_normal()
 		return vector_3::normalize(cr);
 	}
 	else {
-		// --- Robust path for 4+ vertices: Newell's method ---
+		// --- Robust path for 4+ vectors: Newell's method ---
 		vector_3 nn(ZERO, ZERO, ZERO);
 
 		for (std::size_t i = 0; i < n; ++i) {
@@ -795,7 +793,7 @@ vector_3 polygon::find_normal()
 	}
 }
 
-void polygon::init_from_def(frame_context& ctx, const config_ns::polygon_def& def)
+void polygon::init_from_def(frame_context& ctx, const config_ns::parse_poly_def& def)
 {
 	_name = def.name;
 	_draw_ctx->set_base_color(ctx.state->grfx.gfx.get(), def.color_index);
@@ -806,7 +804,7 @@ void polygon::init_from_def(frame_context& ctx, const config_ns::polygon_def& de
 #endif
 
 	_points.clear();
-	for (const auto& v : def.points) {
+	for (const auto& v : def.vectors) {
 		_points.push_back(v);
 	}
 
@@ -817,102 +815,6 @@ void polygon::init_from_def(frame_context& ctx, const config_ns::polygon_def& de
 	// compute fill + normal from geometry
 	_fill = find_fill();
 	_normal = find_normal();
-
-	// optional: if cfg normal exists, assert winding matches during transition
-	if (def.normal_cfg.has_value()) {
-		_config_normal = vector_3::normalize(def.normal_cfg.value());
-		if (vector_3::dot(_normal, _config_normal) < ZERO) {
-			// either flip or warn; I recommend warn+flip until old configs cleaned
-			WARN("computed normal != configuration normal. flipping");
-			_normal = _normal * -UNIT;
-		}
-	}
-}
-
-bool polygon::read(const graphics* gfx, std::ifstream& ifs)
-{
-	LINE line;
-	vector_3* v;
-	int len;
-	bool rc, finish = false;
-
-	while (!ifs.eof() && !finish) {
-		while ((!read_word(ifs, line)) && (!ifs.eof()));
-		if (ifs.eof()) {
-			break;
-		}
-
-		switch (line[1]) {
-		case 'n':
-			len = read_word(ifs, line);
-			if (!len) {
-				sys_error("polygon::read error polygon");
-			}
-
-			_name = line;
-			break;
-		case 'c':
-			len = read_word(ifs, line);
-			if (len) {
-				int color = atoi(line);
-				_draw_ctx->set_base_color(gfx, color);
-			}
-			else {
-				sys_error("polygon::read error polygon");
-			}
-			break;
-		case 'f':
-			len = read_word(ifs, line);
-			if (len) {
-#ifdef DEBUG_POLYGON
-				_force = true;
-#else
-				int f = atoi(line);
-				_force = (f ? true : false);
-#endif
-			}
-			else {
-				sys_error("polygon::read error polygon");
-			}
-			break;
-		case 'o': // TODO: FIX
-			_config_normal.read(ifs);
-			break;
-		case 'v':
-			v = new vector_3;
-			rc = v->read(ifs);
-			if (!rc) {
-				delete v;
-				sys_error("polygon::read error polygon");
-			}
-			_points.push_back(*v);
-			delete v;
-			break;
-		default:
-			finish = true;
-			ifs.seekg(-4, std::ios::cur);
-			break;
-		}
-	}
-
-	if (!verify()) {
-		ERR("polygon: invalid polygon");
-		return false;
-	}
-
-	_fill = find_fill();
-	_normal = find_normal();
-
-	unit d = vector_3::dot(_normal, _config_normal);
-	if (d < ZERO) {
-		WARN("polygon::read: winding mismatch vs config normal" << _name);
-		DBG("polygon::read: config normal:");
-		_config_normal.print();
-		DBG("polygon::read: calculated normal:");
-		_normal.print();
-	}
-
-	return true;
 }
 
 void polygon::print() const
@@ -977,7 +879,7 @@ void polygon::update(matrix& m_trans, matrix& m_rot, frame_context& frame_ctx)
 		return;
 	}
 
-	if (frame_ctx.state->light.type == scene_ns::light_type::directional) {
+	if (frame_ctx.state->light.type == config_ns::light_type::directional) {
 		// Convention: light.direction is surface->light
 		L = vector_3::normalize(frame_ctx.state->light.direction);
 	}

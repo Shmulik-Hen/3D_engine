@@ -1,0 +1,68 @@
+{
+	"encoding": "UTF-8",
+
+	"version": [ 0, 0, 3 ],
+
+	"library":
+	{
+		"polygons": [
+			{
+				"name": "c_front",
+				"color_idx": 4,
+				"force": false,
+				"vectors": [
+					[ 100.0, 100.0, -100.0 ],
+					[ 100.0, -100.0, -100.0 ],
+					[ -100.0, -100.0, -100.0 ],
+					[ -100.0, 100.0, -100.0 ]
+				]
+			}
+		],
+		"meshes": [
+			{
+				"name": "cube_mesh",
+				"polygons": [ "c_front" ]
+			}
+		],
+		"elements": [
+			{
+				"name": "cube_body",
+				"mesh": "cube_mesh"
+			}
+		]
+	},
+	"scenes": [
+		{
+			"name": "cube",
+			"elements": [
+				{
+					"name": "world",
+					"parent": null,
+					"active": true
+				},
+				{
+					"name": "cube_1",
+					"parent": "world",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ],
+					"motion": [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ]
+				}
+			],
+			"environment": {
+				"resolution": [ 1280, 800 ],
+				"color_idx": 0,
+				"light_type": 0,
+				"light_direction": [ 0.0, 0.0, 1.0 ],
+				"light_position": [ 0.0, 20.0, 75.0 ],
+				"camera_position": [ 0.0, 0.0, 1000.0 ],
+				"focal_len": 2000.0,
+				"near_eps": 1.0
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 20
+			}
+		}
+	]
+}

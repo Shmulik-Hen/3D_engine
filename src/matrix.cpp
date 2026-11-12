@@ -17,21 +17,21 @@ unit unit_mat[dim][dim] = {
 
 matrix::vector_4::vector_4()
 {
-	for (int i = X_; i <= O_; i++) {
+	for (uint32_t i = X_; i <= O_; i++) {
 		_coords[i] = ZERO;
 	}
 }
 
 matrix::vector_4::vector_4(const vector_4& v)
 {
-	for (int i = X_; i <= O_; i++) {
+	for (uint32_t i = X_; i <= O_; i++) {
 		_coords[i] = v._coords[i];
 	}
 }
 
 matrix::vector_4::vector_4(const unit v[dim])
 {
-	for (int i = X_; i <= O_; i++) {
+	for (uint32_t i = X_; i <= O_; i++) {
 		_coords[i] = v[i];
 	}
 }
@@ -63,7 +63,7 @@ matrix::vector_4 matrix::vector_4::operator-(const vector_4& v) const
 matrix::vector_4& matrix::vector_4::operator=(const vector_4& v)
 {
 	if (this != &v) {
-		for (int i = X_; i <= O_; i++) {
+		for (uint32_t i = X_; i <= O_; i++) {
 			_coords[i] = v._coords[i];
 		}
 	}
@@ -102,8 +102,8 @@ unit matrix::vector_4::operator*(const vector_4& v) const
 
 matrix::matrix()
 {
-	for (int i = X_; i <= O_; i++) {
-		for (int j = X_; j <= O_; j++) {
+	for (uint32_t i = X_; i <= O_; i++) {
+		for (uint32_t j = X_; j <= O_; j++) {
 			_mat[i][j] = ZERO;
 		}
 		prep_row(i);
@@ -114,8 +114,8 @@ matrix::matrix()
 
 matrix::matrix(const matrix& m)
 {
-	for (int i = X_; i <= O_; i++) {
-		for (int j = 0; j <= O_; j++) {
+	for (uint32_t i = X_; i <= O_; i++) {
+		for (uint32_t j = 0; j <= O_; j++) {
 			_mat[i][j] = m._mat[i][j];
 		}
 		prep_row(i);
@@ -126,8 +126,8 @@ matrix::matrix(const matrix& m)
 
 matrix::matrix(unit u[dim][dim])
 {
-	for (int i = X_; i <= O_; i++) {
-		for (int j = X_; j <= O_; j++) {
+	for (uint32_t i = X_; i <= O_; i++) {
+		for (uint32_t j = X_; j <= O_; j++) {
 			_mat[i][j] = u[i][j];
 		}
 		prep_row(i);
@@ -136,14 +136,14 @@ matrix::matrix(unit u[dim][dim])
 	prep_cols();
 }
 
-void matrix::prep_row(int r)
+void matrix::prep_row(uint32_t r)
 {
 	_rows[r] = _mat[r];
 }
 
 void matrix::prep_cols()
 {
-	for (int i = X_; i <= O_; i++) {
+	for (uint32_t i = X_; i <= O_; i++) {
 		_cols[i] = {_rows[X_]._coords[i],
 		            _rows[Y_]._coords[i],
 		            _rows[Z_]._coords[i],
@@ -155,8 +155,8 @@ void matrix::print() const
 {
 #ifdef DEBUG_PRINTS
 	DBG("matrix:");
-	for (int i = X_; i <= O_; i++) {
-		for (int j = X_; j <= O_; j++) {
+	for (uint32_t i = X_; i <= O_; i++) {
+		for (uint32_t j = X_; j <= O_; j++) {
 			DBG("  [" << i << "][" << j << "] : " << _mat[i][j]);
 		}
 	}
@@ -185,7 +185,7 @@ matrix matrix::operator*(const matrix& m) const
 	temp._mat[O_][Z_] = _rows[O_] * m._cols[Z_];
 	temp._mat[O_][O_] = _rows[O_] * m._cols[O_];
 
-	for (int i = X_; i <= O_; i++) {
+	for (uint32_t i = X_; i <= O_; i++) {
 		temp.prep_row(i);
 	}
 	temp.prep_cols();
@@ -196,8 +196,8 @@ matrix matrix::operator*(const matrix& m) const
 matrix& matrix::operator=(const matrix& m)
 {
 	if (this != &m) {
-		for (int i = X_; i <= O_; i++) {
-			for (int j = X_; j <= O_; j++) {
+		for (uint32_t i = X_; i <= O_; i++) {
+			for (uint32_t j = X_; j <= O_; j++) {
 				_mat[i][j] = m._mat[i][j];
 			}
 			prep_row(i);
@@ -232,12 +232,12 @@ void matrix::prep_trans_mat(const attrib& a)
 	unit tx = a.get_trans_x();
 	unit ty = a.get_trans_y();
 	unit tz = a.get_trans_z();
-	unit zm = a.get_zoom();
+	unit sc = a.get_scale();
 
 	DBG("prep_trans_mat:");
-	DBG("      rx: " << FLT(rx, 6) << " ry: " << FLT(ry, 6) << " rz: " << FLT(rz, 6));
-	DBG("      tx: " << FLT(tx, 6) << " ty: " << FLT(ty, 6) << " tz: " << FLT(tz, 6));
-	DBG("    zoom: " << FLT(zm, 6));
+	DBG("      rx:  " << FLT(rx, 6) << " ry: " << FLT(ry, 6) << " rz: " << FLT(rz, 6));
+	DBG("      tx:  " << FLT(tx, 6) << " ty: " << FLT(ty, 6) << " tz: " << FLT(tz, 6));
+	DBG("    scale: " << FLT(sc, 6));
 
 	unit srx = std::sin(rx);
 	unit sry = std::sin(ry);
@@ -249,19 +249,19 @@ void matrix::prep_trans_mat(const attrib& a)
 	DBG("     srx: " << FLT(srx, 6) << " sry: " << FLT(sry, 6) << " srz: " << FLT(srz, 6));
 	DBG("     crx: " << FLT(crx, 6) << " cry: " << FLT(cry, 6) << " crz: " << FLT(crz, 6) << ENDL);
 
-	_mat[X_][X_] = (zm * cry * crz);
-	_mat[X_][Y_] = (zm * -cry * srz);
-	_mat[X_][Z_] = (zm * -sry);
+	_mat[X_][X_] = (sc * cry * crz);
+	_mat[X_][Y_] = (sc * -cry * srz);
+	_mat[X_][Z_] = (sc * -sry);
 	_mat[X_][O_] = tx;
 
-	_mat[Y_][X_] = (zm * (crx * srz - srx * sry * crz));
-	_mat[Y_][Y_] = (zm * (crx * crz + srx * sry * srz));
-	_mat[Y_][Z_] = (zm * -srx * cry);
+	_mat[Y_][X_] = (sc * (crx * srz - srx * sry * crz));
+	_mat[Y_][Y_] = (sc * (crx * crz + srx * sry * srz));
+	_mat[Y_][Z_] = (sc * -srx * cry);
 	_mat[Y_][O_] = ty;
 
-	_mat[Z_][X_] = (zm * (srx * srz + crx * sry * crz));
-	_mat[Z_][Y_] = (zm * (srx * crz - crx * sry * srz));
-	_mat[Z_][Z_] = (zm * crx * cry);
+	_mat[Z_][X_] = (sc * (srx * srz + crx * sry * crz));
+	_mat[Z_][Y_] = (sc * (srx * crz - crx * sry * srz));
+	_mat[Z_][Z_] = (sc * crx * cry);
 	_mat[Z_][O_] = tz;
 
 	_mat[O_][X_] = ZERO;
@@ -269,7 +269,7 @@ void matrix::prep_trans_mat(const attrib& a)
 	_mat[O_][Z_] = ZERO;
 	_mat[O_][O_] = UNIT;
 
-	for (int i = X_; i <= O_; i++) {
+	for (uint32_t i = X_; i <= O_; i++) {
 		prep_row(i);
 	}
 	prep_cols();
@@ -318,7 +318,7 @@ void matrix::prep_rot_mat(const attrib& a)
 	_mat[O_][Z_] = ZERO;
 	_mat[O_][O_] = UNIT;
 
-	for (int i = X_; i <= O_; i++) {
+	for (uint32_t i = X_; i <= O_; i++) {
 		prep_row(i);
 	}
 	prep_cols();
