@@ -7,7 +7,7 @@
 
 <a id="valid1"></a>(1) **valid field names:** Non-null, non-empty, not-control chars, lower-case ASCII only `letters` + `underscore`\
 <a id="valid2"></a>(2) **valid string values:** Non-null, non-empty, not-control chars, upper/lower-case\
-&emsp;&emsp;&emsp;ASCII/Unicode `letters`, `numbers` and `punctuations`, except `[()[]{}',.;:"\]`
+&emsp;&emsp;&emsp;ASCII/Unicode `letters`, `numbers` and `punctuations`, except `[()[]{}',.;:"\]`\
 <a id="valid3"></a>(3) **valid numeric values:** See [`inc/constants.h`](./inc/constants.h).
 
 ## Sections
@@ -87,7 +87,7 @@ The library contains definitions of **polygons**, **meshes**, and **elements**, 
 | Field | JSON type | Description |
 |---|---|---|
 | `name` | String | Valid scene-element identifier.&ensp;[(2)](#valid2)|
-| `parent` | String or null | Valid name of a valid parent; `null` identifies the root. (0)|
+| `parent` | String or null | Valid name of a valid parent; `null` identifies the root. [(2)](#valid2)|
 | `active` | Boolean | Enables or disables the scene element. |
 | `ref` | String | Optional; Valid name of a valid library element.&ensp;[(2)](#valid2)|
 | `origin` | Array | Optional; Initial position and orientation attributes. (see below) |
@@ -124,8 +124,8 @@ All its fields are optional overrides.
 | `focal_len` | Floating-point number | Perspective projection and magnification (default: `2000`).&ensp;[(3)](#valid3)|
 | `near_eps` | Floating-point number | Near-plane/depth tolerance (default: `1`).&ensp;[(3)](#valid3)|
 
-**Minimum supported resolution:** `320 × 200` (16:10).&ensp;[(3)](#valid3)\
-**Maximum supported resolution:** `1600 × 1000` (16:10).&ensp;[(3)](#valid3)\
+**Minimum supported resolution:** `800 × 600` (4:3).&ensp;[(3)](#valid3)\
+**Maximum supported resolution:** `1920 × 1080` (16:9).&ensp;[(3)](#valid3)\
 **Default resolution:** `1280 × 800` (16:10).&ensp;[(3)](#valid3)\
 **Vectors:** see polygon vectors above.\
 **Focal length valid range:** `[ 100.0 - 3000.0 ]`.&ensp;[(3)](#valid3)\

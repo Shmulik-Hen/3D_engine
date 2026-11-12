@@ -358,7 +358,7 @@ void my_scene::check_overrides(const config_ns::parse_scn_def& scene_def)
 				frame_ctx.state->win.max_pos.x = res.width - 1;
 				res_changed = true;
 				// clang-format off
-				DBG(path + config_ns::JSON_STR_RES + PFX +
+				DBG(config_ns::JSON_STR_RES + PFX +
 				    config_ns::STR_WID + PFX +
 				    std::to_string(frame_ctx.state->grfx.width));
 				// clang-format on
@@ -369,7 +369,7 @@ void my_scene::check_overrides(const config_ns::parse_scn_def& scene_def)
 				frame_ctx.state->win.max_pos.y = res.height - 1;
 				res_changed = true;
 				// clang-format off
-				DBG(path + config_ns::JSON_STR_RES + PFX +
+				DBG(config_ns::JSON_STR_RES + PFX +
 				    config_ns::STR_HGT + PFX +
 				    std::to_string(frame_ctx.state->grfx.height));
 				// clang-format on

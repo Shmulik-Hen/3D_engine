@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string_view>
 
 #include "unit.h"
 
@@ -49,10 +50,10 @@ constexpr uint32_t MIN_SCENES(1U);
 // validation limits
 
 // screen resolution (1 based)
-constexpr uint32_t MIN_RES_WIDTH(320U); // DOS era "graphics" (16:10)
-constexpr uint32_t MIN_RES_HEIGHT(200U);
-constexpr uint32_t MAX_RES_WIDTH(1600U); // full HD 16:10
-constexpr uint32_t MAX_RES_HEIGHT(1000U);
+constexpr uint32_t MIN_RES_WIDTH(800U); // DOS era vga (4:3)
+constexpr uint32_t MIN_RES_HEIGHT(600U);
+constexpr uint32_t MAX_RES_WIDTH(1920U); // full HD 16:9
+constexpr uint32_t MAX_RES_HEIGHT(1080U);
 // screen pixel positions (zero based)
 constexpr uint32_t MIN_X_POS(0U);
 constexpr uint32_t MIN_Y_POS(0U);
