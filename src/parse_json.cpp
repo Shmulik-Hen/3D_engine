@@ -197,9 +197,13 @@ void check_valid_field_name(const Json::Value& root,
 	// clang-format on
 }
 
+static inline uint32_t make_ver(uint8_t maj, uint8_t min, uint8_t rev)
+{
+	return (((maj << 16) + (min << 8) + rev) & 0x00ffffff);
+}
+
 static bool check_json_version(const Json::Value& ver,
-                               const std::string& path,
-                               const uint32_t array[JSON_VER_FIELDS])
+                               const std::string& path)
 {
 	if (ver.size() != JSON_VER_FIELDS) {
 		// clang-format off
@@ -210,7 +214,6 @@ static bool check_json_version(const Json::Value& ver,
 		return false;
 	}
 
-	bool match = true;
 	for (uint32_t i = 0; i < JSON_VER_FIELDS; i++) {
 		if (!ver[i].isUInt()) {
 			// clang-format off
@@ -220,21 +223,25 @@ static bool check_json_version(const Json::Value& ver,
 			// clang-format on
 			return false;
 		}
-
-		if (ver[i].asUInt() != array[i]) {
-			match = false;
-			break;
-		}
 	}
 
+	uint32_t min_ver = make_ver(MIN_JSON_VER_MAJ, MIN_JSON_VER_MIN, MIN_JSON_VER_REV);
+	uint32_t max_ver = make_ver(MAX_JSON_VER_MAJ, MAX_JSON_VER_MIN, MAX_JSON_VER_REV);
+	uint32_t curr_ver = make_ver(ver[0].asUInt(), ver[1].asUInt(), ver[2].asUInt());
+
+	bool match = min_ver <= curr_ver && curr_ver <= max_ver;
 	if (!match) {
 		// clang-format off
 		ERR(path + ERR_VER + PFX +
-		    ERR_REQ + PFX +
-		    std::to_string(array[0]) + DOT +
-		    std::to_string(array[1]) + DOT +
-		    std::to_string(array[2]) + SEP +
-		    ERR_CURR + PFX +
+		    ERR_REQ + PFX + "v" +
+		    std::to_string(MIN_JSON_VER_MAJ) + DOT +
+		    std::to_string(MIN_JSON_VER_MIN) + DOT +
+		    std::to_string(MIN_JSON_VER_REV) +
+		    DASH + "v" +
+		    std::to_string(MAX_JSON_VER_MAJ) + DOT +
+		    std::to_string(MAX_JSON_VER_MIN) + DOT +
+		    std::to_string(MAX_JSON_VER_REV) + SEP +
+		    ERR_CURR + PFX + "v" +
 		    ver[0].asString() + DOT +
 		    ver[1].asString() + DOT +
 		    ver[2].asString());
@@ -1037,8 +1044,7 @@ bool parse_json(std::ifstream& ifs, config_ns::AST& ast)
 		return false;
 	}
 
-	uint32_t version[JSON_VER_FIELDS] = {JSON_VER_MAJ, JSON_VER_MIN, JSON_VER_REV};
-	rc = check_json_version(ver, str + DOT, version);
+	rc = check_json_version(ver, str + PFX);
 	if (!rc) {
 		return false;
 	}

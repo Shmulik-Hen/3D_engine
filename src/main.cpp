@@ -28,9 +28,9 @@ const std::string version = JSON_STR_VER + PFX + std::to_string(APP_VER_MAJ) +
 			    DOT + std::to_string(APP_VER_MIN) +
 			    DOT + std::to_string(APP_VER_REV);
 
-const std::string json_version(ver + PFX + std::to_string(JSON_VER_MAJ) +
-				DOT + std::to_string(JSON_VER_MIN) +
-				DOT + std::to_string(JSON_VER_REV));
+const std::string json_version(ver + PFX + std::to_string(MAX_JSON_VER_MAJ) +
+				DOT + std::to_string(MAX_JSON_VER_MIN) +
+				DOT + std::to_string(MAX_JSON_VER_REV));
 // clang-format on
 
 const std::string def_conf_file = def_conf_path + def_file_name + ext;
