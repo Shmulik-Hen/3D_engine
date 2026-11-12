@@ -23,10 +23,13 @@ constexpr std::string_view JSON_FIELD_VALUES_REJECTED_CHARS = "()[]{}'`,.;:\"\\"
 // versions
 constexpr uint32_t APP_VER_MAJ(0U);
 constexpr uint32_t APP_VER_MIN(10U);
-constexpr uint32_t APP_VER_REV(0U);
-constexpr uint32_t JSON_VER_MAJ(0U);
-constexpr uint32_t JSON_VER_MIN(0U);
-constexpr uint32_t JSON_VER_REV(3U);
+constexpr uint32_t APP_VER_REV(1U);
+constexpr uint8_t MIN_JSON_VER_MAJ(0U);
+constexpr uint8_t MIN_JSON_VER_MIN(0U);
+constexpr uint8_t MIN_JSON_VER_REV(3U);
+constexpr uint8_t MAX_JSON_VER_MAJ(0U);
+constexpr uint8_t MAX_JSON_VER_MIN(0U);
+constexpr uint8_t MAX_JSON_VER_REV(4U);
 constexpr uint32_t JSON_VER_FIELDS(3U);
 
 // coordinates
