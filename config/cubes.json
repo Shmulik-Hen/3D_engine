@@ -151,7 +151,7 @@
 				}
 			],
 			"environment": {
-				"resolution": [ 1600, 1000 ]
+				"resolution": [ 1920, 1080 ]
 			},
 			"runtime": {
 				"loops": -1,
