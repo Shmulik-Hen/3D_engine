@@ -155,7 +155,13 @@
 			},
 			"runtime": {
 				"loops": -1,
-				"loop_delay": 50
+				"loop_delay": 50,
+				"keyboard": {
+					"pause": "Space",
+					"step": "Right",
+					"faster": "Up",
+					"slower": "Down"
+				}
 			}
 		}
 	]

@@ -1,9 +1,11 @@
 #pragma once
 
+#include "attrib.h"
 #include "element.h"
 #include "scene_types.h"
 
 // clang-format off
+namespace attrib_ns  { class attrib; }
 namespace element_ns  { class element; }
 namespace graphics_ns { class graphics; }
 namespace polygon_ns  { class polygon; }
@@ -30,6 +32,8 @@ public:
 
 	config_ns::AST ast;
 
+	graphics_ns::graphics* gfx {nullptr};
+
 	my_scene();
 	my_scene(const my_scene&) = delete;
 	my_scene& operator=(const my_scene&) = delete;
@@ -44,18 +48,24 @@ public:
 	void build(const config_ns::parse_scn_def&);
 	void update();
 	void refresh_elements();
+	void poll_events();
 	void render();
 	bool keep_going();
 	config_ns::parse_scn_def* find_scene(const std::string&);
 
 private:
 
-	static bool _keep_going;
+	bool _keep_going {true};
+	bool _pause {false};
+	bool _step {false};
+	bool _faster {false};
+	bool _slower {false};
+	attrib_ns::attrib _unit_att;
 
 	void sort();
 	void draw();
 	void set_defaults();
-	void check_overrides(const config_ns::parse_scn_def&);
+	void check_overrides(const config_ns::parse_scn_def&, const config_ns::valid_scene_ref&);
 	void init_graphics();
 };
 

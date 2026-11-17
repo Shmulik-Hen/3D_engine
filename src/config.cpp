@@ -1,7 +1,10 @@
 #include <algorithm>
 #include <array>
 #include <charconv>
+#include <cctype>
+#include <string>
 
+// #define DEBUG_PRINTS
 #include "config_document.h"
 
 namespace config_ns
@@ -94,6 +97,38 @@ std::string set_precision(const unit val, const uint32_t digits)
 	return s;
 }
 
+std::string to_lower(const std::string& str)
+{
+	std::string tmp(str);
+
+	// clang-format off
+	std::transform(tmp.begin(), tmp.end(), tmp.begin(),
+		[](unsigned char c) {
+			return static_cast<char>(std::tolower(c));
+		}
+	);
+	// clang-format on
+
+	return tmp;
+}
+
+std::vector<std::string_view> split_string(std::string_view str, char delimiter)
+{
+	std::vector<std::string_view> result;
+	std::size_t start = 0;
+	std::size_t end = str.find(delimiter);
+
+	while (end != std::string_view::npos) {
+		result.push_back(str.substr(start, end - start));
+		start = end + 1;
+		end = str.find(delimiter, start);
+	}
+
+	// Add the final segment after the last delimiter
+	result.push_back(str.substr(start));
+	return result;
+}
+
 // Detect ASCII control characters, including DEL.
 static inline bool has_control_chars(const std::string& str)
 {
@@ -139,6 +174,20 @@ static inline bool field_value_all_valid_chars(const std::string& str)
 	// clang-format on
 }
 
+// Keyboard field values: lowercase ASCII letters and puls only.
+static inline bool kbd_field_value_all_valid_chars(const std::string& str)
+{
+	// clang-format off
+	return std::all_of(str.begin(), str.end(),
+			[](char ch) {
+				return (ch >= 'a' &&
+					ch <= 'z') ||
+					ch == '+';
+			}
+	);
+	// clang-format on
+}
+
 // Validate JSON field names.
 bool is_valid_field_name(const std::string& field)
 {
@@ -153,6 +202,14 @@ bool is_valid_field_value(const std::string& value)
 	return !value.empty() &&
 	       !has_control_chars(value) &&
 	       field_value_all_valid_chars(value);
+}
+
+// Validate identifier/reference values.
+bool is_valid_kbd_field_value(const std::string& value)
+{
+	return !value.empty() &&
+	       !has_control_chars(value) &&
+	       kbd_field_value_all_valid_chars(value);
 }
 
 } // namespace config_ns
