@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <thread>
-#include <unordered_map>
 
 // #define DEBUG_PRINTS
 #include "scene.h"
@@ -19,20 +18,19 @@ using graphics = graphics_ns::graphics;
 using polygon = polygon_ns::polygon;
 using vector_3 = vector_3_ns::vector_3;
 
-bool scene_ns::my_scene::_keep_going = true;
-
 const std::string STR_LABEL = "Software 3D Engine";
 const std::string STR_DEFS = "set defaults";
+
+constexpr std::string_view STR_BLD = "build";
+constexpr std::string_view STR_OVRD = "override";
 
 #ifdef DEBUG_PRINTS
 // clang-format off
 constexpr std::string_view DBG_LIGHT = "light";
 constexpr std::string_view DBG_CAM   = "camera";
 constexpr std::string_view DBG_PROJ  = "projection";
-constexpr std::string_view DBG_BLD   = "build";
 constexpr std::string_view DBG_SCR   = "screen";
 constexpr std::string_view DBG_RUN   = "run";
-constexpr std::string_view DBG_OVRD  = "override";
 constexpr std::string_view DBG_MIN_POS  = "min_pos";
 constexpr std::string_view DBG_MAX_POS  = "max_pos";
 constexpr std::string_view DBG_MID_POS  = "mid_pos";
@@ -143,7 +141,7 @@ void my_scene::build(const config_ns::parse_scn_def& scene_def)
 		}
 	}
 
-	check_overrides(scene_def);
+	check_overrides(scene_def, *scn_ref);
 	init_graphics();
 
 	// Pass 3: Instantiate geometry.
@@ -187,7 +185,65 @@ void my_scene::refresh_elements()
 {
 	for (auto& elem : elements_owned) {
 		DBG("refreshing element: " + QT + elem->get_name() + QT);
-		elem->update();
+		if (_pause) {
+			elem->update(_unit_att);
+		}
+		else {
+			elem->update();
+		}
+	}
+}
+
+void my_scene::poll_events()
+{
+	static int loops = frame_ctx.state->run.loops;
+	SDL_KeyboardEvent kb;
+	bool quit = false;
+
+	gfx->poll_events(kb, quit);
+	if (quit) {
+		DBG("quit");
+		_keep_going = false;
+		return;
+	}
+
+	if (frame_ctx.state->run.loops > 0) {
+		if (--loops < 1) {
+			DBG("loops");
+			_keep_going = false;
+			return;
+		}
+	}
+
+	keyboard_state& kbd = frame_ctx.state.get()->run.kbd;
+	SDL_Keycode key = kb.keysym.sym;
+	SDL_Keymod mod = static_cast<SDL_Keymod>(kb.keysym.mod);
+
+	if (key == SDLK_ESCAPE) {
+		DBG("SDLK_ESCAPE");
+		_keep_going = false;
+		return;
+	}
+
+	if (kbd.pause_key.key == key &&
+	    kbd.pause_key.mods == mod) {
+		DBG("pause");
+		_pause = !_pause;
+	}
+	else if (kbd.step_key.key == key &&
+	         kbd.step_key.mods == mod) {
+		DBG("step");
+		_step = true;
+	}
+	else if (kbd.faster_key.key == key &&
+	         kbd.faster_key.mods == mod) {
+		DBG("faster");
+		_faster = true;
+	}
+	else if (kbd.slower_key.key == key &&
+	         kbd.slower_key.mods == mod) {
+		DBG("slower");
+		_slower = true;
 	}
 }
 
@@ -212,13 +268,6 @@ void my_scene::draw()
 
 void my_scene::render()
 {
-	static int loops = frame_ctx.state->run.loops;
-
-	graphics* gfx = frame_ctx.state->grfx.gfx.get();
-	if (!gfx) {
-		sys_error("graphics system has not been initialized yet");
-	}
-
 	// Acquire backbuffer for this frame and clear it
 	frame_ctx.state->grfx.fb = gfx->get_backbuffer();
 	gfx->fill_buffer(frame_ctx.state->grfx.fb, frame_ctx.state->grfx.bkg_color);
@@ -235,12 +284,6 @@ void my_scene::render()
 	gfx->present();
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(frame_ctx.state->run.loop_delay));
-
-	if (frame_ctx.state->run.loops > 0) {
-		if (--loops < 1) {
-			_keep_going = false;
-		}
-	}
 }
 
 bool my_scene::keep_going()
@@ -330,20 +373,19 @@ void my_scene::set_defaults()
 	ast.valid_values.max_color_idx = (graphics::color_idx)((uint32_t)graphics::color_idx::__last_color__ - 1);
 }
 
-void my_scene::check_overrides(const config_ns::parse_scn_def& scene_def)
+void my_scene::check_overrides(const config_ns::parse_scn_def& scene_def,
+                               const config_ns::valid_scene_ref& scn_ref)
 {
-#ifdef DEBUG_PRINTS
 	// clang-format off
-	const std::string pfx = config_ns::STR_SCN + PFX + DBG_BLD + PFX;
+	const std::string pfx = config_ns::STR_SCN + PFX + STR_BLD + PFX;
 	// clang-format on
-#endif // DEBUG_PRINTS
 
 	if (scene_def.env.has_value()) {
 #ifdef DEBUG_PRINTS
 		const std::string env_str = pfx + config_ns::JSON_STR_ENV;
 		DBG(env_str);
 		// clang-format off
-		const std::string path = env_str + PFX + DBG_OVRD + PFX;
+		const std::string path = env_str + PFX + STR_OVRD + PFX;
 		// clang-format on
 #endif // DEBUG_PRINTS
 
@@ -464,15 +506,13 @@ void my_scene::check_overrides(const config_ns::parse_scn_def& scene_def)
 	}
 
 	if (scene_def.run.has_value()) {
-#ifdef DEBUG_PRINTS
 		// clang-format off
-		const std::string path = config_ns::STR_SCN + PFX + DBG_BLD +
-					 PFX + config_ns::JSON_STR_RUN + PFX +
-					 DBG_OVRD + PFX;
+		const std::string path = pfx + config_ns::JSON_STR_RUN +
+					 PFX + STR_OVRD + PFX;
 		// clang-format on
-#endif // DEBUG_PRINTS
 
 		const auto& run = *scene_def.run;
+
 		if (run.loops.has_value() &&
 		    frame_ctx.state->run.loops != run.loops.value()) {
 			frame_ctx.state->run.loops = run.loops.value();
@@ -489,6 +529,33 @@ void my_scene::check_overrides(const config_ns::parse_scn_def& scene_def)
 			DBG(path + config_ns::JSON_STR_LOOP_DELAY + PFX +
 			    std::to_string(frame_ctx.state->run.loop_delay));
 			// clang-format on
+		}
+
+		if (run.keyboard.has_value()) {
+			std::string lpath = path + config_ns::JSON_STR_KBD;
+			const auto& kbd = *run.keyboard;
+			const auto& vld_kbd = scn_ref.kbd;
+			auto& kbd_state = frame_ctx.state->run.kbd;
+
+			if (kbd.pause.has_value()) {
+				DBG(lpath + PFX + "kbd.pause.has_value");
+				kbd_state.pause_key = vld_kbd.pause_key;
+			}
+
+			if (kbd.step.has_value()) {
+				DBG(lpath + PFX + "kbd.step.has_value");
+				kbd_state.step_key = vld_kbd.step_key;
+			}
+
+			if (kbd.fast.has_value()) {
+				DBG(lpath + PFX + "kbd.fast.has_value");
+				kbd_state.faster_key = vld_kbd.faster_key;
+			}
+
+			if (kbd.slow.has_value()) {
+				DBG(lpath + PFX + "kbd.slow.has_value");
+				kbd_state.slower_key = vld_kbd.slower_key;
+			}
 		}
 	}
 }
@@ -509,6 +576,8 @@ void my_scene::init_graphics()
 	}
 
 	frame_ctx.state->grfx.bkg_color = frame_ctx.state->grfx.gfx.get()->get_color_val(frame_ctx.state->win.bkg_color_idx);
+
+	gfx = frame_ctx.state->grfx.gfx.get();
 }
 
 } // namespace scene_ns

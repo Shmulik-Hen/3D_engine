@@ -1,5 +1,3 @@
-#include <SDL2/SDL.h>
-
 // #define DEBUG_PRINTS
 #include "graphics.h"
 #include "constants.h"
@@ -83,7 +81,7 @@ graphics::~graphics()
 	SDL_Quit();
 }
 
-void graphics::poll_events(input_state& io)
+void graphics::poll_events(SDL_KeyboardEvent& key, bool& quit)
 {
 	SDL_Event e;
 
@@ -91,22 +89,17 @@ void graphics::poll_events(input_state& io)
 		switch (e.type) {
 		case SDL_QUIT:
 			DBG("SDL_QUIT");
-			io.quit = true;
+			quit = true;
 			break;
 		case SDL_KEYDOWN:
-			if (e.key.keysym.sym == SDLK_ESCAPE) {
-				DBG("SDLK_ESCAPE");
-				io.key_escape = true;
-				io.quit = true;
-			}
+			DBG("SDL_KEYDOWN");
+			key = e.key;
 			break;
 		default:
 			DBG("default: event type: " << HEX(e.type, 8));
 			break;
 		}
 	}
-
-	_last_input = io;
 }
 
 std::uint64_t graphics::now_ticks() const

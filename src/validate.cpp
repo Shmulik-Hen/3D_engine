@@ -473,17 +473,70 @@ static void validate_environment_values(const parse_env_def& env,
 	}
 }
 
+static void validate_keyboard_values(const parse_kbd_def& kbd,
+                                     const std::string& path,
+                                     errors_t& errs,
+                                     const valid_values_def& valid_values [[maybe_unused]])
+{
+	if (kbd.pause.has_value()) {
+		const key_entry val = kbd.pause.value();
+		std::string comb = val.comb.value();
+		std::string lpath = path + JSON_STR_KBD_PAUSE;
+
+		if (!is_valid_kbd_field_value(comb)) {
+			// clang-format off
+			add_error(lpath + SPC + ERR_INV + PFX +
+				  QT + comb + QT, errs);
+			// clang-format on
+		}
+	}
+
+	if (kbd.step.has_value()) {
+		const key_entry val = kbd.step.value();
+		std::string comb = val.comb.value();
+		std::string lpath = path + JSON_STR_KBD_STEP;
+
+		if (!is_valid_kbd_field_value(comb)) {
+			// clang-format off
+			add_error(lpath + SPC + ERR_INV + PFX +
+				  QT + comb + QT, errs);
+			// clang-format on
+		}
+	}
+
+	if (kbd.fast.has_value()) {
+		const key_entry val = kbd.fast.value();
+		std::string comb = val.comb.value();
+		std::string lpath = path + JSON_STR_KBD_FAST;
+
+		if (!is_valid_kbd_field_value(comb)) {
+			// clang-format off
+			add_error(lpath + SPC + ERR_INV + PFX +
+				  QT + comb + QT, errs);
+			// clang-format on
+		}
+	}
+
+	if (kbd.slow.has_value()) {
+		const key_entry val = kbd.slow.value();
+		std::string comb = val.comb.value();
+		std::string lpath = path + JSON_STR_KBD_SLOW;
+
+		if (!is_valid_kbd_field_value(comb)) {
+			// clang-format off
+			add_error(lpath + SPC + ERR_INV + PFX +
+				  QT + comb + QT, errs);
+			// clang-format on
+		}
+	}
+}
+
 static void validate_runtime_values(const parse_run_def& run,
                                     const std::string& path,
                                     errors_t& errs,
                                     const valid_values_def& valid_values [[maybe_unused]])
 {
 	if (run.loops.has_value()) {
-		// clang-format off
-		DBG(path + JSON_STR_LOOPS + PFX +
-		    std::to_string(run.loops.value()));
-		// clang-format on
-
 		std::string str = path + JSON_STR_LOOPS;
 		check_range_int(run.loops.value(),
 		                MIN_LOOPS,
@@ -493,17 +546,20 @@ static void validate_runtime_values(const parse_run_def& run,
 	}
 
 	if (run.loop_delay.has_value()) {
-		// clang-format off
-		DBG(path + JSON_STR_LOOP_DELAY + PFX +
-		    std::to_string(run.loop_delay.value()));
-		// clang-format on
-
 		std::string str = path + JSON_STR_LOOP_DELAY;
 		check_range_uint(run.loop_delay.value(),
 		                 MIN_LOOP_DELAY,
 		                 MAX_LOOP_DELAY,
 		                 str + PFX,
 		                 errs);
+	}
+
+	if (run.keyboard.has_value()) {
+		std::string str = path + JSON_STR_KBD;
+		validate_keyboard_values(run.keyboard.value(),
+		                         str + DOT,
+		                         errs,
+		                         valid_values);
 	}
 }
 
@@ -1237,6 +1293,148 @@ static void validate_resolve_scene_elem_ref(const valid_library_refs& lib_refs,
 	}
 }
 
+static void validate_resolve_kbd_modifiers(const std::string& path,
+                                           const std::string& combination,
+                                           key_binding& key_bind,
+                                           errors_t& errs)
+{
+	// produces an array of std::string_view's
+	auto tokens = split_string(combination, '+');
+	for (auto& token : tokens) {
+		if (token.empty()) {
+			add_error(path + SPC + "token" + PFX + ERR_EMPTY, errs);
+			continue;
+		}
+
+		// convert to std::string
+		std::string tok(token);
+		auto it = known_modifiers.find(tok);
+		if (it != known_modifiers.end()) {
+			key_bind.mods |= it->second;
+			continue;
+		}
+
+		// clang-format off
+		DBG(path + PFX + QT + tok + QT + SPC +
+		    "is not a recognized modifier");
+		// clang-format on
+
+		// if its not a modifier, maybe its a key
+		key_bind.key = SDL_GetKeyFromName(tok.c_str());
+		if (key_bind.key == SDLK_UNKNOWN) {
+			// clang-format off
+			DBG(path + PFX + QT + tok + QT + SPC +
+			    "is not a recognized key either");
+			add_error(path + PFX + "key code" + SPC + QT +
+				  combination + QT + SPC + ERR_INV, errs);
+			// clang-format on
+
+			key_bind.mods = KMOD_NONE;
+			break;
+		}
+		// clang-format off
+		DBG(path + PFX + QT + tok + QT + SPC +
+		    "but it is a recognized key");
+		DBG(path << PFX << "key" << SPC <<
+		    HEX(key_bind.key, 8));
+		// clang-format on
+	}
+}
+
+static void validate_resolve_key_binding_ref(const std::string& path,
+                                             const key_entry& ke,
+                                             key_binding& kb_ref,
+                                             errors_t& errs)
+{
+	if (!ke.type.has_value() || !ke.comb.has_value()) {
+		return;
+	}
+
+	validate_resolve_kbd_modifiers(path,
+	                               ke.comb.value(),
+	                               kb_ref,
+	                               errs);
+}
+
+static void validate_key_binding_duplicates(const std::string& path,
+                                            const key_entry& ke,
+                                            key_binding& kb_ref,
+                                            std::unordered_set<uint64_t>& resolved_keys,
+                                            errors_t& errs)
+{
+	if (kb_ref.key == SDLK_UNKNOWN) {
+		// clang-format off
+		std::string err = path + DOT + ke.type.value() +
+				  PFX + "key" + SPC + ERR_ILG;
+		// clang-format on
+		add_error(err, errs);
+		return;
+	}
+
+	uint64_t key_comb = ((uint64_t)kb_ref.key << 32) | kb_ref.mods;
+	auto [it, inserted] = resolved_keys.insert(key_comb);
+	if (!inserted) {
+		report_duplicates(path, ke.type.value(), ke.comb.value(), errs);
+	}
+}
+
+static void validate_resolve_kbd_ref(const std::string& path,
+                                     const parse_kbd_def& kbd_def,
+                                     valid_keyboard_ref& kbd_ref,
+                                     errors_t& errs)
+{
+	std::unordered_set<uint64_t> resolved_keys;
+
+	if (kbd_def.pause.has_value()) {
+		std::string lpath = path + DOT + JSON_STR_KBD_PAUSE;
+		auto& ke = kbd_def.pause.value();
+		auto& kr = kbd_ref.pause_key;
+
+		validate_resolve_key_binding_ref(lpath, ke, kr, errs);
+		validate_key_binding_duplicates(lpath, ke, kr, resolved_keys, errs);
+	}
+
+	if (kbd_def.step.has_value()) {
+		std::string lpath = path + DOT + JSON_STR_KBD_STEP;
+		auto& ke = kbd_def.step.value();
+		auto& kr = kbd_ref.step_key;
+
+		validate_resolve_key_binding_ref(lpath, ke, kr, errs);
+		validate_key_binding_duplicates(lpath, ke, kr, resolved_keys, errs);
+	}
+
+	if (kbd_def.fast.has_value()) {
+		std::string lpath = path + DOT + JSON_STR_KBD_FAST;
+		auto& ke = kbd_def.fast.value();
+		auto& kr = kbd_ref.faster_key;
+
+		validate_resolve_key_binding_ref(lpath, ke, kr, errs);
+		validate_key_binding_duplicates(lpath, ke, kr, resolved_keys, errs);
+	}
+
+	if (kbd_def.slow.has_value()) {
+		std::string lpath = path + DOT + JSON_STR_KBD_SLOW;
+		auto& ke = kbd_def.slow.value();
+		auto& kr = kbd_ref.slower_key;
+
+		validate_resolve_key_binding_ref(lpath, ke, kr, errs);
+		validate_key_binding_duplicates(lpath, ke, kr, resolved_keys, errs);
+	}
+}
+
+static void validate_resolve_runtime_ref(const std::string& path,
+                                         const parse_run_def& run_def,
+                                         valid_keyboard_ref& kbd_ref,
+                                         errors_t& errs)
+{
+	if (run_def.keyboard.has_value()) {
+		validate_resolve_kbd_ref(path + DOT + JSON_STR_KBD,
+		                         run_def.keyboard.value(),
+		                         kbd_ref,
+		                         errs);
+	}
+}
+
 static void validate_resolve_scene_ref(const valid_library_refs& lib_refs,
                                        const std::string& path,
                                        valid_scene_ref& vld_scn_ref,
@@ -1306,6 +1504,16 @@ static void validate_resolve_scene_ref(const valid_library_refs& lib_refs,
 
 			validate_resolve_scene_elem_ref(lib_refs, str, *scn_elem_ref, errs);
 		}
+	}
+
+	if (vld_scn_ref.scn_def_ptr->run.has_value()) {
+		auto& run_def = vld_scn_ref.scn_def_ptr->run.value();
+		valid_keyboard_ref& kbd_ref = vld_scn_ref.kbd;
+
+		validate_resolve_runtime_ref(path + DOT + JSON_STR_RUN,
+		                             run_def,
+		                             kbd_ref,
+		                             errs);
 	}
 }
 
@@ -1421,7 +1629,7 @@ static void validate_hierarchy_check_roots(const valid_scene_ref& scn_ref,
 
 		// clang-format off
 		DBG(elem_path + PFX +
-		    "name: " + QT + name + QT + SEP +
+		    "name: " + QT + *name + QT + SEP +
 		    "parent: " + QT + parent_name + QT);
 		// clang-format on
 

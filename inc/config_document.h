@@ -1,8 +1,14 @@
 #pragma once
 
-#include <optional>
-#include <unordered_set>
 #include <deque>
+#include <iostream>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <unordered_set>
+#include <unordered_map>
+#include <vector>
+#include <SDL2/SDL.h>
 
 #include "attrib.h"
 #include "graphics.h"
@@ -10,6 +16,8 @@
 
 namespace config_ns
 {
+
+#define MAKE_VERSION(maj, min, rev) ((((maj) << 16) | ((min) << 8) | (rev)) & 0x00ffffff)
 
 using attrib = attrib_ns::attrib;
 using graphics = graphics_ns::graphics;
@@ -51,6 +59,11 @@ const std::string JSON_STR_NEAR_EPS   = "near_eps";
 // runtime field names
 const std::string JSON_STR_LOOPS      = "loops";
 const std::string JSON_STR_LOOP_DELAY = "loop_delay";
+const std::string JSON_STR_KBD        = "keyboard";
+const std::string JSON_STR_KBD_PAUSE  = "pause";
+const std::string JSON_STR_KBD_STEP   = "step";
+const std::string JSON_STR_KBD_FAST   = "faster";
+const std::string JSON_STR_KBD_SLOW   = "slower";
 // ignored fields names
 const std::string JSON_STR_IGN_ENC    = "encoding";
 
@@ -157,6 +170,11 @@ const std::unordered_set<std::string> valid_field_names = {
 	JSON_STR_RUN,
 	JSON_STR_LOOPS,
 	JSON_STR_LOOP_DELAY,
+	JSON_STR_KBD,
+	JSON_STR_KBD_PAUSE,
+	JSON_STR_KBD_STEP,
+	JSON_STR_KBD_FAST,
+	JSON_STR_KBD_SLOW,
 };
 
 const std::unordered_set<std::string> ignored_field_names = {
@@ -191,6 +209,12 @@ const std::unordered_set<std::string> hints_field_names = {
 	JSON_STR_RUN,
 	JSON_STR_LOOPS,
 	JSON_STR_LOOP_DELAY,
+	JSON_STR_KBD,
+	JSON_STR_KBD_PAUSE,
+	JSON_STR_KBD_STEP,
+	JSON_STR_KBD_FAST,
+	JSON_STR_KBD_SLOW,
+	// ignored fields names
 	JSON_STR_IGN_ENC,
 };
 
@@ -217,6 +241,29 @@ enum light_type
 	directional = __lt_min__, // sun-like
 	point,                    // light-bulb
 	__lt_max__                // dummy
+};
+
+enum supported_features
+{
+	SCENE_KEYBOARD,
+};
+
+const std::unordered_map<std::string, uint32_t> features = {
+	{JSON_STR_KBD, MAKE_VERSION(0, 0, 4)},
+};
+
+const std::unordered_map<std::string, SDL_Keymod> known_modifiers = {
+	{ "ctrl",  KMOD_CTRL},
+	{  "alt",   KMOD_ALT},
+	{"shift", KMOD_SHIFT},
+	{"super",   KMOD_GUI}
+};
+
+struct parse_version_def
+{
+	uint32_t min_ver {0};
+	uint32_t max_ver {0};
+	uint32_t curr_ver {0};
 };
 
 /* library */
@@ -273,13 +320,6 @@ struct parse_res_def
 	uint32_t height {0};
 };
 
-struct parse_run_def
-{
-	// optional fields
-	std::optional<int> loops;
-	std::optional<uint32_t> loop_delay;
-};
-
 struct parse_env_def
 {
 	// optional fields
@@ -293,6 +333,34 @@ struct parse_env_def
 	std::optional<unit> near_eps;
 };
 
+struct key_binding
+{
+	SDL_Keycode key {SDLK_UNKNOWN};
+	uint32_t mods {KMOD_NONE};
+};
+
+struct key_entry
+{
+	std::optional<std::string> type;
+	std::optional<std::string> comb;
+};
+
+struct parse_kbd_def
+{
+	std::optional<key_entry> pause;
+	std::optional<key_entry> step;
+	std::optional<key_entry> fast;
+	std::optional<key_entry> slow;
+};
+
+struct parse_run_def
+{
+	// optional fields
+	std::optional<int> loops;
+	std::optional<uint32_t> loop_delay;
+	std::optional<parse_kbd_def> keyboard;
+};
+
 struct parse_scn_def
 {
 	// required fields
@@ -302,6 +370,7 @@ struct parse_scn_def
 	// optional fields
 	std::optional<parse_env_def> env;
 	std::optional<parse_run_def> run;
+	uint32_t curr_ver;
 };
 
 struct valid_values_def
@@ -362,7 +431,6 @@ struct valid_library_refs
 /* library end */
 
 /* scenes */
-
 struct valid_scn_elem_ref
 {
 	valid_lib_elem_ref* lib_elem_ref = nullptr;
@@ -373,12 +441,21 @@ struct valid_scn_elem_ref
 	const parse_scn_elem_def* scn_elem_def_ptr = nullptr;
 };
 
+struct valid_keyboard_ref
+{
+	key_binding pause_key;
+	key_binding step_key;
+	key_binding faster_key;
+	key_binding slower_key;
+};
+
 struct valid_scene_ref
 {
 	validate_key_t scn_elem_keys;
 	std::deque<valid_scn_elem_ref> scn_elem_refs;
 	const std::string* scn_def_name = nullptr;
 	const parse_scn_def* scn_def_ptr = nullptr;
+	valid_keyboard_ref kbd;
 };
 
 struct valid_scene_refs
@@ -397,24 +474,11 @@ struct valid_refs
 
 struct AST
 {
+	parse_version_def version_def;
 	parse_lib_def library_defs;
 	std::vector<parse_scn_def> scene_defs;
 	valid_values_def valid_values;
 	valid_refs valid_references;
-};
-
-// merged during build from parse_lib_elem_def + parse_scn_elem_def
-struct element_def
-{
-	// required fields
-	std::string name;
-	bool active {false};
-	std::vector<std::string> polygons;
-
-	// optional fields
-	std::string parent; // null means "root"
-	std::optional<attrib> origin;
-	std::optional<attrib> motion;
 };
 
 inline const std::string make_key(const std::string& a, const std::string& b)
@@ -428,7 +492,10 @@ std::string_view get_att_name(const uint32_t i);
 std::string_view get_coord_name(const uint32_t i);
 std::string set_precision(const unit val, const uint32_t digits = 3);
 std::string escape_control_chars(const std::string& source);
+std::string to_lower(const std::string& str);
+std::vector<std::string_view> split_string(std::string_view str, char delimiter);
 bool is_valid_field_name(const std::string& field);
 bool is_valid_field_value(const std::string& value);
+bool is_valid_kbd_field_value(const std::string& value);
 
 } // namespace config_ns

@@ -63,7 +63,7 @@ void check_valid_field_name(const Json::Value& root,
                             const std::string& path = "",
                             const std::string& member = "")
 {
-	if (!root.isNull() && member.size()) {
+	if (!root.isNull() && member.length()) {
 		DBG("checking" + SPC + QT + path + QT + PFX + QT + escape_control_chars(member) + QT);
 		bool rc = is_valid_field_name(member);
 		if (!rc) {
@@ -126,6 +126,7 @@ void check_valid_field_name(const Json::Value& root,
 				DBG("but found" + SPC + QT + escape_control_chars(member) +
 				    QT + SPC + "in ignored_field_names");
 				// clang-format on
+				return;
 			}
 		}
 	}
@@ -159,7 +160,7 @@ void check_valid_field_name(const Json::Value& root,
 	case Json::stringValue:
 		DBG(STR_PATH + PFX + QT + path + QT + PFX + "type" +
 		    PFX + "String" + SEP + STR_LEN + PFX +
-		    std::to_string(root[member].asString().length()) + PFX +
+		    std::to_string(root.asString().length()) + PFX +
 		    "value" + PFX + QT + escape_control_chars(root.asString()) + QT);
 		break;
 	case Json::arrayValue:
@@ -180,16 +181,16 @@ void check_valid_field_name(const Json::Value& root,
 
 		// Get all member names (keys) in the object
 		Json::Value::Members members = root.getMemberNames();
-		for (const auto& member : members) {
-			DBG("member" + PFX + QT + escape_control_chars(member) + QT);
+		for (const auto& mmbr : members) {
+			DBG("member" + PFX + QT + escape_control_chars(mmbr) + QT);
 
 			// Construct the path for object fields (e.g., .user.name)
-			std::string objectPath = path.empty() ? member : path + DOT + member;
+			std::string objectPath = path.empty() ? mmbr : path + DOT + mmbr;
 
 			DBG("objectPath" + PFX + QT + objectPath + QT + SEP +
-			    "member" + PFX + QT + escape_control_chars(member) + QT);
+			    "member" + PFX + QT + escape_control_chars(mmbr) + QT);
 
-			check_valid_field_name(root[member], errs, objectPath, member);
+			check_valid_field_name(root[mmbr], errs, objectPath, mmbr);
 		}
 		break;
 	}
@@ -197,13 +198,9 @@ void check_valid_field_name(const Json::Value& root,
 	// clang-format on
 }
 
-static inline uint32_t make_ver(uint8_t maj, uint8_t min, uint8_t rev)
-{
-	return (((maj << 16) + (min << 8) + rev) & 0x00ffffff);
-}
-
 static bool check_json_version(const Json::Value& ver,
-                               const std::string& path)
+                               const std::string& path,
+                               parse_version_def& vd)
 {
 	if (ver.size() != JSON_VER_FIELDS) {
 		// clang-format off
@@ -225,11 +222,11 @@ static bool check_json_version(const Json::Value& ver,
 		}
 	}
 
-	uint32_t min_ver = make_ver(MIN_JSON_VER_MAJ, MIN_JSON_VER_MIN, MIN_JSON_VER_REV);
-	uint32_t max_ver = make_ver(MAX_JSON_VER_MAJ, MAX_JSON_VER_MIN, MAX_JSON_VER_REV);
-	uint32_t curr_ver = make_ver(ver[0].asUInt(), ver[1].asUInt(), ver[2].asUInt());
+	vd.min_ver = MAKE_VERSION(MIN_JSON_VER_MAJ, MIN_JSON_VER_MIN, MIN_JSON_VER_REV);
+	vd.max_ver = MAKE_VERSION(MAX_JSON_VER_MAJ, MAX_JSON_VER_MIN, MAX_JSON_VER_REV);
+	vd.curr_ver = MAKE_VERSION(ver[0].asUInt(), ver[1].asUInt(), ver[2].asUInt());
 
-	bool match = min_ver <= curr_ver && curr_ver <= max_ver;
+	bool match = vd.min_ver <= vd.curr_ver && vd.curr_ver <= vd.max_ver;
 	if (!match) {
 		// clang-format off
 		ERR(path + ERR_VER + PFX +
@@ -251,9 +248,9 @@ static bool check_json_version(const Json::Value& ver,
 
 	// clang-format off
 	DBG(path + "found version" + PFX +
-	    std::to_string(array[0]) + DOT +
-	    std::to_string(array[1]) + DOT +
-	    std::to_string(array[2]));
+	    ver[0].asString() + DOT +
+	    ver[1].asString() + DOT +
+	    ver[2].asString());
 	// clang-format on
 
 	return true;
@@ -465,305 +462,6 @@ static bool parse_json_lib_elem_def(const Json::Value& element,
 	return true;
 }
 
-static bool parse_json_scene_elem_def(const Json::Value& element,
-                                      const std::string path,
-                                      parse_scn_elem_def& ed)
-{
-	std::string str;
-	bool rc;
-
-	if (element.isMember(JSON_STR_NAME)) {
-		str = path + JSON_STR_NAME;
-		if (!element[JSON_STR_NAME].isString()) {
-			ERR(str + PFX + ERR_STR);
-			return false;
-		}
-
-		ed.name = element[JSON_STR_NAME].asString();
-		DBG(path + JSON_STR_NAME + PFX + QT + ed.name + QT);
-	}
-
-	if (element.isMember(JSON_STR_PAREN)) {
-		str = path + JSON_STR_PAREN;
-		if (element[JSON_STR_PAREN].isNull()) {
-			DBG(str + ERR_NULL);
-			ed.parent = std::nullopt;
-		}
-		else if (element[JSON_STR_PAREN].isString()) {
-			DBG(str + QT + element[JSON_STR_PAREN].asString() + QT);
-			ed.parent = std::optional<std::string> {element[JSON_STR_PAREN].asString()};
-		}
-		else {
-			ERR(str + PFX + ERR_STR);
-			return false;
-		}
-	}
-
-	if (element.isMember(JSON_STR_ACT)) {
-		str = path + JSON_STR_ACT;
-		if (!element[JSON_STR_ACT].isBool()) {
-			ERR(str + PFX + ERR_BOOL);
-			return false;
-		}
-
-		ed.active = element[JSON_STR_ACT].asBool();
-		DBG(str + PFX + BOOL(ed.active));
-	}
-
-	if (element.isMember(JSON_STR_REF)) {
-		str = path + JSON_STR_REF;
-		if (!element[JSON_STR_REF].isString()) {
-			ERR(str + PFX + ERR_STR);
-			return false;
-		}
-
-		DBG(str + PFX + QT + element[JSON_STR_REF].asString() + QT);
-		ed.ref = std::optional<std::string> {element[JSON_STR_REF].asString()};
-	}
-
-	if (element.isMember(JSON_STR_ORIG)) {
-		str = path + JSON_STR_ORIG;
-		unit array[NUM_ATTRIBUTES];
-
-		if (!element[JSON_STR_ORIG].isArray()) {
-			ERR(str + PFX + ERR_ARR);
-			return false;
-		}
-
-		rc = parse_json_attrib(element[JSON_STR_ORIG], str + DOT, array);
-		if (!rc) {
-			return false;
-		}
-
-		attrib att(array);
-		ed.origin = att;
-		att.print();
-	}
-
-	if (element.isMember(JSON_STR_MOTN)) {
-		str = path + JSON_STR_MOTN;
-		unit array[NUM_ATTRIBUTES];
-
-		if (!element[JSON_STR_MOTN].isArray()) {
-			ERR(str + PFX + ERR_ARR);
-			return false;
-		}
-
-		rc = parse_json_attrib(element[JSON_STR_MOTN], str + DOT, array);
-		if (!rc) {
-			return false;
-		}
-
-		attrib att(array);
-		ed.motion = att;
-		att.print();
-	}
-
-	return true;
-}
-
-static bool parse_json_resolution(const Json::Value& res,
-                                  const std::string& path,
-                                  uint32_t array[2])
-{
-	if (res.size() != 2) {
-		// clang-format off
-		ERR(path + ERR_SIZE + PFX +
-		    ERR_REQ + PFX + std::to_string(2) + SEP +
-		    ERR_CURR + PFX + std::to_string(res.size()));
-		// clang-format on
-		return false;
-	}
-
-	if (!res[0].isDouble() || !res[1].isDouble()) {
-		ERR(path + PFX + STR_WID + " or " + STR_HGT + " are " + ERR_UINT);
-		return false;
-	}
-
-	array[0] = res[0].asUInt();
-	array[1] = res[1].asUInt();
-
-	return true;
-}
-
-static bool parse_json_environment(const Json::Value& env,
-                                   const std::string path,
-                                   parse_env_def& ed)
-{
-	std::string str;
-	bool rc;
-
-	if (env.isMember(JSON_STR_RES)) {
-		DBG(path + STR_FOUND + SPC + JSON_STR_RES);
-
-		str = path + JSON_STR_RES;
-		uint32_t res[2];
-
-		if (!env[JSON_STR_RES].isArray()) {
-			ERR(str + PFX + ERR_ARR);
-			return false;
-		}
-
-		rc = parse_json_resolution(env[JSON_STR_RES], str + DOT, res);
-		if (!rc) {
-			return false;
-		}
-
-		DBG(str + PFX + std::to_string(res[0]) + 'x' + std::to_string(res[1]));
-		ed.resolution = config_ns::parse_res_def {res[0], res[1]};
-	}
-
-	if (env.isMember(JSON_STR_COLOR)) {
-		DBG(path + STR_FOUND + SPC + JSON_STR_COLOR);
-
-		str = path + JSON_STR_COLOR;
-		if (!env[JSON_STR_COLOR].isUInt()) {
-			ERR(str + PFX + ERR_UINT);
-			return false;
-		}
-
-		DBG(str + PFX + std::to_string(env[JSON_STR_COLOR].asUInt()));
-		ed.color_idx = (graphics::color_idx)env[JSON_STR_COLOR].asUInt();
-	}
-
-	if (env.isMember(JSON_STR_LIGHT_TYPE)) {
-		DBG(path + STR_FOUND + SPC + JSON_STR_LIGHT_TYPE);
-
-		str = path + JSON_STR_LIGHT_TYPE;
-		if (!env[JSON_STR_LIGHT_TYPE].isUInt()) {
-			ERR(str + PFX + ERR_UINT);
-			return false;
-		}
-
-		DBG(str + PFX + std::to_string(env[JSON_STR_LIGHT_TYPE].asUInt()));
-		ed.light_type = env[JSON_STR_LIGHT_TYPE].asUInt();
-	}
-
-	if (env.isMember(JSON_STR_LIGHT_DIR)) {
-		DBG(path + STR_FOUND + SPC + JSON_STR_LIGHT_DIR);
-
-		str = path + JSON_STR_LIGHT_DIR;
-		unit coords[NUM_COORDS];
-
-		if (!env[JSON_STR_LIGHT_DIR].isArray()) {
-			ERR(str + PFX + ERR_ARR);
-			return false;
-		}
-
-		rc = parse_json_vector(env[JSON_STR_LIGHT_DIR], str + DOT, coords);
-		if (!rc) {
-			return false;
-		}
-
-		vector_3 v(coords);
-		ed.light_direction = v;
-		v.print();
-	}
-
-	if (env.isMember(JSON_STR_LIGHT_POS)) {
-		DBG(path + STR_FOUND + SPC + JSON_STR_LIGHT_POS);
-
-		str = path + JSON_STR_LIGHT_DIR;
-		unit coords[NUM_COORDS];
-
-		if (!env[JSON_STR_LIGHT_POS].isArray()) {
-			ERR(str + PFX + ERR_ARR);
-			return false;
-		}
-
-		rc = parse_json_vector(env[JSON_STR_LIGHT_POS], str + DOT, coords);
-		if (!rc) {
-			return false;
-		}
-
-		vector_3 v(coords);
-		ed.light_position = v;
-		v.print();
-	}
-
-	if (env.isMember(JSON_STR_CAM_POS)) {
-		DBG(path + STR_FOUND + SPC + JSON_STR_CAM_POS);
-
-		str = path + JSON_STR_CAM_POS;
-		unit coords[NUM_COORDS];
-
-		if (!env[JSON_STR_CAM_POS].isArray()) {
-			ERR(str + PFX + ERR_ARR);
-			return false;
-		}
-
-		rc = parse_json_vector(env[JSON_STR_CAM_POS], str + DOT, coords);
-		if (!rc) {
-			return false;
-		}
-
-		vector_3 v(coords);
-		ed.camera_position = v;
-		v.print();
-	}
-
-	if (env.isMember(JSON_STR_FOCAL_LEN)) {
-		DBG(path + STR_FOUND + SPC + JSON_STR_FOCAL_LEN);
-
-		str = path + JSON_STR_FOCAL_LEN;
-		if (!env[JSON_STR_FOCAL_LEN].isDouble()) {
-			ERR(str + PFX + ERR_REAL);
-			return false;
-		}
-
-		DBG(str + PFX + std::to_string(env[JSON_STR_FOCAL_LEN].asFloat()));
-		ed.focal_len = env[JSON_STR_FOCAL_LEN].asFloat();
-	}
-
-	if (env.isMember(JSON_STR_NEAR_EPS)) {
-		DBG(path + STR_FOUND + SPC + JSON_STR_NEAR_EPS);
-
-		str = path + JSON_STR_NEAR_EPS;
-		if (!env[JSON_STR_NEAR_EPS].isDouble()) {
-			ERR(str + PFX + ERR_REAL);
-			return false;
-		}
-
-		DBG(str + PFX + std::to_string(env[JSON_STR_NEAR_EPS].asFloat()));
-		ed.near_eps = env[JSON_STR_NEAR_EPS].asFloat();
-	}
-
-	return true;
-}
-
-static bool parse_json_runtime(const Json::Value& run,
-                               const std::string path,
-                               parse_run_def& rd)
-{
-	std::string str;
-
-	if (run.isMember(JSON_STR_LOOPS)) {
-		DBG(path + STR_FOUND + SPC + JSON_STR_LOOPS);
-		str = path + JSON_STR_LOOPS;
-		if (!run[JSON_STR_LOOPS].isInt()) {
-			ERR(str + PFX + ERR_INT);
-			return false;
-		}
-
-		DBG(str + PFX + std::to_string(run[JSON_STR_LOOPS].asInt()));
-		rd.loops = run[JSON_STR_LOOPS].asInt();
-	}
-
-	if (run.isMember(JSON_STR_LOOP_DELAY)) {
-		DBG(path + STR_FOUND + SPC + JSON_STR_LOOP_DELAY);
-		str = path + JSON_STR_LOOP_DELAY;
-		if (!run[JSON_STR_LOOP_DELAY].isUInt()) {
-			ERR(str + PFX + ERR_UINT);
-			return false;
-		}
-
-		DBG(str + PFX + std::to_string(run[JSON_STR_LOOP_DELAY].asUInt()));
-		rd.loop_delay = run[JSON_STR_LOOP_DELAY].asUInt();
-	}
-
-	return true;
-}
-
 static bool parse_json_library(const Json::Value& library,
                                const std::string path,
                                parse_lib_def& ld)
@@ -888,6 +586,400 @@ static bool parse_json_library(const Json::Value& library,
 	return true;
 }
 
+static bool parse_json_scene_elem_def(const Json::Value& element,
+                                      const std::string path,
+                                      parse_scn_elem_def& ed)
+{
+	std::string str;
+	bool rc;
+
+	if (element.isMember(JSON_STR_NAME)) {
+		str = path + JSON_STR_NAME;
+		if (!element[JSON_STR_NAME].isString()) {
+			ERR(str + PFX + ERR_STR);
+			return false;
+		}
+
+		ed.name = element[JSON_STR_NAME].asString();
+		DBG(path + JSON_STR_NAME + PFX + QT + ed.name + QT);
+	}
+
+	if (element.isMember(JSON_STR_PAREN)) {
+		str = path + JSON_STR_PAREN;
+		if (element[JSON_STR_PAREN].isNull()) {
+			DBG(str + ERR_NULL);
+			ed.parent = std::nullopt;
+		}
+		else if (element[JSON_STR_PAREN].isString()) {
+			DBG(str + PFX + QT + element[JSON_STR_PAREN].asString() + QT);
+			ed.parent = std::optional<std::string> {element[JSON_STR_PAREN].asString()};
+		}
+		else {
+			ERR(str + PFX + ERR_STR);
+			return false;
+		}
+	}
+
+	if (element.isMember(JSON_STR_ACT)) {
+		str = path + JSON_STR_ACT;
+		if (!element[JSON_STR_ACT].isBool()) {
+			ERR(str + PFX + ERR_BOOL);
+			return false;
+		}
+
+		ed.active = element[JSON_STR_ACT].asBool();
+		DBG(str + PFX + BOOL(ed.active));
+	}
+
+	if (element.isMember(JSON_STR_REF)) {
+		str = path + JSON_STR_REF;
+		if (!element[JSON_STR_REF].isString()) {
+			ERR(str + PFX + ERR_STR);
+			return false;
+		}
+
+		DBG(str + PFX + QT + element[JSON_STR_REF].asString() + QT);
+		ed.ref = std::optional<std::string> {element[JSON_STR_REF].asString()};
+	}
+
+	if (element.isMember(JSON_STR_ORIG)) {
+		str = path + JSON_STR_ORIG;
+		unit array[NUM_ATTRIBUTES];
+
+		if (!element[JSON_STR_ORIG].isArray()) {
+			ERR(str + PFX + ERR_ARR);
+			return false;
+		}
+
+		rc = parse_json_attrib(element[JSON_STR_ORIG], str + DOT, array);
+		if (!rc) {
+			return false;
+		}
+
+		attrib att(array);
+		ed.origin = att;
+		att.print();
+	}
+
+	if (element.isMember(JSON_STR_MOTN)) {
+		str = path + JSON_STR_MOTN;
+		unit array[NUM_ATTRIBUTES];
+
+		if (!element[JSON_STR_MOTN].isArray()) {
+			ERR(str + PFX + ERR_ARR);
+			return false;
+		}
+
+		rc = parse_json_attrib(element[JSON_STR_MOTN], str + DOT, array);
+		if (!rc) {
+			return false;
+		}
+
+		attrib att(array);
+		ed.motion = att;
+		att.print();
+	}
+
+	return true;
+}
+
+static bool parse_json_resolution(const Json::Value& res,
+                                  const std::string& path,
+                                  uint32_t array[2])
+{
+	if (res.size() != 2) {
+		// clang-format off
+		ERR(path + ERR_SIZE + PFX +
+		    ERR_REQ + PFX + std::to_string(2) + SEP +
+		    ERR_CURR + PFX + std::to_string(res.size()));
+		// clang-format on
+		return false;
+	}
+
+	if (!res[0].isDouble() || !res[1].isDouble()) {
+		ERR(path + PFX + STR_WID + " or " + STR_HGT + " are " + ERR_UINT);
+		return false;
+	}
+
+	array[0] = res[0].asUInt();
+	array[1] = res[1].asUInt();
+
+	return true;
+}
+
+static bool parse_json_environment(const Json::Value& env,
+                                   const std::string path,
+                                   parse_env_def& ed)
+{
+	std::string str;
+	bool rc;
+
+	if (env.isMember(JSON_STR_RES)) {
+		DBG(path + PFX + STR_FOUND + SPC + JSON_STR_RES);
+
+		str = path + DOT + JSON_STR_RES;
+		uint32_t res[2];
+
+		if (!env[JSON_STR_RES].isArray()) {
+			ERR(str + PFX + ERR_ARR);
+			return false;
+		}
+
+		rc = parse_json_resolution(env[JSON_STR_RES], str + DOT, res);
+		if (!rc) {
+			return false;
+		}
+
+		DBG(str + PFX + std::to_string(res[0]) + 'x' + std::to_string(res[1]));
+		ed.resolution = config_ns::parse_res_def {res[0], res[1]};
+	}
+
+	if (env.isMember(JSON_STR_COLOR)) {
+		DBG(path + PFX + STR_FOUND + SPC + JSON_STR_COLOR);
+
+		str = path + DOT + JSON_STR_COLOR;
+		if (!env[JSON_STR_COLOR].isUInt()) {
+			ERR(str + PFX + ERR_UINT);
+			return false;
+		}
+
+		DBG(str + PFX + std::to_string(env[JSON_STR_COLOR].asUInt()));
+		ed.color_idx = (graphics::color_idx)env[JSON_STR_COLOR].asUInt();
+	}
+
+	if (env.isMember(JSON_STR_LIGHT_TYPE)) {
+		DBG(path + PFX + STR_FOUND + SPC + JSON_STR_LIGHT_TYPE);
+
+		str = path + DOT + JSON_STR_LIGHT_TYPE;
+		if (!env[JSON_STR_LIGHT_TYPE].isUInt()) {
+			ERR(str + PFX + ERR_UINT);
+			return false;
+		}
+
+		DBG(str + PFX + std::to_string(env[JSON_STR_LIGHT_TYPE].asUInt()));
+		ed.light_type = env[JSON_STR_LIGHT_TYPE].asUInt();
+	}
+
+	if (env.isMember(JSON_STR_LIGHT_DIR)) {
+		DBG(path + PFX + STR_FOUND + SPC + JSON_STR_LIGHT_DIR);
+
+		str = path + DOT + JSON_STR_LIGHT_DIR;
+		unit coords[NUM_COORDS];
+
+		if (!env[JSON_STR_LIGHT_DIR].isArray()) {
+			ERR(str + PFX + ERR_ARR);
+			return false;
+		}
+
+		rc = parse_json_vector(env[JSON_STR_LIGHT_DIR], str + DOT, coords);
+		if (!rc) {
+			return false;
+		}
+
+		vector_3 v(coords);
+		ed.light_direction = v;
+		v.print();
+	}
+
+	if (env.isMember(JSON_STR_LIGHT_POS)) {
+		DBG(path + PFX + STR_FOUND + SPC + JSON_STR_LIGHT_POS);
+
+		str = path + DOT + JSON_STR_LIGHT_DIR;
+		unit coords[NUM_COORDS];
+
+		if (!env[JSON_STR_LIGHT_POS].isArray()) {
+			ERR(str + PFX + ERR_ARR);
+			return false;
+		}
+
+		rc = parse_json_vector(env[JSON_STR_LIGHT_POS], str + DOT, coords);
+		if (!rc) {
+			return false;
+		}
+
+		vector_3 v(coords);
+		ed.light_position = v;
+		v.print();
+	}
+
+	if (env.isMember(JSON_STR_CAM_POS)) {
+		DBG(path + PFX + STR_FOUND + SPC + JSON_STR_CAM_POS);
+
+		str = path + DOT + JSON_STR_CAM_POS;
+		unit coords[NUM_COORDS];
+
+		if (!env[JSON_STR_CAM_POS].isArray()) {
+			ERR(str + PFX + ERR_ARR);
+			return false;
+		}
+
+		rc = parse_json_vector(env[JSON_STR_CAM_POS], str + DOT, coords);
+		if (!rc) {
+			return false;
+		}
+
+		vector_3 v(coords);
+		ed.camera_position = v;
+		v.print();
+	}
+
+	if (env.isMember(JSON_STR_FOCAL_LEN)) {
+		DBG(path + PFX + STR_FOUND + SPC + JSON_STR_FOCAL_LEN);
+
+		str = path + DOT + JSON_STR_FOCAL_LEN;
+		if (!env[JSON_STR_FOCAL_LEN].isDouble()) {
+			ERR(str + PFX + ERR_REAL);
+			return false;
+		}
+
+		DBG(str + PFX + std::to_string(env[JSON_STR_FOCAL_LEN].asFloat()));
+		ed.focal_len = env[JSON_STR_FOCAL_LEN].asFloat();
+	}
+
+	if (env.isMember(JSON_STR_NEAR_EPS)) {
+		DBG(path + PFX + STR_FOUND + SPC + JSON_STR_NEAR_EPS);
+
+		str = path + DOT + JSON_STR_NEAR_EPS;
+		if (!env[JSON_STR_NEAR_EPS].isDouble()) {
+			ERR(str + PFX + ERR_REAL);
+			return false;
+		}
+
+		DBG(str + PFX + std::to_string(env[JSON_STR_NEAR_EPS].asFloat()));
+		ed.near_eps = env[JSON_STR_NEAR_EPS].asFloat();
+	}
+
+	return true;
+}
+
+static bool parse_json_keyboard(const Json::Value& kbd,
+                                const std::string path,
+                                parse_kbd_def& kd)
+{
+	std::string str;
+
+	if (kbd.isMember(JSON_STR_KBD_PAUSE)) {
+		str = path + DOT + JSON_STR_KBD_PAUSE;
+		if (!kbd[JSON_STR_KBD_PAUSE].isString()) {
+			ERR(str + PFX + ERR_STR);
+			return false;
+		}
+
+		DBG(str + PFX + QT + kbd[JSON_STR_KBD_PAUSE].asString() + QT);
+
+		key_entry ke;
+		ke.type = JSON_STR_KBD_PAUSE;
+		ke.comb = to_lower(kbd[JSON_STR_KBD_PAUSE].asString());
+		kd.pause = std::move(ke);
+	}
+
+	if (kbd.isMember(JSON_STR_KBD_STEP)) {
+		str = path + DOT + JSON_STR_KBD_STEP;
+		if (!kbd[JSON_STR_KBD_STEP].isString()) {
+			ERR(str + PFX + ERR_STR);
+			return false;
+		}
+
+		DBG(str + PFX + QT + kbd[JSON_STR_KBD_STEP].asString() + QT);
+
+		key_entry ke;
+		ke.type = JSON_STR_KBD_STEP;
+		ke.comb = to_lower(kbd[JSON_STR_KBD_STEP].asString());
+		kd.step = std::move(ke);
+	}
+
+	if (kbd.isMember(JSON_STR_KBD_FAST)) {
+		str = path + DOT + JSON_STR_KBD_FAST;
+		if (!kbd[JSON_STR_KBD_FAST].isString()) {
+			ERR(str + PFX + ERR_STR);
+			return false;
+		}
+
+		DBG(str + PFX + QT + kbd[JSON_STR_KBD_FAST].asString() + QT);
+
+		key_entry ke;
+		ke.type = JSON_STR_KBD_FAST;
+		ke.comb = to_lower(kbd[JSON_STR_KBD_FAST].asString());
+		kd.fast = std::move(ke);
+	}
+
+	if (kbd.isMember(JSON_STR_KBD_SLOW)) {
+		str = path + DOT + JSON_STR_KBD_SLOW;
+		if (!kbd[JSON_STR_KBD_SLOW].isString()) {
+			ERR(str + PFX + ERR_STR);
+			return false;
+		}
+
+		DBG(str + PFX + QT + kbd[JSON_STR_KBD_SLOW].asString() + QT);
+
+		key_entry ke;
+		ke.type = JSON_STR_KBD_SLOW;
+		ke.comb = to_lower(kbd[JSON_STR_KBD_SLOW].asString());
+		kd.slow = std::move(ke);
+	}
+
+	return true;
+}
+
+static bool parse_json_runtime(const Json::Value& run,
+                               const std::string path,
+                               const uint32_t curr_ver,
+                               parse_run_def& rd)
+{
+	std::string str;
+
+	if (run.isMember(JSON_STR_LOOPS)) {
+		DBG(path + PFX + STR_FOUND + SPC + JSON_STR_LOOPS);
+		str = path + DOT + JSON_STR_LOOPS;
+		if (!run[JSON_STR_LOOPS].isInt()) {
+			ERR(str + PFX + ERR_INT);
+			return false;
+		}
+
+		DBG(str + PFX + std::to_string(run[JSON_STR_LOOPS].asInt()));
+		rd.loops = run[JSON_STR_LOOPS].asInt();
+	}
+
+	if (run.isMember(JSON_STR_LOOP_DELAY)) {
+		DBG(path + PFX + STR_FOUND + SPC + JSON_STR_LOOP_DELAY);
+		str = path + DOT + JSON_STR_LOOP_DELAY;
+		if (!run[JSON_STR_LOOP_DELAY].isUInt()) {
+			ERR(str + PFX + ERR_UINT);
+			return false;
+		}
+
+		DBG(str + PFX + std::to_string(run[JSON_STR_LOOP_DELAY].asUInt()));
+		rd.loop_delay = run[JSON_STR_LOOP_DELAY].asUInt();
+	}
+
+	if (run.isMember(JSON_STR_KBD)) {
+		str = path + DOT + JSON_STR_KBD;
+		uint32_t req_ver = features.at(JSON_STR_KBD);
+		if (curr_ver >= req_ver) {
+			DBG(path + PFX + STR_FOUND + SPC + JSON_STR_KBD);
+			if (!run[JSON_STR_KBD].isObject()) {
+				ERR(str + PFX + ERR_OBJ);
+				return false;
+			}
+
+			const Json::Value& kbd = run[JSON_STR_KBD];
+			parse_kbd_def kd {};
+			bool rc = parse_json_keyboard(kbd, str, kd);
+			if (!rc) {
+				return false;
+			}
+
+			rd.keyboard = std::move(kd);
+		}
+		else {
+			ERR(path + PFX + ERR_UNS);
+			return false;
+		}
+	}
+
+	return true;
+}
+
 static bool parse_json_scene(const Json::Value& scene,
                              const std::string path,
                              parse_scn_def& sd)
@@ -959,7 +1051,7 @@ static bool parse_json_scene(const Json::Value& scene,
 		// clang-format on
 
 		parse_env_def ed {};
-		rc = parse_json_environment(env, str + DOT, ed);
+		rc = parse_json_environment(env, str, ed);
 		if (!rc) {
 			return false;
 		}
@@ -976,10 +1068,13 @@ static bool parse_json_scene(const Json::Value& scene,
 		}
 
 		const Json::Value& run = scene[JSON_STR_RUN];
-		DBG(str + SPC + STR_NUM + SPC + STR_FLD + PFX + std::to_string(run.size()));
+		// clang-format off
+		DBG(str + SPC + STR_NUM + SPC + STR_FLD +
+		    PFX + std::to_string(run.size()));
+		// clang-format on
 
 		parse_run_def rd {};
-		rc = parse_json_runtime(run, str + DOT, rd);
+		rc = parse_json_runtime(run, str, sd.curr_ver, rd);
 		if (!rc) {
 			return false;
 		}
@@ -1044,10 +1139,13 @@ bool parse_json(std::ifstream& ifs, config_ns::AST& ast)
 		return false;
 	}
 
-	rc = check_json_version(ver, str + PFX);
+	parse_version_def vd {};
+	rc = check_json_version(ver, str + PFX, vd);
 	if (!rc) {
 		return false;
 	}
+
+	ast.version_def = vd;
 
 	// will be caught during validate
 	if (root.isMember(JSON_STR_LIB)) {
@@ -1089,6 +1187,7 @@ bool parse_json(std::ifstream& ifs, config_ns::AST& ast)
 		int i = 1;
 		for (const auto& scene : scenes) {
 			parse_scn_def sd {};
+			sd.curr_ver = ast.version_def.curr_ver;
 
 			str += DOT + STR_SCN + LB + std::to_string(i) + RB;
 
@@ -1105,12 +1204,12 @@ bool parse_json(std::ifstream& ifs, config_ns::AST& ast)
 
 			ast.scene_defs.push_back(std::move(sd));
 		}
-	}
 
-	// clang-format off
-	DBG(path + STR_FNLN + SPC + JSON_STR_SCNS +
-	    PFX + std::to_string(ast.scene_defs.size()));
-	// clang-format on
+		// clang-format off
+		DBG(path + STR_FNLN + SPC + JSON_STR_SCNS +
+		    PFX + std::to_string(ast.scene_defs.size()));
+		// clang-format on
+	}
 
 	return true;
 }

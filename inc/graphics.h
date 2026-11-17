@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <SDL2/SDL.h>
 
 #include "utils.h"
 
@@ -123,7 +124,7 @@ public:
 	graphics& operator=(const graphics&) = delete;
 
 	// event + timing
-	void poll_events(input_state&);
+	void poll_events(SDL_KeyboardEvent&, bool&);
 	std::uint64_t now_ticks() const;
 	std::uint64_t tick_freq() const;
 
@@ -154,7 +155,6 @@ private:
 	val_t _win_size {0};
 	val_t _pitch_bytes {0};
 	val_t _pitch_pixels {0};
-	input_state _last_input {};
 	color_map _colors;
 	alpha_map _alphas;
 

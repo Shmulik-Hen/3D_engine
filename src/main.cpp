@@ -195,24 +195,13 @@ int main(int argc, char** argv)
 			sys_error("no polygons");
 		}
 
-		graphics* gfx = scene->frame_ctx.state->grfx.gfx.get();
-		if (!gfx) {
-			sys_error("graphics system has not been initialized yet");
-		}
-
-		input_state in {};
-
-		while (!in.quit) {
-			gfx->poll_events(in);
-			DBG("in.quit: " << in.quit << " in.esc: " << in.key_escape);
-
+		while (scene->keep_going()) {
 			// for elements with a valid motion property
 			scene->refresh_elements();
 			scene->update();
 			scene->render();
-			if (!scene->keep_going()) {
-				break;
-			}
+
+			scene->poll_events();
 		}
 
 		return 0;

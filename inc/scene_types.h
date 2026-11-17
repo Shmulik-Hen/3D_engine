@@ -57,10 +57,19 @@ struct window_state
 	graphics_ns::graphics::color_idx bkg_color_idx;
 };
 
+struct keyboard_state
+{
+	config_ns::key_binding pause_key;
+	config_ns::key_binding step_key;
+	config_ns::key_binding faster_key;
+	config_ns::key_binding slower_key;
+};
+
 struct runtime_state
 {
 	int loops;
 	uint32_t loop_delay;
+	keyboard_state kbd;
 };
 
 struct scene_state
