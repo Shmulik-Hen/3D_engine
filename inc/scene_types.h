@@ -63,6 +63,7 @@ struct keyboard_state
 	config_ns::key_binding step_key;
 	config_ns::key_binding faster_key;
 	config_ns::key_binding slower_key;
+	config_ns::key_binding reset_key;
 };
 
 struct runtime_state

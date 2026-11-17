@@ -58,9 +58,8 @@ private:
 	bool _keep_going {true};
 	bool _pause {false};
 	bool _step {false};
-	bool _faster {false};
-	bool _slower {false};
 	attrib_ns::attrib _unit_att;
+	uint32_t _orig_loop_delay;
 
 	void sort();
 	void draw();

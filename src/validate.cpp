@@ -529,6 +529,19 @@ static void validate_keyboard_values(const parse_kbd_def& kbd,
 			// clang-format on
 		}
 	}
+
+	if (kbd.reset.has_value()) {
+		const key_entry val = kbd.reset.value();
+		std::string comb = val.comb.value();
+		std::string lpath = path + JSON_STR_KBD_RESET;
+
+		if (!is_valid_kbd_field_value(comb)) {
+			// clang-format off
+			add_error(lpath + SPC + ERR_INV + PFX +
+				  QT + comb + QT, errs);
+			// clang-format on
+		}
+	}
 }
 
 static void validate_runtime_values(const parse_run_def& run,
@@ -1416,6 +1429,15 @@ static void validate_resolve_kbd_ref(const std::string& path,
 		std::string lpath = path + DOT + JSON_STR_KBD_SLOW;
 		auto& ke = kbd_def.slow.value();
 		auto& kr = kbd_ref.slower_key;
+
+		validate_resolve_key_binding_ref(lpath, ke, kr, errs);
+		validate_key_binding_duplicates(lpath, ke, kr, resolved_keys, errs);
+	}
+
+	if (kbd_def.reset.has_value()) {
+		std::string lpath = path + DOT + JSON_STR_KBD_RESET;
+		auto& ke = kbd_def.reset.value();
+		auto& kr = kbd_ref.reset_key;
 
 		validate_resolve_key_binding_ref(lpath, ke, kr, errs);
 		validate_key_binding_duplicates(lpath, ke, kr, resolved_keys, errs);
