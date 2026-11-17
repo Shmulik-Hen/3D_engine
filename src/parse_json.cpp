@@ -918,6 +918,21 @@ static bool parse_json_keyboard(const Json::Value& kbd,
 		kd.slow = std::move(ke);
 	}
 
+	if (kbd.isMember(JSON_STR_KBD_RESET)) {
+		str = path + DOT + JSON_STR_KBD_RESET;
+		if (!kbd[JSON_STR_KBD_RESET].isString()) {
+			ERR(str + PFX + ERR_STR);
+			return false;
+		}
+
+		DBG(str + PFX + QT + kbd[JSON_STR_KBD_RESET].asString() + QT);
+
+		key_entry ke;
+		ke.type = JSON_STR_KBD_RESET;
+		ke.comb = to_lower(kbd[JSON_STR_KBD_RESET].asString());
+		kd.reset = std::move(ke);
+	}
+
 	return true;
 }
 

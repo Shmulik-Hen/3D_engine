@@ -183,15 +183,19 @@ void my_scene::update()
 
 void my_scene::refresh_elements()
 {
+	bool advance = !_pause || _step;
+
 	for (auto& elem : elements_owned) {
 		DBG("refreshing element: " + QT + elem->get_name() + QT);
-		if (_pause) {
-			elem->update(_unit_att);
-		}
-		else {
+		if (advance) {
 			elem->update();
 		}
+		else {
+			elem->update(_unit_att);
+		}
 	}
+
+	_step = false;
 }
 
 void my_scene::poll_events()
@@ -220,7 +224,7 @@ void my_scene::poll_events()
 	SDL_Keymod mod = static_cast<SDL_Keymod>(kb.keysym.mod);
 
 	if (key == SDLK_ESCAPE) {
-		DBG("SDLK_ESCAPE");
+		DBG("ESCAPE");
 		_keep_going = false;
 		return;
 	}
@@ -233,17 +237,26 @@ void my_scene::poll_events()
 	else if (kbd.step_key.key == key &&
 	         kbd.step_key.mods == mod) {
 		DBG("step");
-		_step = true;
+		if (_pause) {
+			_step = true;
+		}
 	}
 	else if (kbd.faster_key.key == key &&
 	         kbd.faster_key.mods == mod) {
 		DBG("faster");
-		_faster = true;
+		auto& delay = frame_ctx.state->run.loop_delay;
+		delay = std::max<uint32_t>(MIN_LOOP_DELAY, delay / 2);
 	}
 	else if (kbd.slower_key.key == key &&
 	         kbd.slower_key.mods == mod) {
 		DBG("slower");
-		_slower = true;
+		auto& delay = frame_ctx.state->run.loop_delay;
+		delay = std::min<uint32_t>(MAX_LOOP_DELAY, delay * 2);
+	}
+	else if (kbd.reset_key.key == key &&
+	         kbd.reset_key.mods == mod) {
+		DBG("reset");
+		frame_ctx.state->run.loop_delay = _orig_loop_delay;
 	}
 }
 
@@ -556,6 +569,11 @@ void my_scene::check_overrides(const config_ns::parse_scn_def& scene_def,
 				DBG(lpath + PFX + "kbd.slow.has_value");
 				kbd_state.slower_key = vld_kbd.slower_key;
 			}
+
+			if (kbd.reset.has_value()) {
+				DBG(lpath + PFX + "kbd.reset.has_value");
+				kbd_state.reset_key = vld_kbd.reset_key;
+			}
 		}
 	}
 }
@@ -578,6 +596,7 @@ void my_scene::init_graphics()
 	frame_ctx.state->grfx.bkg_color = frame_ctx.state->grfx.gfx.get()->get_color_val(frame_ctx.state->win.bkg_color_idx);
 
 	gfx = frame_ctx.state->grfx.gfx.get();
+	_orig_loop_delay = frame_ctx.state->run.loop_delay;
 }
 
 } // namespace scene_ns

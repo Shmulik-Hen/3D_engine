@@ -160,7 +160,8 @@
 					"pause": "Space",
 					"step": "Right",
 					"faster": "Up",
-					"slower": "Down"
+					"slower": "Down",
+					"reset": "Left"
 				}
 			}
 		}
