@@ -15,7 +15,7 @@
 ### Version
 
 `version` is **mandatory** and contains exactly three unsigned integers.&ensp;[(3)](#valid3)\
-The currently supported version is **`[0, 0, 3]`**.
+The currently supported versions are **`[0, 0, 3] - [0, 0, 4]`**.
 
 ### Library
 
@@ -140,9 +140,35 @@ All its fields are optional overrides.
 |---|---|---|
 | `loops` | Integer | Number of loops; `-1` means endless (default: `-1`).|
 | `loop_delay` | Unsigned integer | Delay between frames, in milliseconds (default: `20`).|
+| `keyboard` | JSON object | See Table Below |
 
 **Loops valid range:** `[ -1 - 100 ]`.&ensp;[(3)](#valid3)\
 **Loop delay valid range:** `[ 1 - 200 ]`.&ensp;[(3)](#valid3)
+
+| Keyboard Action | JSON type | Description |
+|---|---|---|
+| `pause` | String | Pause the animation.|
+| `step` | String | If paused, advance one frame.|
+| `faster` | String | Speed up the animation.|
+| `slower` | String | Slow down the animation.|
+| `reset` | String | Reset animation to original speed.|
+
+**Key combination format:**
+
+`[modifier+][modifier+]...key`
+
+**modifiers**
+- Optional.
+- Any combination of: 'Ctrl', 'Alt', 'Shift' and 'Super/Window'.
+- Each modifier can apper once per assignment, e.g. 'Ctrl+Ctrl+Space' is considered\
+as a duplicate and rejected.
+- Left/Right modifiers are considered as one: 'LCtrl' and 'RCtrl' are simply 'Ctrl'.
+
+**Key**
+- Exactly 1, at the end of the combination. e.g 'Ctrl+P+Q' is considered\
+as a duplicate and rejected.
+- Any valid keyboard key, including: All alphabet letters, All numbers, Arrows, Functions, etc.
+- Modifiers are excluded.
 
 ## JSON configuration example
 
@@ -152,7 +178,7 @@ See [`config/template.json`](./config/template.json).
 {
 	"encoding": "UTF-8",
 
-	"version": [ 0, 0, 3 ],
+	"version": [ 0, 0, 4 ],
 
 	"library":
 	{
@@ -208,11 +234,18 @@ See [`config/template.json`](./config/template.json).
 				"light_position": [ 0.0, 20.0, 75.0 ],
 				"camera_position": [ 0.0, 0.0, 1000.0 ],
 				"focal_len": 2000.0,
-				"near_eps": 1.0,
+				"near_eps": 1.0
 			},
 			"runtime": {
 				"loops": -1,
-				"loop_delay": 20
+				"loop_delay": 20,
+				"keyboard": {
+					"pause": "Ctrl+Space",
+					"step": "Shift+Right",
+					"faster": "Alt+Up",
+					"slower": "Down",
+					"reset": "Left"
+				}
 			}
 		}
 	]

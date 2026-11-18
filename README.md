@@ -45,11 +45,14 @@ or:
 cd ./bin/
 ./3D_engine --file ../config/config.json --conf config
 ```
+terminate:
+```sh
+Escape
+```
 usage:
 ```sh
 ./3D_engine --help
 ```
-
 version:
 ```sh
 ./3D_engine --version
