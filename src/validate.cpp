@@ -1312,36 +1312,54 @@ static void validate_resolve_kbd_modifiers(const std::string& path,
                                            errors_t& errs)
 {
 	std::unordered_set<std::string> used_modifiers;
+	key_binding accumulator {SDLK_UNKNOWN, KMOD_NONE};
+	key_bind = {SDLK_UNKNOWN, KMOD_NONE};
+
+	if (combination.empty()) {
+		add_error(path + PFX + "combination" + SPC + ERR_EMPTY, errs);
+		return;
+	}
 
 	// produces an array of std::string_view's
 	auto tokens = split_string(combination, '+');
+	if (tokens.empty()) {
+		add_error(path + PFX + QT + combination + QT + SPC + ERR_INV, errs);
+		return;
+	}
+
 	for (auto& token : tokens) {
 		if (token.empty()) {
 			add_error(path + PFX + "token" + SPC + ERR_EMPTY, errs);
-			continue;
+			return;
 		}
 
 		key_binding tmp {SDLK_UNKNOWN, KMOD_NONE};
 
 		// convert to std::string
 		std::string tok(token);
+
 		auto it = known_modifiers.find(tok);
 		if (it != known_modifiers.end()) {
-			tmp.mods |= it->second;
+			if (accumulator.key != SDLK_UNKNOWN) {
+				add_error(path + PFX + QT + combination + QT + SPC + ERR_INV, errs);
+				return;
+			}
+
+			tmp.mods = it->second;
 
 			if (tmp.mods != KMOD_NONE) {
 				auto [it, inserted] = used_modifiers.insert(tok);
 				if (!inserted) {
-					DBG(path + PFX + "duplicate modifiers");
 					report_duplicates(path,
 					                  "key_modifiers",
 					                  tok,
 					                  errs);
-					break;
+
+					return;
 				}
 			}
 
-			key_bind.mods = tmp.mods;
+			accumulator.mods |= tmp.mods;
 			continue;
 		}
 
@@ -1352,37 +1370,49 @@ static void validate_resolve_kbd_modifiers(const std::string& path,
 
 		// if its not a modifier, maybe its a key
 		tmp.key = SDL_GetKeyFromName(tok.c_str());
-		if (key_bind.key != SDLK_UNKNOWN) {
-			DBG(path + PFX + "duplicate key assignment");
-			report_duplicates(path,
-			                  "key_assignment",
-			                  tok,
-			                  errs);
-			break;
-		}
-
-		key_bind.key = tmp.key;
-
-		if (key_bind.key == SDLK_UNKNOWN) {
+		if (tmp.key == SDLK_UNKNOWN) {
 			// clang-format off
 			DBG(path + PFX + QT + tok + QT + SPC +
 			    "is not a recognized key either");
-			add_error(path + PFX + "token" + SPC + QT +
+			add_error(path + PFX + "key" + SPC + QT +
 				  tok + QT + SPC + ERR_INV, errs);
 			// clang-format on
 
-			key_bind.mods = KMOD_NONE;
-			break;
+			return;
 		}
 
 		// clang-format off
 		DBG(path + PFX + QT + tok + QT + SPC +
 		    "but it is a recognized key");
-		DBG(path << PFX << "key" << SPC <<
-		    HEX(key_bind.key, 8) << SEP <<
-		    "mod" << SPC << HEX(key_bind.mods, 8));
 		// clang-format on
+
+		if (accumulator.key != SDLK_UNKNOWN) {
+			report_duplicates(path,
+			                  "key_assignment",
+			                  tok,
+			                  errs);
+
+			return;
+		}
+
+		accumulator.key = tmp.key;
 	}
+
+	if (accumulator.key == SDLK_UNKNOWN) {
+		// clang-format off
+		add_error(path + PFX + QT + combination +
+			  QT + SPC + ERR_INV, errs);
+		// clang-format on
+		return;
+	}
+
+	key_bind = accumulator;
+
+	// clang-format off
+	DBG(path << PFX << "key" << SPC <<
+	    HEX(key_bind.key, 8) << SEP <<
+	    "mod" << SPC << HEX(key_bind.mods, 8));
+	// clang-format on
 }
 
 static void validate_resolve_key_binding_ref(const std::string& path,

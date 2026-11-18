@@ -81,30 +81,9 @@ graphics::~graphics()
 	SDL_Quit();
 }
 
-void graphics::poll_events(SDL_KeyboardEvent& key, bool& quit, bool& is_new)
+bool graphics::poll_event(SDL_Event& event)
 {
-	SDL_Event e;
-	e.type = SDL_FIRSTEVENT;
-	e.key.keysym.sym = SDLK_UNKNOWN;
-	e.key.keysym.mod = KMOD_NONE;
-
-	while (SDL_PollEvent(&e)) {
-		switch (e.type) {
-		case SDL_QUIT:
-			DBG("SDL_QUIT");
-			quit = true;
-			break;
-		case SDL_KEYDOWN:
-			DBG("SDL_KEYDOWN");
-			key.keysym.sym = e.key.keysym.sym;
-			key.keysym.mod = e.key.keysym.mod;
-			is_new = true;
-			break;
-		default:
-			DBG("default: event type: " << HEX(e.type, 8));
-			break;
-		}
-	}
+	return SDL_PollEvent(&event) != 0;
 }
 
 std::uint64_t graphics::now_ticks() const

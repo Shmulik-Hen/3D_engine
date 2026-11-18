@@ -205,27 +205,40 @@ void my_scene::refresh_elements()
 	}
 }
 
-void my_scene::poll_events()
+SDL_Keymod my_scene::normalize_modifiers(SDL_Keymod& mod)
 {
-	SDL_KeyboardEvent kb;
-	bool quit = false;
-	bool is_new = false;
+	SDL_Keymod result = KMOD_NONE;
 
-	kb.type = SDL_FIRSTEVENT;
-	kb.keysym.sym = SDLK_UNKNOWN;
-	kb.keysym.mod = KMOD_NONE;
-
-	gfx->poll_events(kb, quit, is_new);
-	if (quit) {
-		DBG("quit");
-		_keep_going = false;
-		return;
+	if (mod & KMOD_CTRL) {
+		result = static_cast<SDL_Keymod>(result | KMOD_CTRL);
 	}
 
-	if (!is_new || kb.keysym.sym == SDLK_UNKNOWN) {
-		return;
+	if (mod & KMOD_SHIFT) {
+		result = static_cast<SDL_Keymod>(result | KMOD_SHIFT);
 	}
 
+	if (mod & KMOD_ALT) {
+		result = static_cast<SDL_Keymod>(result | KMOD_ALT);
+	}
+
+	if (mod & KMOD_GUI) {
+		result = static_cast<SDL_Keymod>(result | KMOD_GUI);
+	}
+
+	return result;
+}
+
+bool my_scene::matches(const config_ns::key_binding& binding,
+                       SDL_Keycode key,
+                       SDL_Keymod mod)
+{
+	return binding.key != SDLK_UNKNOWN &&
+	       binding.key == key &&
+	       binding.mods == normalize_modifiers(mod);
+}
+
+void my_scene::handle_kbd_event(SDL_KeyboardEvent& kb)
+{
 	keyboard_state& kbd = frame_ctx.state.get()->run.kbd;
 	SDL_Keycode key = kb.keysym.sym;
 	SDL_Keymod mod = static_cast<SDL_Keymod>(kb.keysym.mod);
@@ -236,62 +249,45 @@ void my_scene::poll_events()
 		return;
 	}
 
-	if (kbd.pause_key.key == key) {
-		if (kbd.pause_key.mods) {
-			if (kbd.pause_key.mods & mod) {
-				_pause = !_pause;
-			}
-		}
-		else {
-			_pause = !_pause;
-		}
+	if (matches(kbd.pause_key, key, mod)) {
+		_pause = !_pause;
 	}
-	else if (kbd.step_key.key == key) {
-		if (kbd.step_key.mods) {
-			if (kbd.step_key.mods & mod) {
-				if (_pause) {
-					_step = true;
-				}
-			}
-		}
-		else {
-			if (_pause) {
-				_step = true;
-			}
-		}
+	else if (matches(kbd.step_key, key, mod) && _pause) {
+		_step = true;
 	}
-	else if (kbd.faster_key.key == key) {
-		if (kbd.faster_key.mods) {
-			if (kbd.faster_key.mods & mod) {
-				auto& delay = frame_ctx.state->run.loop_delay;
-				delay = std::max<uint32_t>(MIN_LOOP_DELAY, delay / 2);
-			}
-		}
-		else {
-			auto& delay = frame_ctx.state->run.loop_delay;
-			delay = std::max<uint32_t>(MIN_LOOP_DELAY, delay / 2);
-		}
+	else if (matches(kbd.faster_key, key, mod)) {
+		auto& delay = frame_ctx.state->run.loop_delay;
+		delay = std::max<uint32_t>(MIN_LOOP_DELAY, delay / 2);
 	}
-	else if (kbd.slower_key.key == key) {
-		if (kbd.slower_key.mods) {
-			if (kbd.slower_key.mods & mod) {
-				auto& delay = frame_ctx.state->run.loop_delay;
-				delay = std::min<uint32_t>(MAX_LOOP_DELAY, delay * 2);
-			}
-		}
-		else {
-			auto& delay = frame_ctx.state->run.loop_delay;
-			delay = std::min<uint32_t>(MAX_LOOP_DELAY, delay * 2);
-		}
+	else if (matches(kbd.slower_key, key, mod)) {
+		auto& delay = frame_ctx.state->run.loop_delay;
+		delay = static_cast<uint32_t>(
+			std::min<uint64_t>(MAX_LOOP_DELAY,
+		                           static_cast<uint64_t>(delay) * 2));
 	}
-	else if (kbd.reset_key.key == key) {
-		if (kbd.reset_key.mods) {
-			if (kbd.reset_key.mods & mod) {
-				frame_ctx.state->run.loop_delay = _orig_loop_delay;
+	else if (matches(kbd.reset_key, key, mod)) {
+		frame_ctx.state->run.loop_delay = _orig_loop_delay;
+	}
+}
+
+void my_scene::poll_events()
+{
+	SDL_Event event;
+
+	while (gfx->poll_event(event)) {
+		switch (event.type) {
+		case SDL_QUIT:
+			_keep_going = false;
+			return;
+
+		case SDL_KEYDOWN:
+			if (event.key.repeat == 0) {
+				handle_kbd_event(event.key);
 			}
-		}
-		else {
-			frame_ctx.state->run.loop_delay = _orig_loop_delay;
+			break;
+
+		default:
+			break;
 		}
 	}
 }

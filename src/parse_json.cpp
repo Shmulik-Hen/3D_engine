@@ -987,7 +987,7 @@ static bool parse_json_runtime(const Json::Value& run,
 			rd.keyboard = std::move(kd);
 		}
 		else {
-			ERR(path + PFX + ERR_UNS);
+			ERR(path + PFX + ERR_UNS + SPC + QT + JSON_STR_KBD + QT);
 			return false;
 		}
 	}
