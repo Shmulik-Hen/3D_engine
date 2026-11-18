@@ -196,27 +196,34 @@ void my_scene::refresh_elements()
 	}
 
 	_step = false;
+
+	if (_orig_loops > 0 && advance) {
+		if (--_loops < 1) {
+			DBG("loops");
+			_keep_going = false;
+		}
+	}
 }
 
 void my_scene::poll_events()
 {
-	static int loops = frame_ctx.state->run.loops;
 	SDL_KeyboardEvent kb;
 	bool quit = false;
+	bool is_new = false;
 
-	gfx->poll_events(kb, quit);
+	kb.type = SDL_FIRSTEVENT;
+	kb.keysym.sym = SDLK_UNKNOWN;
+	kb.keysym.mod = KMOD_NONE;
+
+	gfx->poll_events(kb, quit, is_new);
 	if (quit) {
 		DBG("quit");
 		_keep_going = false;
 		return;
 	}
 
-	if (frame_ctx.state->run.loops > 0) {
-		if (--loops < 1) {
-			DBG("loops");
-			_keep_going = false;
-			return;
-		}
+	if (!is_new || kb.keysym.sym == SDLK_UNKNOWN) {
+		return;
 	}
 
 	keyboard_state& kbd = frame_ctx.state.get()->run.kbd;
@@ -229,34 +236,63 @@ void my_scene::poll_events()
 		return;
 	}
 
-	if (kbd.pause_key.key == key &&
-	    kbd.pause_key.mods == mod) {
-		DBG("pause");
-		_pause = !_pause;
-	}
-	else if (kbd.step_key.key == key &&
-	         kbd.step_key.mods == mod) {
-		DBG("step");
-		if (_pause) {
-			_step = true;
+	if (kbd.pause_key.key == key) {
+		if (kbd.pause_key.mods) {
+			if (kbd.pause_key.mods & mod) {
+				_pause = !_pause;
+			}
+		}
+		else {
+			_pause = !_pause;
 		}
 	}
-	else if (kbd.faster_key.key == key &&
-	         kbd.faster_key.mods == mod) {
-		DBG("faster");
-		auto& delay = frame_ctx.state->run.loop_delay;
-		delay = std::max<uint32_t>(MIN_LOOP_DELAY, delay / 2);
+	else if (kbd.step_key.key == key) {
+		if (kbd.step_key.mods) {
+			if (kbd.step_key.mods & mod) {
+				if (_pause) {
+					_step = true;
+				}
+			}
+		}
+		else {
+			if (_pause) {
+				_step = true;
+			}
+		}
 	}
-	else if (kbd.slower_key.key == key &&
-	         kbd.slower_key.mods == mod) {
-		DBG("slower");
-		auto& delay = frame_ctx.state->run.loop_delay;
-		delay = std::min<uint32_t>(MAX_LOOP_DELAY, delay * 2);
+	else if (kbd.faster_key.key == key) {
+		if (kbd.faster_key.mods) {
+			if (kbd.faster_key.mods & mod) {
+				auto& delay = frame_ctx.state->run.loop_delay;
+				delay = std::max<uint32_t>(MIN_LOOP_DELAY, delay / 2);
+			}
+		}
+		else {
+			auto& delay = frame_ctx.state->run.loop_delay;
+			delay = std::max<uint32_t>(MIN_LOOP_DELAY, delay / 2);
+		}
 	}
-	else if (kbd.reset_key.key == key &&
-	         kbd.reset_key.mods == mod) {
-		DBG("reset");
-		frame_ctx.state->run.loop_delay = _orig_loop_delay;
+	else if (kbd.slower_key.key == key) {
+		if (kbd.slower_key.mods) {
+			if (kbd.slower_key.mods & mod) {
+				auto& delay = frame_ctx.state->run.loop_delay;
+				delay = std::min<uint32_t>(MAX_LOOP_DELAY, delay * 2);
+			}
+		}
+		else {
+			auto& delay = frame_ctx.state->run.loop_delay;
+			delay = std::min<uint32_t>(MAX_LOOP_DELAY, delay * 2);
+		}
+	}
+	else if (kbd.reset_key.key == key) {
+		if (kbd.reset_key.mods) {
+			if (kbd.reset_key.mods & mod) {
+				frame_ctx.state->run.loop_delay = _orig_loop_delay;
+			}
+		}
+		else {
+			frame_ctx.state->run.loop_delay = _orig_loop_delay;
+		}
 	}
 }
 
@@ -297,11 +333,6 @@ void my_scene::render()
 	gfx->present();
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(frame_ctx.state->run.loop_delay));
-}
-
-bool my_scene::keep_going()
-{
-	return _keep_going;
 }
 
 void my_scene::set_defaults()
@@ -597,6 +628,8 @@ void my_scene::init_graphics()
 
 	gfx = frame_ctx.state->grfx.gfx.get();
 	_orig_loop_delay = frame_ctx.state->run.loop_delay;
+	_loops = frame_ctx.state->run.loops;
+	_orig_loops = _loops;
 }
 
 } // namespace scene_ns

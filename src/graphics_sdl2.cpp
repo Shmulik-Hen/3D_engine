@@ -81,9 +81,12 @@ graphics::~graphics()
 	SDL_Quit();
 }
 
-void graphics::poll_events(SDL_KeyboardEvent& key, bool& quit)
+void graphics::poll_events(SDL_KeyboardEvent& key, bool& quit, bool& is_new)
 {
 	SDL_Event e;
+	e.type = SDL_FIRSTEVENT;
+	e.key.keysym.sym = SDLK_UNKNOWN;
+	e.key.keysym.mod = KMOD_NONE;
 
 	while (SDL_PollEvent(&e)) {
 		switch (e.type) {
@@ -93,7 +96,9 @@ void graphics::poll_events(SDL_KeyboardEvent& key, bool& quit)
 			break;
 		case SDL_KEYDOWN:
 			DBG("SDL_KEYDOWN");
-			key = e.key;
+			key.keysym.sym = e.key.keysym.sym;
+			key.keysym.mod = e.key.keysym.mod;
+			is_new = true;
 			break;
 		default:
 			DBG("default: event type: " << HEX(e.type, 8));

@@ -124,7 +124,7 @@ public:
 	graphics& operator=(const graphics&) = delete;
 
 	// event + timing
-	void poll_events(SDL_KeyboardEvent&, bool&);
+	void poll_events(SDL_KeyboardEvent&, bool&, bool&);
 	std::uint64_t now_ticks() const;
 	std::uint64_t tick_freq() const;
 
