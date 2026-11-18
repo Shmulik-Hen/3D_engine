@@ -140,12 +140,12 @@ All its fields are optional overrides.
 |---|---|---|
 | `loops` | Integer | Number of loops; `-1` means endless (default: `-1`).|
 | `loop_delay` | Unsigned integer | Delay between frames, in milliseconds (default: `20`).|
-| `keyboard` | JSON object | See Table Below |
+| `keyboard` | JSON object | Requires JSON version `[0, 0, 4]`. See Table Below |
 
 **Loops valid range:** `[ -1 - 100 ]`.&ensp;[(3)](#valid3)\
 **Loop delay valid range:** `[ 1 - 200 ]`.&ensp;[(3)](#valid3)
 
-| Keyboard Action | JSON type | Description |
+| Action | JSON type | Description |
 |---|---|---|
 | `pause` | String | Pause the animation.|
 | `step` | String | If paused, advance one frame.|
@@ -157,18 +157,33 @@ All its fields are optional overrides.
 
 `[modifier+][modifier+]...key`
 
-**modifiers**
-- Optional.
-- Any combination of: 'Ctrl', 'Alt', 'Shift' and 'Super/Window'.
-- Each modifier can apper once per assignment, e.g. 'Ctrl+Ctrl+Space' is considered\
+**Key:**
+- Exactly 1, at the end of the combination. e.g `Ctrl+P+Q` is considered\
 as a duplicate and rejected.
-- Left/Right modifiers are considered as one: 'LCtrl' and 'RCtrl' are simply 'Ctrl'.
-
-**Key**
-- Exactly 1, at the end of the combination. e.g 'Ctrl+P+Q' is considered\
-as a duplicate and rejected.
-- Any valid keyboard key, including: All alphabet letters, All numbers, Arrows, Functions, etc.
+- Any valid keyboard key, including: All alphabet letters, All numbers, Arrows,\
+Functions, etc.
 - Modifiers are excluded.
+- Since `+` is the field separator, it cannot be used as a key assignment.
+- Some keys that may contain a space character like `"page up"` are also accepted.
+- The `Enter` key should be written as `Return`.
+
+**modifiers:**
+- Optional.
+- Any combination of: `Ctrl`, `Alt`, `Shift` and `Super` ("Windows" key).
+- Each modifier can apper once per assignment, e.g. `Ctrl+Ctrl+Space` is considered\
+as a duplicate and rejected.
+- Left/Right modifiers are considered as one: `LCtrl` and `RCtrl` are simply `Ctrl`.
+
+**Notes:**
+- Some combinations may already be assigned to unrelated operations depending on\
+your system's keyboard shortcuts configuration.
+- Combinations are case insensitive. `Space`, `space` and `SPACE` are all the same.
+- No default values to any action. If it is not in the JSON it cannot be activated.
+- Order is important. e.g. `"pause": "Space+Ctrl"` will be rejected.
+- Assigning combinations in different modifiers order to different actions is considered \
+as a duplicate and rejected. e.g.\
+`"pause": "Ctrl+Shift+F5"`\
+`"step": "Shift+Ctrl+F5"`
 
 ## JSON configuration example
 

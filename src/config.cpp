@@ -182,7 +182,7 @@ static inline bool kbd_field_value_all_valid_chars(const std::string& str)
 			  [](char ch) {
 				return ((ch >= 'a' && ch <= 'z') ||
 					(ch >= '0' && ch <= '9') ||
-					 ch == '+');
+					 ch == '+' || ch == ' ');
 			  }
 	);
 	// clang-format on
