@@ -1,7 +1,7 @@
 {
 	"encoding": "UTF-8",
 
-	"version": [ 0, 0, 3 ],
+	"version": [ 0, 0, 4 ],
 
 	"library":
 	{
@@ -61,7 +61,14 @@
 			},
 			"runtime": {
 				"loops": -1,
-				"loop_delay": 20
+				"loop_delay": 20,
+				"keyboard": {
+					"pause": "Ctrl+Space",
+					"step": "Shift+Right",
+					"faster": "Alt+Up",
+					"slower": "Down",
+					"reset": "Left"
+				}
 			}
 		}
 	]
