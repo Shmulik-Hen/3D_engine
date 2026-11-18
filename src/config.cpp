@@ -179,11 +179,11 @@ static inline bool kbd_field_value_all_valid_chars(const std::string& str)
 {
 	// clang-format off
 	return std::all_of(str.begin(), str.end(),
-			[](char ch) {
-				return (ch >= 'a' &&
-					ch <= 'z') ||
-					ch == '+';
-			}
+			  [](char ch) {
+				return ((ch >= 'a' && ch <= 'z') ||
+					(ch >= '0' && ch <= '9') ||
+					 ch == '+');
+			  }
 	);
 	// clang-format on
 }

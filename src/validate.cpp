@@ -1311,19 +1311,37 @@ static void validate_resolve_kbd_modifiers(const std::string& path,
                                            key_binding& key_bind,
                                            errors_t& errs)
 {
+	std::unordered_set<std::string> used_modifiers;
+
 	// produces an array of std::string_view's
 	auto tokens = split_string(combination, '+');
 	for (auto& token : tokens) {
 		if (token.empty()) {
-			add_error(path + SPC + "token" + PFX + ERR_EMPTY, errs);
+			add_error(path + PFX + "token" + SPC + ERR_EMPTY, errs);
 			continue;
 		}
+
+		key_binding tmp {SDLK_UNKNOWN, KMOD_NONE};
 
 		// convert to std::string
 		std::string tok(token);
 		auto it = known_modifiers.find(tok);
 		if (it != known_modifiers.end()) {
-			key_bind.mods |= it->second;
+			tmp.mods |= it->second;
+
+			if (tmp.mods != KMOD_NONE) {
+				auto [it, inserted] = used_modifiers.insert(tok);
+				if (!inserted) {
+					DBG(path + PFX + "duplicate modifiers");
+					report_duplicates(path,
+					                  "key_modifiers",
+					                  tok,
+					                  errs);
+					break;
+				}
+			}
+
+			key_bind.mods = tmp.mods;
 			continue;
 		}
 
@@ -1333,23 +1351,36 @@ static void validate_resolve_kbd_modifiers(const std::string& path,
 		// clang-format on
 
 		// if its not a modifier, maybe its a key
-		key_bind.key = SDL_GetKeyFromName(tok.c_str());
+		tmp.key = SDL_GetKeyFromName(tok.c_str());
+		if (key_bind.key != SDLK_UNKNOWN) {
+			DBG(path + PFX + "duplicate key assignment");
+			report_duplicates(path,
+			                  "key_assignment",
+			                  tok,
+			                  errs);
+			break;
+		}
+
+		key_bind.key = tmp.key;
+
 		if (key_bind.key == SDLK_UNKNOWN) {
 			// clang-format off
 			DBG(path + PFX + QT + tok + QT + SPC +
 			    "is not a recognized key either");
-			add_error(path + PFX + "key code" + SPC + QT +
-				  combination + QT + SPC + ERR_INV, errs);
+			add_error(path + PFX + "token" + SPC + QT +
+				  tok + QT + SPC + ERR_INV, errs);
 			// clang-format on
 
 			key_bind.mods = KMOD_NONE;
 			break;
 		}
+
 		// clang-format off
 		DBG(path + PFX + QT + tok + QT + SPC +
 		    "but it is a recognized key");
 		DBG(path << PFX << "key" << SPC <<
-		    HEX(key_bind.key, 8));
+		    HEX(key_bind.key, 8) << SEP <<
+		    "mod" << SPC << HEX(key_bind.mods, 8));
 		// clang-format on
 	}
 }
@@ -1376,11 +1407,6 @@ static void validate_key_binding_duplicates(const std::string& path,
                                             errors_t& errs)
 {
 	if (kb_ref.key == SDLK_UNKNOWN) {
-		// clang-format off
-		std::string err = path + DOT + ke.type.value() +
-				  PFX + "key" + SPC + ERR_ILG;
-		// clang-format on
-		add_error(err, errs);
 		return;
 	}
 

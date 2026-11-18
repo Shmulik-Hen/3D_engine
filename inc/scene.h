@@ -50,7 +50,7 @@ public:
 	void refresh_elements();
 	void poll_events();
 	void render();
-	bool keep_going();
+	inline bool keep_going() { return _keep_going; };
 	config_ns::parse_scn_def* find_scene(const std::string&);
 
 private:
@@ -59,9 +59,12 @@ private:
 	bool _pause {false};
 	bool _step {false};
 	attrib_ns::attrib _unit_att;
-	uint32_t _orig_loop_delay;
+	uint32_t _orig_loop_delay {0};
+	int _loops {0};
+	int _orig_loops {0};
 
-	void sort();
+	void
+	sort();
 	void draw();
 	void set_defaults();
 	void check_overrides(const config_ns::parse_scn_def&, const config_ns::valid_scene_ref&);

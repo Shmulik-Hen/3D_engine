@@ -198,9 +198,9 @@ int main(int argc, char** argv)
 		while (scene->keep_going()) {
 			// for elements with a valid motion property
 			scene->refresh_elements();
+
 			scene->update();
 			scene->render();
-
 			scene->poll_events();
 		}
 
