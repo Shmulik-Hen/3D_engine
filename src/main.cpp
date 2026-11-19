@@ -15,7 +15,6 @@ using namespace config_ns;
 using attrib = attrib_ns::attrib;
 using element = element_ns::element;
 using graphics = graphics_ns::graphics;
-using input_state = graphics_ns::graphics::input_state;
 namespace fs = std::filesystem;
 
 constexpr std::string_view def_conf_name = "cube";
@@ -95,11 +94,11 @@ int main(int argc, char** argv)
 				return 0;
 			case 'v':
 				std::cout << version << std::endl
-					  << json_version << std::endl;
+				          << json_version << std::endl;
 				return 0;
 			default:
 				std::cerr << "?? getopt_long returned character code 0"
-					  << std::oct << c << std::endl;
+				          << std::oct << c << std::endl;
 				usage(prog);
 				return 0;
 			}

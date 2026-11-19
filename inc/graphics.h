@@ -97,13 +97,6 @@ public:
 		val_t pitch_pixels {0}; // pixels per row (width)
 	};
 
-	struct input_state
-	{
-		bool quit {false};
-		bool key_escape {false};
-		// Extend later: arrows, mouse, etc.
-	};
-
 	struct point
 	{
 		coord_t x {0};
@@ -131,6 +124,7 @@ public:
 	// framebuffer flow (engine-driven)
 	frame_buffer get_backbuffer();
 	void fill_buffer(frame_buffer&, const ARGB&);
+	void dump_buffer(const frame_buffer&, const std::string& filename);
 	void present(); // uploads backbuffer, presents, swaps buffers
 
 	// color management

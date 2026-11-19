@@ -1,3 +1,5 @@
+#include <fstream>
+
 // #define DEBUG_PRINTS
 #include "graphics.h"
 #include "constants.h"
@@ -8,7 +10,6 @@ namespace graphics_ns
 using ARGB = graphics::ARGB;           // bring nested type into namespace scope
 using color_idx = graphics::color_idx; // same for color_idx
 using color_map = graphics::color_map; // same for color_map
-using input_state = graphics::input_state;
 
 constexpr std::int32_t DEFAULT_WIDTH = DEF_RES_WIDTH;
 constexpr std::int32_t DEFAULT_HEIGHT = DEF_RES_HEIGHT;
@@ -107,6 +108,27 @@ graphics::frame_buffer graphics::get_backbuffer()
 void graphics::fill_buffer(frame_buffer& fb, const ARGB& color)
 {
 	std::fill_n(fb.pixels, _win_size, color.c);
+}
+
+void graphics::dump_buffer(const frame_buffer& fb, const std::string& filename)
+{
+	std::ofstream out(filename, std::ios::binary);
+
+	// clang-format off
+	out << "P6\n" << fb.width << " " << fb.height << "\n255\n";
+	// clang-format on
+
+	addr_t pixel = reinterpret_cast<addr_t>(fb.pixels);
+	for (val_t i = 0; i < _win_size; i++, pixel++) {
+		ARGB c = *pixel;
+
+		char rgb[3] = {
+			static_cast<char>(c.channel.r),
+			static_cast<char>(c.channel.g),
+			static_cast<char>(c.channel.b)};
+
+		out.write(rgb, sizeof(rgb));
+	}
 }
 
 void graphics::present()

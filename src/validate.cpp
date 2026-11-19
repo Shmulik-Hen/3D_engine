@@ -542,6 +542,41 @@ static void validate_keyboard_values(const parse_kbd_def& kbd,
 			// clang-format on
 		}
 	}
+
+	if (kbd.capture.has_value()) {
+		const key_entry val = kbd.capture.value();
+		std::string comb = val.comb.value();
+		std::string lpath = path + JSON_STR_KBD_CAPT;
+
+		if (!is_valid_kbd_field_value(comb)) {
+			// clang-format off
+			add_error(lpath + SPC + ERR_INV + PFX +
+				  QT + comb + QT, errs);
+			// clang-format on
+		}
+	}
+
+	if (kbd.record.has_value()) {
+		const key_entry val = kbd.record.value();
+		std::string comb = val.comb.value();
+		std::string lpath = path + JSON_STR_KBD_REC;
+
+		if (!is_valid_kbd_field_value(comb)) {
+			// clang-format off
+			add_error(lpath + SPC + ERR_INV + PFX +
+				  QT + comb + QT, errs);
+			// clang-format on
+		}
+	}
+
+	if (kbd.frames.has_value()) {
+		std::string lpath = path + JSON_STR_KBD_FRMS + PFX;
+		check_range_uint(kbd.frames.value(),
+		                 MIN_REC_FRAMES,
+		                 MAX_REC_FRAMES,
+		                 lpath,
+		                 errs);
+	}
 }
 
 static void validate_runtime_values(const parse_run_def& run,
@@ -1497,6 +1532,28 @@ static void validate_resolve_kbd_ref(const std::string& path,
 
 		validate_resolve_key_binding_ref(lpath, ke, kr, errs);
 		validate_key_binding_duplicates(lpath, ke, kr, resolved_keys, errs);
+	}
+
+	if (kbd_def.capture.has_value()) {
+		std::string lpath = path + DOT + JSON_STR_KBD_CAPT;
+		auto& ke = kbd_def.capture.value();
+		auto& kr = kbd_ref.capture_key;
+
+		validate_resolve_key_binding_ref(lpath, ke, kr, errs);
+		validate_key_binding_duplicates(lpath, ke, kr, resolved_keys, errs);
+	}
+
+	if (kbd_def.record.has_value()) {
+		std::string lpath = path + DOT + JSON_STR_KBD_REC;
+		auto& ke = kbd_def.record.value();
+		auto& kr = kbd_ref.record_key;
+
+		validate_resolve_key_binding_ref(lpath, ke, kr, errs);
+		validate_key_binding_duplicates(lpath, ke, kr, resolved_keys, errs);
+	}
+
+	if (kbd_def.frames.has_value()) {
+		kbd_ref.frames = kbd_def.frames.value();
 	}
 }
 

@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <thread>
+#include <ctime>
+#include <sstream>
 
 // #define DEBUG_PRINTS
 #include "scene.h"
@@ -263,10 +265,82 @@ void my_scene::handle_kbd_event(SDL_KeyboardEvent& kb)
 		auto& delay = frame_ctx.state->run.loop_delay;
 		delay = static_cast<uint32_t>(
 			std::min<uint64_t>(MAX_LOOP_DELAY,
-		                           static_cast<uint64_t>(delay) * 2));
+			                   static_cast<uint64_t>(delay) * 2));
 	}
 	else if (matches(kbd.reset_key, key, mod)) {
 		frame_ctx.state->run.loop_delay = _orig_loop_delay;
+	}
+	else if (matches(kbd.capture_key, key, mod)) {
+		_capture = true;
+	}
+	else if (matches(kbd.record_key, key, mod)) {
+		_record = true;
+		_frames_remaining = frame_ctx.state->run.kbd.frames;
+	}
+}
+
+void my_scene::create_directories()
+{
+	fs::path captures_path;
+
+	if (!_captures_dir_created) {
+		const fs::path exe = fs::read_symlink("/proc/self/exe");
+		captures_path = exe.parent_path() / "captures";
+		fs::create_directories(captures_path);
+		_captures_dir_created = true;
+	}
+
+	if (!_session_dir_created) {
+		const std::time_t now = std::time(nullptr);
+		std::tm local_time {};
+		if (now == std::time_t {-1} || !::localtime_r(&now, &local_time)) {
+			sys_error("Could not get local time for capture session");
+		}
+
+		std::ostringstream name;
+		name << "session_" << std::put_time(&local_time, "%Y%m%d_%H%M%S");
+		const std::string base = name.str();
+
+		constexpr uint32_t max_attempts = 30;
+		for (uint32_t suffix = 0; suffix <= max_attempts; suffix++) {
+			fs::path session = captures_path / base;
+			if (suffix != 0) {
+				session += "_" + std::to_string(suffix);
+			}
+
+			bool rc = fs::create_directory(session);
+			if (rc) {
+				_captures_dir = session;
+				_session_dir_created = true;
+				return;
+			}
+		}
+
+		sys_error("All 30 capture session directory names already exist");
+	}
+}
+
+void my_scene::create_capture_filename(std::ostringstream& filename)
+{
+	filename << _captures_dir.string() << "/"
+	         << "frame_"
+	         << std::setfill('0')
+	         << std::setw(15)
+	         << ++_frames_counter
+	         << ".ppm";
+}
+
+void my_scene::capture_frame(graphics::frame_buffer& fb)
+{
+	std::ostringstream filename;
+	create_directories();
+	create_capture_filename(filename);
+
+	gfx->dump_buffer(fb, filename.str());
+
+	_capture = false;
+	if (_frames_remaining-- < 1) {
+		_record = false;
 	}
 }
 
@@ -324,6 +398,10 @@ void my_scene::render()
 
 	// DBG("draw");
 	draw();
+
+	if (_capture || _record) {
+		capture_frame(frame_ctx.state->grfx.fb);
+	}
 
 	// DBG("show");
 	gfx->present();
@@ -399,6 +477,8 @@ void my_scene::set_defaults()
 	// runtime
 	frame_ctx.state->run.loops = DEF_LOOP_NUM;
 	frame_ctx.state->run.loop_delay = DEF_LOOP_DELAY;
+	frame_ctx.state->run.kbd.frames = DEF_REC_FRAMES;
+
 #ifdef DEBUG_PRINTS
 	path = pfx + DBG_RUN + PFX;
 	// clang-format off
@@ -600,6 +680,21 @@ void my_scene::check_overrides(const config_ns::parse_scn_def& scene_def,
 			if (kbd.reset.has_value()) {
 				DBG(lpath + PFX + "kbd.reset.has_value");
 				kbd_state.reset_key = vld_kbd.reset_key;
+			}
+
+			if (kbd.capture.has_value()) {
+				DBG(lpath + PFX + "kbd.capture.has_value");
+				kbd_state.capture_key = vld_kbd.capture_key;
+			}
+
+			if (kbd.record.has_value()) {
+				DBG(lpath + PFX + "kbd.record.has_value");
+				kbd_state.record_key = vld_kbd.record_key;
+			}
+
+			if (kbd.frames.has_value()) {
+				DBG(lpath + PFX + "kbd.frames.has_value");
+				kbd_state.frames = vld_kbd.frames;
 			}
 		}
 	}

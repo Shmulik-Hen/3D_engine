@@ -65,6 +65,9 @@ const std::string JSON_STR_KBD_STEP   = "step";
 const std::string JSON_STR_KBD_FAST   = "faster";
 const std::string JSON_STR_KBD_SLOW   = "slower";
 const std::string JSON_STR_KBD_RESET  = "reset";
+const std::string JSON_STR_KBD_CAPT   = "capture";
+const std::string JSON_STR_KBD_REC    = "record";
+const std::string JSON_STR_KBD_FRMS   = "frames";
 // ignored fields names
 const std::string JSON_STR_IGN_ENC    = "encoding";
 
@@ -177,7 +180,12 @@ const std::unordered_set<std::string> valid_field_names = {
 	JSON_STR_KBD_FAST,
 	JSON_STR_KBD_SLOW,
 	JSON_STR_KBD_RESET,
-};
+	JSON_STR_KBD_RESET,
+	JSON_STR_KBD_CAPT,
+	JSON_STR_KBD_REC,
+	JSON_STR_KBD_FRMS,
+
+}; // namespace config_ns
 
 const std::unordered_set<std::string> ignored_field_names = {
 	JSON_STR_IGN_ENC,
@@ -217,6 +225,9 @@ const std::unordered_set<std::string> hints_field_names = {
 	JSON_STR_KBD_FAST,
 	JSON_STR_KBD_SLOW,
 	JSON_STR_KBD_RESET,
+	JSON_STR_KBD_CAPT,
+	JSON_STR_KBD_REC,
+	JSON_STR_KBD_FRMS,
 	// ignored fields names
 	JSON_STR_IGN_ENC,
 };
@@ -355,6 +366,9 @@ struct parse_kbd_def
 	std::optional<key_entry> fast;
 	std::optional<key_entry> slow;
 	std::optional<key_entry> reset;
+	std::optional<key_entry> capture;
+	std::optional<key_entry> record;
+	std::optional<uint32_t> frames;
 };
 
 struct parse_run_def
@@ -452,6 +466,9 @@ struct valid_keyboard_ref
 	key_binding faster_key;
 	key_binding slower_key;
 	key_binding reset_key;
+	key_binding capture_key;
+	key_binding record_key;
+	uint32_t frames;
 };
 
 struct valid_scene_ref
