@@ -25,8 +25,8 @@ static size_t levenshtein_distance(const std::string& source,
 
 			current_row[target_idx] =
 				std::min({previous_row[target_idx] + 1,    // deletion
-			                  current_row[target_idx - 1] + 1, // insertion
-			                  previous_row[target_idx - 1] + substitution_cost});
+				          current_row[target_idx - 1] + 1, // insertion
+				          previous_row[target_idx - 1] + substitution_cost});
 		}
 
 		std::swap(previous_row, current_row);
@@ -852,85 +852,125 @@ static bool parse_json_environment(const Json::Value& env,
 	return true;
 }
 
+static bool parse_json_key_binding(const Json::Value& kbd,
+                                   const std::string& path,
+                                   const std::string& member,
+                                   key_entry& ke)
+{
+	std::string str = path + DOT + member;
+	if (!kbd[member].isString()) {
+		ERR(str + PFX + ERR_STR);
+		return false;
+	}
+
+	ke.type = member;
+	ke.comb = to_lower(kbd[member].asString());
+	return true;
+}
+
 static bool parse_json_keyboard(const Json::Value& kbd,
-                                const std::string path,
+                                const std::string& path,
                                 parse_kbd_def& kd)
 {
-	std::string str;
-
 	if (kbd.isMember(JSON_STR_KBD_PAUSE)) {
-		str = path + DOT + JSON_STR_KBD_PAUSE;
-		if (!kbd[JSON_STR_KBD_PAUSE].isString()) {
-			ERR(str + PFX + ERR_STR);
+		key_entry ke;
+		bool rc = parse_json_key_binding(kbd,
+		                                 path,
+		                                 JSON_STR_KBD_PAUSE,
+		                                 ke);
+		if (!rc) {
 			return false;
 		}
 
-		DBG(str + PFX + QT + kbd[JSON_STR_KBD_PAUSE].asString() + QT);
-
-		key_entry ke;
-		ke.type = JSON_STR_KBD_PAUSE;
-		ke.comb = to_lower(kbd[JSON_STR_KBD_PAUSE].asString());
 		kd.pause = std::move(ke);
 	}
 
 	if (kbd.isMember(JSON_STR_KBD_STEP)) {
-		str = path + DOT + JSON_STR_KBD_STEP;
-		if (!kbd[JSON_STR_KBD_STEP].isString()) {
-			ERR(str + PFX + ERR_STR);
+		key_entry ke;
+		bool rc = parse_json_key_binding(kbd,
+		                                 path,
+		                                 JSON_STR_KBD_STEP,
+		                                 ke);
+		if (!rc) {
 			return false;
 		}
 
-		DBG(str + PFX + QT + kbd[JSON_STR_KBD_STEP].asString() + QT);
-
-		key_entry ke;
-		ke.type = JSON_STR_KBD_STEP;
-		ke.comb = to_lower(kbd[JSON_STR_KBD_STEP].asString());
 		kd.step = std::move(ke);
 	}
 
 	if (kbd.isMember(JSON_STR_KBD_FAST)) {
-		str = path + DOT + JSON_STR_KBD_FAST;
-		if (!kbd[JSON_STR_KBD_FAST].isString()) {
-			ERR(str + PFX + ERR_STR);
+		key_entry ke;
+		bool rc = parse_json_key_binding(kbd,
+		                                 path,
+		                                 JSON_STR_KBD_FAST,
+		                                 ke);
+		if (!rc) {
 			return false;
 		}
 
-		DBG(str + PFX + QT + kbd[JSON_STR_KBD_FAST].asString() + QT);
-
-		key_entry ke;
-		ke.type = JSON_STR_KBD_FAST;
-		ke.comb = to_lower(kbd[JSON_STR_KBD_FAST].asString());
 		kd.fast = std::move(ke);
 	}
 
 	if (kbd.isMember(JSON_STR_KBD_SLOW)) {
-		str = path + DOT + JSON_STR_KBD_SLOW;
-		if (!kbd[JSON_STR_KBD_SLOW].isString()) {
-			ERR(str + PFX + ERR_STR);
+		key_entry ke;
+		bool rc = parse_json_key_binding(kbd,
+		                                 path,
+		                                 JSON_STR_KBD_SLOW,
+		                                 ke);
+		if (!rc) {
 			return false;
 		}
 
-		DBG(str + PFX + QT + kbd[JSON_STR_KBD_SLOW].asString() + QT);
-
-		key_entry ke;
-		ke.type = JSON_STR_KBD_SLOW;
-		ke.comb = to_lower(kbd[JSON_STR_KBD_SLOW].asString());
 		kd.slow = std::move(ke);
 	}
 
 	if (kbd.isMember(JSON_STR_KBD_RESET)) {
-		str = path + DOT + JSON_STR_KBD_RESET;
-		if (!kbd[JSON_STR_KBD_RESET].isString()) {
+		key_entry ke;
+		bool rc = parse_json_key_binding(kbd,
+		                                 path,
+		                                 JSON_STR_KBD_RESET,
+		                                 ke);
+		if (!rc) {
+			return false;
+		}
+
+		kd.reset = std::move(ke);
+	}
+
+	if (kbd.isMember(JSON_STR_KBD_CAPT)) {
+		key_entry ke;
+		bool rc = parse_json_key_binding(kbd,
+		                                 path,
+		                                 JSON_STR_KBD_CAPT,
+		                                 ke);
+		if (!rc) {
+			return false;
+		}
+
+		kd.capture = std::move(ke);
+	}
+
+	if (kbd.isMember(JSON_STR_KBD_REC)) {
+		key_entry ke;
+		bool rc = parse_json_key_binding(kbd,
+		                                 path,
+		                                 JSON_STR_KBD_REC,
+		                                 ke);
+		if (!rc) {
+			return false;
+		}
+
+		kd.record = std::move(ke);
+	}
+
+	if (kbd.isMember(JSON_STR_KBD_FRMS)) {
+		std::string str = path + DOT + JSON_STR_KBD_FRMS;
+		if (!kbd[JSON_STR_KBD_FRMS].isUInt()) {
 			ERR(str + PFX + ERR_STR);
 			return false;
 		}
 
-		DBG(str + PFX + QT + kbd[JSON_STR_KBD_RESET].asString() + QT);
-
-		key_entry ke;
-		ke.type = JSON_STR_KBD_RESET;
-		ke.comb = to_lower(kbd[JSON_STR_KBD_RESET].asString());
-		kd.reset = std::move(ke);
+		kd.frames = kbd[JSON_STR_KBD_FRMS].asUInt();
 	}
 
 	return true;

@@ -78,6 +78,8 @@ constexpr uint32_t MIN_LOOP_DELAY(1U);
 constexpr uint32_t MAX_LOOP_DELAY(200U);
 constexpr int MIN_LOOPS(-1);
 constexpr int MAX_LOOPS(100);
+constexpr uint32_t MIN_REC_FRAMES(1U);
+constexpr uint32_t MAX_REC_FRAMES(50U);
 
 // default values
 
@@ -100,3 +102,4 @@ constexpr unit DEF_SCALE(UNIT);
 // runtime
 constexpr int DEF_LOOP_NUM(-1); // endless
 constexpr uint32_t DEF_LOOP_DELAY(20U);
+constexpr uint32_t DEF_REC_FRAMES(10U);

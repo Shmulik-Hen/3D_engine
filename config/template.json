@@ -33,7 +33,7 @@
 	},
 	"scenes": [
 		{
-			"name": "cube",
+			"name": "template",
 			"elements": [
 				{
 					"name": "world",
@@ -60,14 +60,17 @@
 				"near_eps": 1.0
 			},
 			"runtime": {
-				"loops": -1,
+				"loops": 1,
 				"loop_delay": 20,
 				"keyboard": {
-					"pause": "Ctrl+Space",
-					"step": "Shift+Right",
-					"faster": "Alt+Up",
-					"slower": "Super+Down",
-					"reset": "Left"
+					"pause": "Space",
+					"step": "Right",
+					"faster": "Up",
+					"slower": "Down",
+					"reset": "Left",
+					"capture": "Keypad 0",
+					"record": "Return",
+					"frames": 10
 				}
 			}
 		}
