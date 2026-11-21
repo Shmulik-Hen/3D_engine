@@ -214,10 +214,10 @@ void polygon::drawing::stroke_to(frame_context& frame_ctx, point& p)
 }
 
 // Unchecked memory access - caller must verify viewport boundaries
-void polygon::drawing::bar(scene_ns::frame_context& frame_ctx, uval_t y, uval_t x_left, uval_t x_right)
+void polygon::drawing::bar(scene_ns::frame_context& frame_ctx, coord_t y, coord_t x_left, coord_t x_right)
 {
 	addr_t row = offset(frame_ctx, {0, y});
-	std::fill(row + x_left, row + x_right + 1, _draw_color);
+	std::fill(row + x_left, row + x_right, _draw_color);
 }
 
 void polygon::drawing::line(frame_context& frame_ctx, point& start, point& end)
@@ -232,33 +232,44 @@ void polygon::drawing::line(frame_context& frame_ctx, point& start, point& end)
 
 void polygon::drawing::rect(frame_context& frame_ctx, point& tl, point& br, bool fill)
 {
-	point tl_ = tl;
-	point br_ = br;
-	if (cs_clip_line(frame_ctx, tl_, br_)) {
-		if (fill) {
-			for (uval_t y = tl_.y; y <= br_.y; y++) {
-				bar(frame_ctx, y, tl_.x, br_.x);
-			}
+	const auto& win = frame_ctx.state->win;
+
+	// Clip rectangle directly to viewport.
+	const coord_t left = std::max(tl.x, win.min_pos.x);
+	const coord_t top = std::max(tl.y, win.min_pos.y);
+	const coord_t right = std::min(br.x, win.max_pos.x);
+	const coord_t bottom = std::min(br.y, win.max_pos.y);
+
+	// Entirely outside, or invalid rectangle.
+	if (left > right || top > bottom) {
+		return;
+	}
+
+	if (fill) {
+		for (coord_t y = top; y <= bottom; ++y) {
+			bar(frame_ctx, y, left, right + 1);
 		}
-		else {
-			point tr_ {br_.x, tl_.y};
-			point bl_ {tl_.x, br_.y};
-			moveto(frame_ctx, tl_);
-			stroke_to(frame_ctx, tr_);
-			stroke_to(frame_ctx, br_);
-			stroke_to(frame_ctx, bl_);
-			stroke_to(frame_ctx, tl_);
-		}
+	}
+	else {
+		point p1 {left, top};
+		point p2 {right, top};
+		point p3 {right, bottom};
+		point p4 {left, bottom};
+
+		line(frame_ctx, p1, p2);
+		line(frame_ctx, p2, p3);
+		line(frame_ctx, p3, p4);
+		line(frame_ctx, p4, p1);
 	}
 }
 
 polygon::drawing::scratchpad_t polygon::drawing::clip_polygon_to_screen(frame_context& frame_ctx, const scratchpad_t& in)
 {
 	auto& win = frame_ctx.state->win;
-	const uval_t L = win.min_pos.x;
-	const uval_t R = win.max_pos.x;
-	const uval_t T = win.min_pos.y;
-	const uval_t B = win.max_pos.y;
+	const coord_t L = win.min_pos.x;
+	const coord_t R = win.max_pos.x;
+	const coord_t T = win.min_pos.y;
+	const coord_t B = win.max_pos.y;
 
 	if (in.size() < 3) {
 		return {};
@@ -316,29 +327,29 @@ polygon::drawing::scratchpad_t polygon::drawing::clip_polygon_to_screen(frame_co
 		return out;
 	};
 
-	auto intersect_x = [](const point& S, const point& E, uval_t x_const) -> point {
+	auto intersect_x = [](const point& S, const point& E, coord_t x_const) -> point {
 		// Segment S->E intersects vertical line x=x_const.
-		const int dx = E.x - S.x;
-		const int dy = E.y - S.y;
-		if (dx == 0) {
+		const double dx = double(E.x) - double(S.x);
+		const double dy = double(E.y) - double(S.y);
+		if (dx == 0.0) {
 			// Parallel; return something stable
 			return {x_const, S.y};
 		}
-		const double t = double(x_const - S.x) / double(dx);
-		const double y = double(S.y) + t * double(dy);
-		return {x_const, (uval_t)std::lround(y)};
+		const double t = (double(x_const) - double(S.x)) / double(dx);
+		const double y = double(S.y) + t * dy;
+		return {x_const, static_cast<coord_t>(std::lround(y))};
 	};
 
-	auto intersect_y = [](const point& S, const point& E, uval_t y_const) -> point {
+	auto intersect_y = [](const point& S, const point& E, coord_t y_const) -> point {
 		// Segment S->E intersects horizontal line y=y_const.
-		const int dx = E.x - S.x;
-		const int dy = E.y - S.y;
-		if (dy == 0) {
+		const double dx = double(E.x) - double(S.x);
+		const double dy = double(E.y) - double(S.y);
+		if (dy == 0.0) {
 			return {S.x, y_const};
 		}
-		const double t = double(y_const - S.y) / double(dy);
-		const double x = double(S.x) + t * double(dx);
-		return {(uval_t)std::lround(x), y_const};
+		const double t = (double(y_const) - double(S.y)) / double(dy);
+		const double x = double(S.x) + t * dx;
+		return {static_cast<coord_t>(std::lround(x)), y_const};
 	};
 
 	scratchpad_t poly = in;
@@ -429,27 +440,27 @@ void polygon::drawing::build_xlist_from(const scratchpad_t& poly)
 		const point& top = (a.y < b.y) ? a : b;
 		const point& bottom = (a.y < b.y) ? b : a;
 
-		int y_min = top.y;
-		int y_max = bottom.y; // exclusive
+		coord_t y_min = top.y;
+		coord_t y_max = bottom.y; // exclusive
 
 		// Clamp to bbox vertically
-		int ys = std::max(y_min, y0);
-		int ye = std::min(y_max - 1, y1);
+		coord_t ys = std::max(y_min, y0);
+		coord_t ye = std::min(y_max - 1, y1);
 		if (ys > ye) {
 			continue;
 		}
 
-		const int dy = (bottom.y - top.y); // > 0
-		const int dx = (bottom.x - top.x);
+		const double dy = double(bottom.y) - double(top.y); // > 0
+		const double dx = double(bottom.x) - double(top.x);
 
-		for (int y = ys; y <= ye; ++y) {
+		for (coord_t y = ys; y <= ye; ++y) {
 			// Intersection at scanline y:
 			// x = x0 + (y - y0) * dx / dy
-			const double t = double(y - top.y) / double(dy);
-			const double xf = double(top.x) + t * double(dx);
-			const int x = (int)std::lround(xf);
+			const double t = (double(y) - double(top.y)) / dy;
+			const double xf = double(top.x) + t * dx;
+			const coord_t x = static_cast<coord_t>(std::ceil(xf));
 
-			const int row = y - y0;
+			const coord_t row = y - y0;
 			if ((unsigned)row < (unsigned)_xlist.size()) {
 				_xlist[(size_t)row].push_back(x);
 			}
@@ -460,10 +471,10 @@ void polygon::drawing::build_xlist_from(const scratchpad_t& poly)
 void polygon::drawing::fill_from_xlist(scene_ns::frame_context& frame_ctx)
 {
 	auto& win = frame_ctx.state->win;
-	const int y_base = _bbox_tl.y;
+	const coord_t y_base = _bbox_tl.y;
 
-	for (int row = 0; row < (int)_xlist.size(); ++row) {
-		const int y = y_base + row;
+	for (coord_t row = 0; row < (coord_t)_xlist.size(); ++row) {
+		const coord_t y = y_base + row;
 		auto& xs = _xlist[(size_t)row];
 
 		if (xs.size() < 2) {
@@ -478,17 +489,17 @@ void polygon::drawing::fill_from_xlist(scene_ns::frame_context& frame_ctx)
 		}
 
 		for (size_t i = 0; i + 1 < xs.size(); i += 2) {
-			int xl = xs[i];
-			int xr = xs[i + 1];
+			coord_t xl = xs[i];
+			coord_t xr = xs[i + 1];
 			if (xl > xr) {
 				std::swap(xl, xr);
 			}
 
 			// Clamp to viewport
-			xl = std::max(xl, (int)win.min_pos.x);
-			xr = std::min(xr, (int)win.max_pos.x);
+			xl = std::max(xl, (coord_t)win.min_pos.x);
+			xr = std::min(xr, (coord_t)win.max_pos.x + 1);
 
-			if (xl <= xr) {
+			if (xl < xr) {
 				bar(frame_ctx, y, xl, xr);
 			}
 		}
@@ -505,7 +516,35 @@ void polygon::drawing::draw(frame_context& frame_ctx)
 		return;
 	}
 
+#ifdef POLY_DUMP_STATS
+	if (_dump_stats) {
+		INFO("drawing::draw" << PFX << "scratch pad size" << PFX << DEC(_scratch_pad.size(), 5));
+		int i = 0;
+		for (const auto& p : _scratch_pad) {
+			// clang-format off
+			INFO("drawing::draw" << PFX << "before clipping" << PFX <<
+			     LB << DEC(++i, 1) << RB << PFX <<
+			     DEC(p.x, 5) << SEP << DEC(p.y, 5));
+			// clang-format on
+		}
+	}
+#endif // POLY_DUMP_STATS
+
 	_clip_poly = clip_polygon_to_screen(frame_ctx, _scratch_pad);
+
+#ifdef POLY_DUMP_STATS
+	if (_dump_stats) {
+		int i = 0;
+		for (const auto& p : _clip_poly) {
+			// clang-format off
+			INFO("drawing::draw" << PFX << "after  clipping" << PFX <<
+			    LB << DEC(++i, 1) << RB << PFX <<
+			    DEC(p.x, 5) << SEP << DEC(p.y, 5));
+			// clang-format on
+		}
+	}
+#endif // POLY_DUMP_STATS
+
 	if (_clip_poly.size() < 3) {
 		_scratch_pad.clear();
 		return;
@@ -515,10 +554,38 @@ void polygon::drawing::draw(frame_context& frame_ctx)
 #ifndef DEBUG_POLYGON
 	build_xlist_from(_clip_poly);
 	fill_from_xlist(frame_ctx);
+
+#ifdef POLY_DUMP_STATS
+	if (_dump_stats) {
+		// clang-format off
+		INFO("drawing::draw" << PFX << "bbox tl" << PFX <<
+		     DEC(_bbox_tl.x, 5) << SEP << DEC(_bbox_tl.y, 5) <<
+		     SEP << "br" << PFX << DEC(_bbox_br.x, 5) << SEP <<
+		     DEC(_bbox_br.y, 5));
+		INFO("drawing::draw" << PFX << "xlist size" <<
+		     PFX << DEC(_xlist.size(), 5));
+		// clang-format on
+		int i = 0;
+		for (auto& row : _xlist) {
+			// clang-format off
+			INFO("drawing::draw" << PFX << "row" << PFX <<
+			     DEC(_bbox_tl.y + i++, 5) << SEP << "size" << PFX <<
+			     DEC(row.size(), 5));
+			// clang-format on
+			int j = 0;
+			for (auto& x : row) {
+				INFO("drawing::draw" << PFX << DEC(++j, 5) << DEC(x, 5));
+			}
+		}
+		_dump_stats = false;
+	}
+#endif // POLY_DUMP_STATS
+
 #else
 	point f = _fill_point;
 	point n = _normal_point;
 	point p0, p1, p2;
+	clamp_to_win(frame_ctx, f);
 	clamp_to_win(frame_ctx, n);
 
 	// draw the win
@@ -535,12 +602,12 @@ void polygon::drawing::draw(frame_context& frame_ctx)
 
 	// draw the filling point
 	set_color(frame_ctx.state->grfx.gfx.get(), _fill_color);
-	putpixel(frame_ctx, {f.x - 1, f.y});
+	putpixel(frame_ctx, {std::max(_bbox_tl.x, f.x - 1), f.y});
 	putpixel(frame_ctx, {f.x, f.y});
-	putpixel(frame_ctx, {f.x + 1, f.y});
-	putpixel(frame_ctx, {f.x, f.y - 1});
+	putpixel(frame_ctx, {std::min(p2.x, f.x + 1), f.y});
+	putpixel(frame_ctx, {f.x, std::max(_bbox_tl.y, f.y - 1)});
 	putpixel(frame_ctx, {f.x, f.y});
-	putpixel(frame_ctx, {f.x, f.y + 1});
+	putpixel(frame_ctx, {f.x, std::min(p2.y, f.y + 1)});
 
 	// draw the normal
 	putpixel(frame_ctx, n);
@@ -847,10 +914,35 @@ void polygon::draw(frame_context& frame_ctx)
 	point p;
 
 	_draw_ctx->clear_scratch_pad();
+
+#ifdef POLY_DUMP_STATS
+	if (_draw_ctx->_dump_stats) {
+		// clang-format off
+		INFO("draw: polygon" << PFX << this->get_name() << PFX
+		     << "num points" << PFX << DEC(_points.size(), 5));
+		// clang-format on
+	}
+	int i = 0;
+#endif // POLY_DUMP_STATS
+
 	for (const auto& v : _points) {
 		_draw_ctx->transform(frame_ctx, v, t, FORWARD_LOOKING_SIGN, _force);
 		_draw_ctx->project(frame_ctx, t, p);
 		_draw_ctx->_scratch_pad.push_back(p);
+
+#ifdef POLY_DUMP_STATS
+		if (_draw_ctx->_dump_stats) {
+			// clang-format off
+			v.print("draw: polygon" + PFX + this->get_name() +
+				SPC + LB + std::to_string(i) + RB + PFX + "original");
+			t.print("draw: polygon" + PFX + this->get_name() +
+				SPC + LB + std::to_string(i) + RB + PFX + "transformed");
+			INFO("draw: polygon" << PFX << this->get_name() <<
+			     SPC << LB <<  std::to_string(i++) << RB << PFX <<
+			     "projected point" << PFX << DEC(p.x, 5) << SEP << DEC(p.y, 5));
+			// clang-format on
+		}
+#endif // POLY_DUMP_STATS
 	}
 
 #ifdef DEBUG_POLYGON

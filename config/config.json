@@ -110,6 +110,17 @@
 					[ -20.0, -20.0, 20.0 ],
 					[ -20.0, 20.0, -20.0 ]
 				]
+			},
+			{
+				"name": "c_test",
+				"color_idx": 10,
+				"force": true,
+				"vectors": [
+					[ 20.0, 20.0, -20.0 ],
+					[ 20.0, -20.0, -20.0 ],
+					[ -20.0, -20.0, -20.0 ],
+					[ -20.0, 20.0, -20.0 ]
+				]
 			}
 		],
 		"meshes": [
@@ -132,6 +143,12 @@
 					"p_right",
 					"p_left"
 				]
+			},
+			{
+				"name": "cube_test",
+				"polygons": [
+					"c_test"
+				]
 			}
 		],
 		"elements": [
@@ -142,12 +159,58 @@
 			{
 				"name": "pyramid_body",
 				"mesh": "pyramid_mesh"
+			},
+			{
+				"name": "cube_test",
+				"mesh": "cube_test"
 			}
 		]
 	},
 	"scenes": [
 		{
-			"name": "cube",
+			"name": "cube_1",
+			"elements": [
+				{
+					"name": "world",
+					"parent": null,
+					"active": true
+				},
+				{
+					"name": "gimbal",
+					"parent": "world",
+					"active": true,
+					"origin": [ 0, 0, 0, 0, 0, 0, 1.9 ],
+					"motion": [ 0, 1, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "cube_body",
+					"origin": [ 45, 0, 45, 200, 0, 0, 1 ],
+					"motion": [ 0, 1, 0, 0, 0, 0, 1 ]
+				}
+			],
+			"environment": {
+				"resolution": [ 1920, 1080 ]
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 20,
+				"keyboard": {
+					"pause": "Space",
+					"step": "Right",
+					"faster": "Up",
+					"slower": "Down",
+					"reset": "Left",
+					"capture": "Keypad 0",
+					"record": "Return",
+					"frames": 10
+				}
+			}
+		},
+		{
+			"name": "cube_2",
 			"elements": [
 				{
 					"name": "world",
@@ -189,7 +252,7 @@
 			}
 		},
 		{
-			"name": "pyramid",
+			"name": "pyramid_1",
 			"elements": [
 				{
 					"name": "world",
@@ -200,15 +263,57 @@
 					"name": "gimbal",
 					"parent": "world",
 					"active": true,
-					"origin": [ 0, 0, 0, 0, 0, 0, 1.25 ],
-					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+					"origin": [ 0, 0, 0, 0, 0, 0, 1.9 ],
+					"motion": [ 0, 1, 0, 0, 0, 0, 1 ]
 				},
 				{
 					"name": "pyramid",
 					"parent": "gimbal",
 					"active": true,
 					"ref": "pyramid_body",
-					"origin": [ 0, 30, 0, 0, 0, 0, 1 ],
+					"origin": [ 0, 30, 0, -220, 0, 0, 1 ],
+					"motion": [ 0, 0, 1, 0, 0, 0, 1 ]
+				}
+			],
+			"environment": {
+				"resolution": [ 1920, 1080 ]
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 20,
+				"keyboard": {
+					"pause": "Space",
+					"step": "Right",
+					"faster": "Up",
+					"slower": "Down",
+					"reset": "Left",
+					"capture": "Keypad 0",
+					"record": "Return",
+					"frames": 10
+				}
+			}
+		},
+		{
+			"name": "pyramid_2",
+			"elements": [
+				{
+					"name": "world",
+					"parent": null,
+					"active": true
+				},
+				{
+					"name": "gimbal",
+					"parent": "world",
+					"active": true,
+					"origin": [ 0, 0, 90, 0, 0, 0, 1.9 ],
+					"motion": [ 1, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "pyramid",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "pyramid_body",
+					"origin": [ 0, 30, 0, 150, 0, 0, 1 ],
 					"motion": [ 0, 0, 1, 0, 0, 0, 1 ]
 				}
 			],
@@ -258,12 +363,96 @@
 					"parent": "gimbal",
 					"active": true,
 					"ref": "pyramid_body",
-					"origin": [ 0, 30, 0, -200, 0, 0, 1 ],
+					"origin": [ 0, 30, 0, -220, 0, 0, 1 ],
 					"motion": [ 0, 0, 1, 0, 0, 0, 1 ]
 				}
 			],
 			"environment": {
 				"resolution": [ 1920, 1080 ]
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 20,
+				"keyboard": {
+					"pause": "Space",
+					"step": "Right",
+					"faster": "Up",
+					"slower": "Down",
+					"reset": "Left",
+					"capture": "Keypad 0",
+					"record": "Return",
+					"frames": 10
+				}
+			}
+		},
+		{
+			"name": "test_h",
+			"elements": [
+				{
+					"name": "world",
+					"parent": null,
+					"active": true
+				},
+				{
+					"name": "gimbal",
+					"parent": "world",
+					"active": true,
+					"origin": [ 0, 0, 0, 0, 0, 0, 1.2 ],
+					"motion": [ 0, 1, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "cube_test",
+					"origin": [ 45, 0, 45, 150, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				}
+			],
+			"environment": {
+				"resolution": [ 800, 600 ]
+			},
+			"runtime": {
+				"loops": -1,
+				"loop_delay": 20,
+				"keyboard": {
+					"pause": "Space",
+					"step": "Right",
+					"faster": "Up",
+					"slower": "Down",
+					"reset": "Left",
+					"capture": "Keypad 0",
+					"record": "Return",
+					"frames": 10
+				}
+			}
+		},
+		{
+			"name": "test_v",
+			"elements": [
+				{
+					"name": "world",
+					"parent": null,
+					"active": true
+				},
+				{
+					"name": "gimbal",
+					"parent": "world",
+					"active": true,
+					"origin": [ 0, 0, 90, 0, 0, 0, 1.2 ],
+					"motion": [ 1, 0, 0, 0, 0, 0, 1 ]
+				},
+				{
+					"name": "cube",
+					"parent": "gimbal",
+					"active": true,
+					"ref": "cube_test",
+					"origin": [ 45, 0, 45, 120, 0, 0, 1 ],
+					"motion": [ 0, 0, 0, 0, 0, 0, 1 ]
+				}
+			],
+			"environment": {
+				"resolution": [ 800, 600 ]
 			},
 			"runtime": {
 				"loops": -1,

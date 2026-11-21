@@ -24,6 +24,7 @@ public:
 	~vector_3() = default;
 
 	void print() const;
+	void print(const std::string_view&) const;
 	unit get(uint32_t) const;
 	void set(const uint32_t, const unit&);
 	static unit dot(const vector_3&, const vector_3&);

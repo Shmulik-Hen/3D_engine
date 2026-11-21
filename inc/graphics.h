@@ -17,7 +17,7 @@ constexpr std::uint32_t DEFAULT_SCALE(1U);
 
 using val_t = std::int32_t;
 using uval_t = std::uint32_t;
-using coord_t = uval_t;
+using coord_t = val_t;
 using color_t = uval_t;
 
 class graphics
@@ -135,8 +135,8 @@ public:
 	val_t get_num_colors() const { return __last_color__ - 1; }
 	val_t get_num_alphas() const { return __last_alpha__ - 1; }
 	point get_min_position() const { return point {MIN_X_POS, MIN_Y_POS}; }
-	point get_max_position() const { return point {(uval_t)_w - 1, (uval_t)_h - 1}; }
-	bool is_in_bounds(point p) const { return (p.x < (uval_t)_w && p.y < (uval_t)_h); }
+	point get_max_position() const { return point {_w - 1, _h - 1}; }
+	bool is_in_bounds(point p) const { return (p.x >= 0 && p.x < _w && p.y >= 0 && p.y < _h); }
 
 private:
 

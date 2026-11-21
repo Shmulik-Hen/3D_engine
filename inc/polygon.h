@@ -16,6 +16,7 @@ namespace polygon_ns
 {
 
 // #define DEBUG_POLYGON
+// #define POLY_DUMP_STATS
 
 class polygon
 {
@@ -74,6 +75,9 @@ class polygon
 		// Optional: keep for debug outline rendering. Not used for filling anymore.
 		void clamp_to_win(scene_ns::frame_context&, point&);
 #endif // DEBUG_POLYGON
+#ifdef POLY_DUMP_STATS
+		bool _dump_stats {false};
+#endif // POLY_DUMP_STATS
 
 		drawing() = default;
 		~drawing() = default;
@@ -91,7 +95,7 @@ class polygon
 		void putpixel(scene_ns::frame_context&, const point&);
 
 		// Fast scanline bar (no per-pixel bounds checks)
-		void bar(scene_ns::frame_context&, graphics_ns::uval_t y, graphics_ns::uval_t x_left, graphics_ns::uval_t x_right);
+		void bar(scene_ns::frame_context&, graphics_ns::coord_t y, graphics_ns::coord_t x_left, graphics_ns::coord_t x_right);
 
 		int check_boundaries(scene_ns::frame_context&, point&);
 		bool cs_clip_line(scene_ns::frame_context&, point&, point&);
@@ -153,6 +157,13 @@ public:
 	void print() const;
 	void draw(scene_ns::frame_context&);
 	void update(matrix_ns::matrix&, matrix_ns::matrix&, scene_ns::frame_context&);
+#ifdef POLY_DUMP_STATS
+	// clang-format off
+	inline void dump_stats() { if (_draw_ctx) _draw_ctx->_dump_stats = true; }
+	// clang-format on
+#else
+	inline void dump_stats() { ; }
+#endif // POLY_DUMP_STATS
 
 private:
 

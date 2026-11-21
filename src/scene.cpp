@@ -380,6 +380,10 @@ void my_scene::draw()
 {
 	for (polygon* poly : *frame_ctx.draw_vec) {
 		if (poly) {
+			if (_capture || _record) {
+				poly->dump_stats();
+			}
+
 			poly->draw(frame_ctx);
 		}
 	}
