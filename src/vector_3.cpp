@@ -43,6 +43,14 @@ void vector_3::print() const
 	}
 }
 
+void vector_3::print(const std::string_view& s) const
+{
+	INFO(s + PFX + "vector");
+	for (uint32_t i = X_; i <= Z_; i++) {
+		INFO(i + 1 << PFX << FLT(_coords[i], 3));
+	}
+}
+
 unit vector_3::get(uint32_t i) const
 {
 	if (is_valid_coord(i)) {

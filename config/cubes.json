@@ -106,7 +106,7 @@
 					"name": "gimbal",
 					"parent": "world",
 					"active": true,
-					"origin": [ 0, 0, 23.5, 0, 0, 0, 1.25 ],
+					"origin": [ 0, 0, 23.5, 0, 0, 0, 1 ],
 					"motion": [ 0, 1, 0, 0, 0, 0, 1 ]
 				},
 				{
@@ -114,40 +114,40 @@
 					"parent": "gimbal",
 					"active": true,
 					"ref": "cube_body",
-					"origin": [ 0, 0, 0, 0, 0, 0, 1 ],
-					"motion": [ 0, 0, 1, 0, 0, 0, 1 ]
+					"origin": [ 45, 0, 0, 0, 0, 0, 2 ],
+					"motion": [ 0, 2, 0, 0, 0, 0, 1 ]
 				},
 				{
 					"name": "cube_front",
 					"parent": "gimbal",
 					"active": true,
 					"ref": "cube_body",
-					"origin": [ 0, 0, 0, 200, 0, 0, 1 ],
-					"motion": [ 1, 0, 0, 0, 0, 0, 1 ]
+					"origin": [ 0, 45, 0, -200, 0, 0, 0.2 ],
+					"motion": [ 0, 0, -10, 0, 0, 0, 1 ]
 				},
 				{
 					"name": "cube_back",
 					"parent": "gimbal",
 					"active": true,
 					"ref": "cube_body",
-					"origin": [ 0, 0, 0, -200, 0, 0, 1 ],
-					"motion": [ -1, 0, 0, 0, 0, 0, 1 ]
+					"origin": [ 0, 45, 0, 300, 0, 0, 0.4 ],
+					"motion": [ 0, 0, 10, 0, 0, 0, 1 ]
 				},
 				{
 					"name": "cube_right",
 					"parent": "gimbal",
 					"active": true,
 					"ref": "cube_body",
-					"origin": [ 0, 0, 0, 0, 0, 200, 1 ],
-					"motion": [ 0, 0, 1, 0, 0, 0, 1 ]
+					"origin": [ 0, 0, 45, 0, 0, -400, 0.6 ],
+					"motion": [ 0, 20, 0, 0, 0, 0, 1 ]
 				},
 				{
 					"name": "cube_left",
 					"parent": "gimbal",
 					"active": true,
 					"ref": "cube_body",
-					"origin": [ 0, 0, 0, 0, 0, -200, 1 ],
-					"motion": [ 0, 0, -1, 0, 0, 0, 1 ]
+					"origin": [ 0, 0, 45, 0, 0, 500, 0.8 ],
+					"motion": [ 0, -20, 0, 0, 0, 0, 1 ]
 				}
 			],
 			"environment": {
