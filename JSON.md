@@ -152,6 +152,12 @@ All its fields are optional overrides.
 | `faster` | String | Speed up the animation.|
 | `slower` | String | Slow down the animation.|
 | `reset` | String | Reset animation to original speed.|
+| `capture` | String | Save a frame capture to a ppm file.|
+| `record` | String | Save the next frame captures to ppm files.|
+| `frames` | Unsigned integer | Number of frames to save (default: `10`).|
+
+**Frames valid range:** `[ 1 - 50 ]`.&ensp;[(3)](#valid3)\
+**Captured frames are saved under:** `./bin/captures/session_DATE_TIME/frame_SEQ_NUM.ppm`
 
 **Key combination format:**
 
