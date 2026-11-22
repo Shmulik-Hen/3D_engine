@@ -27,12 +27,12 @@ LDLIBS     += $(JSON_LIBS)
 ifeq ($(DEBUG), 1)
 CXXFLAGS += -g -O0
 else
-CXXFLAGS += -O2
+CXXFLAGS += -O3
 endif
 
 ifeq ($(DBG_ASAN), 1)
-CXXFLAGS += -fsanitize=address,undefined
-LDFLAGS += -fsanitize=address,undefined
+CXXFLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -g
+LDFLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -g
 endif
 
 ifeq ($(DBG_PRINTS), 1)
