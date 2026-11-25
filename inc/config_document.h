@@ -7,6 +7,7 @@
 #include <string_view>
 #include <unordered_set>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 #include <SDL2/SDL.h>
 
@@ -260,10 +261,18 @@ enum light_type
 enum supported_features
 {
 	SCENE_KEYBOARD,
+	MULTI_MESHES,
+};
+
+enum lib_element_type
+{
+	SINGLE_MESH,
+	MULTI_MESH,
 };
 
 const std::unordered_map<std::string, uint32_t> features = {
-	{JSON_STR_KBD, MAKE_VERSION(0, 0, 4)},
+	{  JSON_STR_KBD, MAKE_VERSION(0, 0, 4)},
+	{JSON_STR_MESHS, MAKE_VERSION(0, 0, 5)}
 };
 
 const std::unordered_map<std::string, SDL_Keymod> known_modifiers = {
@@ -297,18 +306,31 @@ struct parse_mesh_def
 	std::vector<std::string> polygons;
 };
 
-struct parse_lib_elem_def
+struct parse_lib_elem_def_type_single
 {
 	// required fields
 	std::string name;
 	std::string mesh;
 };
 
+struct parse_lib_elem_def_type_multi
+{
+	// required fields
+	std::string name;
+	std::vector<std::string> meshes;
+};
+
+using parse_lib_elem_def =
+	std::variant<parse_lib_elem_def_type_single,
+	             parse_lib_elem_def_type_multi>;
+
 struct parse_lib_def
 {
 	// required fields
 	std::vector<parse_poly_def> polygons;
 	std::vector<parse_mesh_def> meshes;
+	uint32_t curr_ver;
+	lib_element_type e_type;
 	std::vector<parse_lib_elem_def> lib_elem_defs;
 };
 /* library end */
@@ -426,17 +448,30 @@ struct valid_mesh_refs
 	std::deque<valid_mesh_ref> mesh_refs;
 };
 
-struct valid_lib_elem_ref
+struct valid_lib_elem_ref_single
 {
 	valid_mesh_ref* elem_mesh_ref = nullptr;
 	const std::string* elem_def_name = nullptr;
 	const std::string* elem_def_mesh = nullptr;
-	const parse_lib_elem_def* elem_def_ptr = nullptr;
+	const parse_lib_elem_def_type_single* elem_def_ptr = nullptr;
 };
+
+struct valid_lib_elem_ref_multi
+{
+	validate_key_t elem_mesh_keys;
+	std::deque<valid_mesh_ref> elem_mesh_refs;
+	const std::string* elem_def_name = nullptr;
+	const parse_lib_elem_def_type_multi* elem_def_ptr = nullptr;
+};
+
+using valid_lib_elem_ref =
+	std::variant<valid_lib_elem_ref_single,
+	             valid_lib_elem_ref_multi>;
 
 struct valid_lib_elem_refs
 {
 	validate_key_t elem_keys;
+	lib_element_type e_type;
 	std::deque<valid_lib_elem_ref> elem_refs;
 };
 

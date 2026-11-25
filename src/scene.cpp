@@ -86,6 +86,11 @@ bool my_scene::validate()
 
 config_ns::parse_scn_def* my_scene::find_scene(const std::string& name)
 {
+	if (name.empty() && ast.scene_defs.size()) {
+		auto& scn = ast.scene_defs.at(0);
+		return &scn;
+	}
+
 	for (auto& scn : ast.scene_defs) {
 		if (scn.name == name) {
 			return &scn;
@@ -93,6 +98,42 @@ config_ns::parse_scn_def* my_scene::find_scene(const std::string& name)
 	}
 
 	return nullptr;
+}
+
+void my_scene::collect_polygons_single(const valid_lib_elem_ref* lib_elem_ref, element* elem)
+{
+	auto& elem_ref = std::get<valid_lib_elem_ref_single>(*lib_elem_ref);
+	const config_ns::valid_mesh_ref* mesh_ref = elem_ref.elem_mesh_ref;
+
+	DBG("mesh: " + QT + *mesh_ref->mesh_def_name + QT);
+
+	DBG("num polygons: " + std::to_string(mesh_ref->mesh_poly_refs.size()));
+	for (const auto* poly_ref : mesh_ref->mesh_poly_refs) {
+		polygon* poly = add_polygon();
+
+		poly->init_from_def(frame_ctx, *poly_ref->poly_def_ptr);
+
+		elem->add_polygon(poly);
+		DBG("added polygon: " + QT + poly->get_name() + QT);
+	}
+}
+
+void my_scene::collect_polygons_multi(const valid_lib_elem_ref* lib_elem_ref, element* elem)
+{
+	auto& elem_ref = std::get<valid_lib_elem_ref_multi>(*lib_elem_ref);
+
+	for (const auto& mesh_ref : elem_ref.elem_mesh_refs) {
+		DBG("mesh: " + QT + *mesh_ref.mesh_def_name + QT);
+		DBG("num polygons: " + std::to_string(mesh_ref.mesh_poly_refs.size()));
+		for (const auto* poly_ref : mesh_ref.mesh_poly_refs) {
+			polygon* poly = add_polygon();
+
+			poly->init_from_def(frame_ctx, *poly_ref->poly_def_ptr);
+
+			elem->add_polygon(poly);
+			DBG("added polygon: " + QT + poly->get_name() + QT);
+		}
+	}
 }
 
 void my_scene::build(const config_ns::parse_scn_def& scene_def)
@@ -111,6 +152,8 @@ void my_scene::build(const config_ns::parse_scn_def& scene_def)
 	if (!scn_ref) {
 		sys_error("scene::build: validated scene not found");
 	}
+
+	DBG("scene: " + QT + *scn_ref->scn_def_name + QT);
 
 	std::unordered_map<const valid_scn_elem_ref*, element*> built_elements;
 
@@ -147,24 +190,23 @@ void my_scene::build(const config_ns::parse_scn_def& scene_def)
 	init_graphics();
 
 	// Pass 3: Instantiate geometry.
+	lib_element_type e_type = ast.valid_references.valid_lib_refs.lib_elem_refs.e_type;
+
 	for (const auto& elem_ref : scn_ref->scn_elem_refs) {
 		if (!elem_ref.lib_elem_ref) {
 			continue;
 		}
 
 		element* elem = built_elements.at(&elem_ref);
-		DBG("element: " + elem->get_name());
+		DBG("element: " + QT + elem->get_name() + QT);
 
-		const valid_mesh_ref* mesh_ref = elem_ref.lib_elem_ref->elem_mesh_ref;
-		DBG("mesh: " + *mesh_ref->mesh_def_name);
-
-		for (const auto* poly_ref : mesh_ref->mesh_poly_refs) {
-			polygon* poly = add_polygon();
-
-			poly->init_from_def(frame_ctx, *poly_ref->poly_def_ptr);
-
-			elem->add_polygon(poly);
-			DBG("added polygon: " + poly->get_name());
+		if (e_type == SINGLE_MESH) {
+			DBG("single");
+			collect_polygons_single(elem_ref.lib_elem_ref, elem);
+		}
+		else {
+			DBG("multi");
+			collect_polygons_multi(elem_ref.lib_elem_ref, elem);
 		}
 	}
 }

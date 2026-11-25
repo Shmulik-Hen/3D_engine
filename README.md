@@ -45,6 +45,9 @@ or:
 cd ./bin/
 ./3D_engine --file ../config/config.json --conf config
 ```
+
+**Omitting the configuration name plays the first available scene**
+
 terminate:
 ```sh
 Escape

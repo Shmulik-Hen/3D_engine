@@ -15,15 +15,16 @@
 ### Version
 
 `version` is **mandatory** and contains exactly three unsigned integers.&ensp;[(3)](#valid3)\
-The currently supported versions are **`[0, 0, 3] - [0, 0, 4]`**.
+The currently supported versions are **`[0, 0, 3] - [0, 0, 5]`**.
 
 ### Library
 
 The library contains definitions of **polygons**, **meshes**, and **elements**, with at least one of each type in a valid configuration.
 
-- Each element references one valid 3D mesh.
+- Up until v0.0.5, each element references one valid 3D mesh.
+- From v0.0.5, each element references an array of valid 3D meshes.
 - Each mesh references at least one valid polygon.
-- Each polygon has **3–8 consecutive vectors** describing a **planar, closed shape**.
+- Each polygon has **3–4 consecutive vectors** describing a **planar, closed shape**.
 - Vertex winding order (**CW/CCW**) determines which side of a polygon is visible.
 - Multiple elements can reuse the same mesh.
 - Object and field order is not significant.
@@ -54,7 +55,8 @@ The library contains definitions of **polygons**, **meshes**, and **elements**, 
 | Field | JSON type | Description |
 |---|---|---|
 | `name` | String | Valid object identifier.&ensp;[(2)](#valid2)|
-| `mesh` | String | Valid name of exactly one valid mesh.&ensp;[(2)](#valid2)|
+| `mesh` | String | Below v0.0.5. valid name of exactly one valid mesh.&ensp;[(2)](#valid2)|
+| `meshes` | String | Since v0.0.5. array of valid mesh names.&ensp;[(2)](#valid2)|
 
 #### Color palette
 
@@ -77,7 +79,7 @@ The library contains definitions of **polygons**, **meshes**, and **elements**, 
 - The elements form a hierarchy tree with **exactly one root element** and **at least one other child element**.
 - Multiple children may share a parent (siblings).
 - The root is identified by a `null` parent.
-- Child elements may reference a library element, and multiple scene elements may reuse the same library definition.
+- Child elements may reference a library element, and multiple scene elements may reuse the same library element definition.
 - Scene and element ordering is not significant.
 - Field names must be lowercase.
 - Duplicate object names are not allowed.

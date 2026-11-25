@@ -1,7 +1,7 @@
 {
 	"encoding": "UTF-8",
 
-	"version": [ 0, 0, 4 ],
+	"version": [ 0, 0, 5 ],
 
 	"library":
 	{
@@ -75,21 +75,30 @@
 		],
 		"meshes": [
 			{
-				"name": "cube_mesh",
+				"name": "cube_mesh_1",
 				"polygons": [
 					"c_front",
 					"c_back",
-					"c_left",
+					"c_left"
+				]
+			},
+			{
+				"name": "cube_mesh_2",
+				"polygons": [
 					"c_right",
 					"c_top",
 					"c_bottom"
 				]
 			}
+
 		],
 		"elements": [
 			{
 				"name": "cube_body",
-				"mesh": "cube_mesh"
+				"meshes": [
+					"cube_mesh_1",
+					"cube_mesh_2"
+				]
 			}
 		]
 	},

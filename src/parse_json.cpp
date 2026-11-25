@@ -437,26 +437,63 @@ static bool parse_json_mesh(const Json::Value& mesh,
 
 static bool parse_json_lib_elem_def(const Json::Value& element,
                                     const std::string path,
+                                    const lib_element_type e_type,
                                     parse_lib_elem_def& ed)
 {
+	parse_lib_elem_def_type_single es;
+	parse_lib_elem_def_type_multi em;
+	std::string elem_name;
+
 	if (element.isMember(JSON_STR_NAME)) {
 		if (!element[JSON_STR_NAME].isString()) {
 			ERR(path + JSON_STR_NAME + PFX + ERR_STR);
 			return false;
 		}
 
-		ed.name = element[JSON_STR_NAME].asString();
-		DBG(path + JSON_STR_NAME + PFX + QT + ed.name + QT);
+		elem_name = element[JSON_STR_NAME].asString();
+		DBG(path + JSON_STR_NAME + PFX + QT + elem_name + QT);
 	}
 
-	if (element.isMember(JSON_STR_MESH)) {
-		if (!element[JSON_STR_MESH].isString()) {
-			ERR(path + JSON_STR_MESH + PFX + ERR_STR);
-			return false;
+	if (e_type == SINGLE_MESH) {
+		if (element.isMember(JSON_STR_MESH)) {
+			if (!element[JSON_STR_MESH].isString()) {
+				ERR(path + JSON_STR_MESH + PFX + ERR_STR);
+				return false;
+			}
+
+			es.mesh = element[JSON_STR_MESH].asString();
+			DBG(path + JSON_STR_MESH + PFX + QT + es.mesh + QT);
 		}
 
-		ed.mesh = element[JSON_STR_MESH].asString();
-		DBG(path + JSON_STR_MESH + PFX + QT + ed.mesh + QT);
+		es.name = elem_name;
+		ed = std::move(es);
+	}
+	else {
+		if (element.isMember(JSON_STR_MESHS)) {
+			if (!element[JSON_STR_MESHS].isArray()) {
+				ERR(path + JSON_STR_MESHS + PFX + ERR_ARR);
+				return false;
+			}
+
+			const Json::Value& meshes = element[JSON_STR_MESHS];
+			int i = 0;
+			for (const auto& mesh : meshes) {
+				// clang-format off
+				std::string str = path + JSON_STR_MESHS +
+						  LB + std::to_string(++i) + RB;
+				// clang-format on
+
+				if (!mesh.isString()) {
+					ERR(str + PFX + ERR_STR);
+					return false;
+				}
+
+				em.meshes.push_back(std::move(mesh.asString()));
+			}
+		}
+
+		em.name = elem_name;
+		ed = std::move(em);
 	}
 
 	return true;
@@ -481,12 +518,12 @@ static bool parse_json_library(const Json::Value& library,
 		    PFX + std::to_string(polygons.size()));
 		// clang-format on
 
-		int i = 1;
+		int i = 0;
 		for (const auto& polygon : polygons) {
 			parse_poly_def pd {};
 			// clang-format off
 			std::string str = path + JSON_STR_POLYS +
-					  LB + std::to_string(i) + RB;
+					  LB + std::to_string(++i) + RB;
 			// clang-format on
 
 			if (!polygon.isObject()) {
@@ -498,7 +535,6 @@ static bool parse_json_library(const Json::Value& library,
 			if (!rc) {
 				return false;
 			}
-			i++;
 
 			ld.polygons.push_back((std::move(pd)));
 		}
@@ -516,12 +552,12 @@ static bool parse_json_library(const Json::Value& library,
 		    PFX  + std::to_string(meshes.size()));
 		// clang-format on
 
-		int i = 1;
+		int i = 0;
 		for (const auto& mesh : meshes) {
 			parse_mesh_def md {};
 			// clang-format off
 			std::string str = path + JSON_STR_MESHS +
-					  LB + std::to_string(i) + RB;
+					  LB + std::to_string(++i) + RB;
 			// clang-format on
 
 			if (!mesh.isObject()) {
@@ -533,7 +569,6 @@ static bool parse_json_library(const Json::Value& library,
 			if (!rc) {
 				return false;
 			}
-			i++;
 
 			ld.meshes.push_back((std::move(md)));
 		}
@@ -551,12 +586,12 @@ static bool parse_json_library(const Json::Value& library,
 		    PFX  + std::to_string(elements.size()));
 		// clang-format on
 
-		int i = 1;
+		int i = 0;
 		for (const auto& element : elements) {
-			parse_lib_elem_def ed {};
+			parse_lib_elem_def ed;
 			// clang-format off
 			std::string str = path + JSON_STR_ELEMS +
-					  LB + std::to_string(i) + RB;
+					  LB + std::to_string(++i) + RB;
 			// clang-format on
 
 			if (!element.isObject()) {
@@ -564,11 +599,19 @@ static bool parse_json_library(const Json::Value& library,
 				return false;
 			}
 
-			rc = parse_json_lib_elem_def(element, str + DOT, ed);
+			uint32_t req_ver = features.at(JSON_STR_MESHS);
+
+			if (ld.curr_ver >= req_ver) {
+				ld.e_type = MULTI_MESH;
+			}
+			else {
+				ld.e_type = SINGLE_MESH;
+			}
+
+			rc = parse_json_lib_elem_def(element, str + DOT, ld.e_type, ed);
 			if (!rc) {
 				return false;
 			}
-			i++;
 
 			ld.lib_elem_defs.push_back(std::move(ed));
 		}
@@ -1214,7 +1257,7 @@ bool parse_json(std::ifstream& ifs, config_ns::AST& ast)
 
 		const Json::Value& library = root[JSON_STR_LIB];
 		parse_lib_def ld {};
-
+		ld.curr_ver = ast.version_def.curr_ver;
 		rc = parse_json_library(library, str + DOT, ld);
 		if (!rc) {
 			return false;

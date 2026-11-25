@@ -23,13 +23,13 @@ constexpr std::string_view JSON_FIELD_VALUES_REJECTED_CHARS = "()[]{}'`,.;:\"\\"
 // versions
 constexpr uint32_t APP_VER_MAJ(0U);
 constexpr uint32_t APP_VER_MIN(10U);
-constexpr uint32_t APP_VER_REV(1U);
+constexpr uint32_t APP_VER_REV(2U);
 constexpr uint8_t MIN_JSON_VER_MAJ(0U);
 constexpr uint8_t MIN_JSON_VER_MIN(0U);
 constexpr uint8_t MIN_JSON_VER_REV(3U);
 constexpr uint8_t MAX_JSON_VER_MAJ(0U);
 constexpr uint8_t MAX_JSON_VER_MIN(0U);
-constexpr uint8_t MAX_JSON_VER_REV(4U);
+constexpr uint8_t MAX_JSON_VER_REV(5U);
 constexpr uint32_t JSON_VER_FIELDS(3U);
 
 // coordinates
@@ -42,7 +42,7 @@ constexpr uint32_t O_(3U);
 constexpr uint32_t NUM_ATTRIBUTES(7U);
 constexpr uint32_t NUM_COORDS(O_);
 constexpr uint32_t MIN_VECTORS(3U);
-constexpr uint32_t MAX_VECTORS(8U);
+constexpr uint32_t MAX_VECTORS(4U);
 constexpr uint32_t MIN_POLYGONS(1U);
 constexpr uint32_t MIN_MESHES(1U);
 constexpr uint32_t MIN_LIB_ELEMS(1U);
