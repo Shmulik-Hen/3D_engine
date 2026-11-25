@@ -17,7 +17,6 @@ using element = element_ns::element;
 using graphics = graphics_ns::graphics;
 namespace fs = std::filesystem;
 
-constexpr std::string_view def_conf_name = "cube";
 constexpr std::string_view def_conf_path = "../config/";
 constexpr std::string_view def_file_name = "config";
 constexpr std::string_view ext = ".json";
@@ -123,9 +122,7 @@ int main(int argc, char** argv)
 
 		if (argc == 1) {
 			filename = def_conf_file;
-			conf_name = def_conf_name;
 			DBG("  using default config file '" << filename << "'");
-			DBG("  using default config name '" << conf_name << "'");
 		}
 		else {
 			if (given_file.length()) {
@@ -140,10 +137,6 @@ int main(int argc, char** argv)
 			if (given_conf.length()) {
 				conf_name = given_conf;
 				DBG("  using config name '" << conf_name << "'");
-			}
-			else {
-				conf_name = def_conf_name;
-				DBG("  using default config name '" << conf_name << "'");
 			}
 		}
 

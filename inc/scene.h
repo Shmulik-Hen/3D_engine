@@ -78,11 +78,13 @@ private:
 	void set_defaults();
 	void check_overrides(const config_ns::parse_scn_def&, const config_ns::valid_scene_ref&);
 	void init_graphics();
-	bool matches(const config_ns::key_binding&, SDL_Keycode, SDL_Keymod);
 	void handle_kbd_event(SDL_KeyboardEvent&);
 	void create_directories();
 	void create_capture_filename(std::ostringstream&);
 	void capture_frame(graphics_ns::graphics::frame_buffer&);
+	void collect_polygons_single(const config_ns::valid_lib_elem_ref*, element_ns::element*);
+	void collect_polygons_multi(const config_ns::valid_lib_elem_ref*, element_ns::element*);
+	bool matches(const config_ns::key_binding&, SDL_Keycode, SDL_Keymod);
 	SDL_Keymod normalize_modifiers(SDL_Keymod&);
 };
 

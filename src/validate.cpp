@@ -208,27 +208,58 @@ static void validate_mesh_values(const parse_mesh_def& mesh,
 
 static void validate_lib_elem_values(const parse_lib_elem_def& elem,
                                      const std::string& path,
+                                     const lib_element_type e_type,
                                      errors_t& errs,
                                      const valid_values_def& valid_values [[maybe_unused]])
 {
 	std::string name = path + DOT + JSON_STR_NAME;
-	DBG(name + PFX + QT + elem.name + QT);
-
-	if (!is_valid_field_value(elem.name)) {
-		// clang-format off
-		add_error(name + SPC + ERR_INV + PFX +
-			  QT + elem.name + QT, errs);
-		// clang-format on
-	}
-
 	std::string mesh = path + DOT + JSON_STR_MESH;
-	DBG(mesh + PFX + QT + elem.mesh + QT);
 
-	if (!is_valid_field_value(elem.mesh)) {
-		// clang-format off
-		add_error(mesh + SPC + ERR_INV + PFX +
-			  QT + elem.mesh + QT, errs);
-		// clang-format on
+	if (e_type == SINGLE_MESH) {
+		const auto& elem_name =
+			std::get<parse_lib_elem_def_type_single>(elem).name;
+
+		if (!is_valid_field_value(elem_name)) {
+			// clang-format off
+			add_error(name + SPC + ERR_INV + PFX +
+				  QT + elem_name + QT, errs);
+			// clang-format on
+		}
+
+		const auto& elem_mesh =
+			std::get<parse_lib_elem_def_type_single>(elem).mesh;
+
+		if (!is_valid_field_value(elem_mesh)) {
+			// clang-format off
+			add_error(mesh + SPC + ERR_INV + PFX +
+				  QT + elem_mesh + QT, errs);
+			// clang-format on
+		}
+	}
+	else {
+		const auto& elem_name =
+			std::get<parse_lib_elem_def_type_multi>(elem).name;
+
+		if (!is_valid_field_value(elem_name)) {
+			// clang-format off
+			add_error(name + SPC + ERR_INV + PFX +
+				  QT + elem_name + QT, errs);
+			// clang-format on
+		}
+
+		const auto& meshes =
+			std::get<parse_lib_elem_def_type_multi>(elem).meshes;
+
+		for (const auto& elem_mesh : meshes) {
+			DBG(mesh + PFX + QT + elem_mesh + QT);
+
+			if (!is_valid_field_value(elem_mesh)) {
+				// clang-format off
+				add_error(mesh + SPC + ERR_INV + PFX +
+					  QT + elem_mesh + QT, errs);
+				// clang-format on
+			}
+		}
 	}
 }
 
@@ -300,7 +331,7 @@ static void validate_library_values(const parse_lib_def& lib,
 		// clang-format off
 		std::string err = path + PFX + ERR_REQ + SPC +
 				  ERR_ATLST + SPC +
-		                  std::to_string(MIN_LIB_ELEMS) +
+				  std::to_string(MIN_LIB_ELEMS) +
 				  SPC + STR_ELEM;
 		// clang-format on
 
@@ -310,11 +341,15 @@ static void validate_library_values(const parse_lib_def& lib,
 		int i = 0;
 		for (const auto& element : lib.lib_elem_defs) {
 			// clang-format off
-			std::string elems = path + DOT + STR_ELEM +
+			std::string lpath = path + DOT + STR_ELEM +
 					    LB + std::to_string(++i) + RB;
 			// clang-format on
 
-			validate_lib_elem_values(element, elems, errs, valid_values);
+			validate_lib_elem_values(element,
+			                         lpath,
+			                         lib.e_type,
+			                         errs,
+			                         valid_values);
 		}
 	}
 }
@@ -844,6 +879,98 @@ static void validate_collect_lib_mesh_refs(const parse_lib_def& lib_defs,
 	}
 }
 
+static void validate_collect_lib_elem_ref_single(const parse_lib_elem_def& elem_def,
+                                                 const std::string& path,
+                                                 valid_lib_elem_refs& vld_elem_refs,
+                                                 errors_t& errs)
+{
+	const auto& eds = std::get<parse_lib_elem_def_type_single>(elem_def);
+
+	// clang-format off
+	DBG(path + DOT +  JSON_STR_NAME + PFX +
+	    QT + eds.name + QT);
+	// clang-format on
+
+	auto [it, inserted] = vld_elem_refs.elem_keys.insert(eds.name);
+	if (!inserted) {
+		// clang-format off
+		DBG(path + PFX + STR_IKEY + SPC + QT + eds.name + QT +
+		    SPC + ERR_FAIL);
+		// clang-format on
+
+		report_duplicates(path, JSON_STR_ELEMS, eds.name, errs);
+	}
+	else {
+		// clang-format off
+		DBG(path + PFX + STR_IKEY + SPC +
+		    QT + eds.name + QT + SPC + STR_SUCC);
+		// clang-format on
+
+		auto& elem_ref = vld_elem_refs.elem_refs.emplace_back();
+		valid_lib_elem_ref_single ves;
+		ves.elem_def_name = &eds.name;
+		ves.elem_def_mesh = &eds.mesh;
+		ves.elem_def_ptr = &eds;
+		elem_ref = ves;
+	}
+}
+
+static void validate_collect_lib_elem_ref_multi(const parse_lib_elem_def& elem_def,
+                                                const std::string& path,
+                                                valid_lib_elem_refs& vld_elem_refs,
+                                                errors_t& errs)
+{
+	const auto& edm = std::get<parse_lib_elem_def_type_multi>(elem_def);
+
+	// clang-format off
+	DBG(path + DOT +  JSON_STR_NAME + PFX +
+	    QT + edm.name + QT);
+	// clang-format on
+
+	auto [it, inserted] = vld_elem_refs.elem_keys.insert(edm.name);
+	if (!inserted) {
+		// clang-format off
+		DBG(path + PFX + STR_IKEY + SPC + QT + edm.name + QT +
+		    SPC + ERR_FAIL);
+		// clang-format on
+
+		report_duplicates(path, JSON_STR_ELEMS, edm.name, errs);
+	}
+	else {
+		// clang-format off
+		DBG(path + PFX + STR_IKEY + SPC +
+		    QT + edm.name + QT + SPC + STR_SUCC);
+		// clang-format on
+
+		auto& elem_ref = vld_elem_refs.elem_refs.emplace_back();
+		valid_lib_elem_ref_multi vem;
+		vem.elem_def_name = &edm.name;
+		vem.elem_def_ptr = &edm;
+
+		int i = 0;
+		for (const auto& mesh : edm.meshes) {
+			std::string str = path + DOT + JSON_STR_MESH + LB + std::to_string(++i) + RB;
+			auto [it, inserted] = vem.elem_mesh_keys.insert(mesh);
+			if (!inserted) {
+				// clang-format off
+				DBG(str + PFX + STR_IKEY + SPC + QT + mesh + QT +
+				    SPC + ERR_FAIL);
+				// clang-format on
+
+				report_duplicates(path, JSON_STR_ELEMS, mesh, errs);
+			}
+			else {
+				// clang-format off
+				DBG(str + PFX + STR_IKEY + SPC +
+				    QT + mesh + QT + SPC + STR_SUCC);
+				// clang-format on
+			}
+		}
+
+		elem_ref = vem;
+	}
+}
+
 static void validate_collect_lib_elem_refs(const parse_lib_def& lib_defs,
                                            const std::string& path,
                                            valid_lib_elem_refs& vld_elem_refs,
@@ -854,33 +981,23 @@ static void validate_collect_lib_elem_refs(const parse_lib_def& lib_defs,
 	    PFX + std::to_string(lib_defs.lib_elem_defs.size()));
 	// clang-format on
 
+	vld_elem_refs.e_type = lib_defs.e_type;
+
 	int i = 0;
 	for (const auto& lib_elem : lib_defs.lib_elem_defs) {
 		std::string str = path + LB + std::to_string(++i) + RB;
-		// clang-format off
-		DBG(str + DOT +  JSON_STR_NAME + PFX +
-		    QT + lib_elem.name + QT);
-		// clang-format on
 
-		auto [it, inserted] = vld_elem_refs.elem_keys.insert(lib_elem.name);
-		if (!inserted) {
-			// clang-format off
-			DBG(str + PFX + STR_IKEY + SPC + QT + lib_elem.name + QT +
-			    SPC + ERR_FAIL);
-			// clang-format on
-
-			report_duplicates(path, JSON_STR_ELEMS, lib_elem.name, errs);
+		if (vld_elem_refs.e_type == SINGLE_MESH) {
+			validate_collect_lib_elem_ref_single(lib_elem,
+			                                     str,
+			                                     vld_elem_refs,
+			                                     errs);
 		}
 		else {
-			// clang-format off
-			DBG(str + PFX + STR_IKEY + SPC +
-			    QT + lib_elem.name + QT + SPC + STR_SUCC);
-			// clang-format on
-
-			valid_lib_elem_ref& elem_ref = vld_elem_refs.elem_refs.emplace_back();
-			elem_ref.elem_def_name = &lib_elem.name;
-			elem_ref.elem_def_mesh = &lib_elem.mesh;
-			elem_ref.elem_def_ptr = &lib_elem;
+			validate_collect_lib_elem_ref_multi(lib_elem,
+			                                    str,
+			                                    vld_elem_refs,
+			                                    errs);
 		}
 	}
 }
@@ -1080,9 +1197,19 @@ static valid_lib_elem_ref* find_lib_elem_ref(const valid_library_refs& lib_refs,
                                              const std::string& name)
 {
 	for (auto& elem_ref : lib_refs.lib_elem_refs.elem_refs) {
-		if (elem_ref.elem_def_name &&
-		    *elem_ref.elem_def_name == name) {
-			return const_cast<valid_lib_elem_ref*>(&elem_ref);
+		if (lib_refs.lib_elem_refs.e_type == SINGLE_MESH) {
+			auto& ler = std::get<valid_lib_elem_ref_single>(elem_ref);
+			if (ler.elem_def_name &&
+			    *ler.elem_def_name == name) {
+				return const_cast<valid_lib_elem_ref*>(&elem_ref);
+			}
+		}
+		else {
+			auto& ler = std::get<valid_lib_elem_ref_multi>(elem_ref);
+			if (ler.elem_def_name &&
+			    *ler.elem_def_name == name) {
+				return const_cast<valid_lib_elem_ref*>(&elem_ref);
+			}
 		}
 	}
 
@@ -1226,13 +1353,14 @@ static void validate_resolve_lib_mesh_refs(const valid_library_refs& lib_refs,
 	}
 }
 
-static void validate_resolve_lib_elem_mesh_ref(const valid_library_refs& lib_refs,
-                                               const std::string& path,
-                                               valid_lib_elem_ref& vld_elem_ref,
-                                               errors_t& errs)
+static void validate_resolve_lib_elem_mesh_ref_single(const valid_library_refs& lib_refs,
+                                                      const std::string& path,
+                                                      valid_lib_elem_ref& vld_elem_ref,
+                                                      errors_t& errs)
 {
-	const std::string mesh_key = *vld_elem_ref.elem_def_mesh;
-	valid_mesh_ref* mesh_ref = find_lib_mesh_ref(lib_refs, mesh_key);
+	auto& ves = std::get<valid_lib_elem_ref_single>(vld_elem_ref);
+	const auto& mesh_key = ves.elem_def_ptr->mesh;
+	auto mesh_ref = find_lib_mesh_ref(lib_refs, mesh_key);
 	if (!mesh_ref) {
 		// clang-format off
 		std::string err = path + DOT + JSON_STR_MESH +
@@ -1248,7 +1376,55 @@ static void validate_resolve_lib_elem_mesh_ref(const valid_library_refs& lib_ref
 		    QT + mesh_key + QT + SPC + STR_FOUND);
 		// clang-format on
 
-		vld_elem_ref.elem_mesh_ref = mesh_ref;
+		ves.elem_mesh_ref = mesh_ref;
+	}
+}
+
+static void validate_resolve_lib_elem_mesh_ref_multi(const valid_library_refs& lib_refs,
+                                                     const std::string& path,
+                                                     valid_lib_elem_ref& vld_elem_ref,
+                                                     errors_t& errs)
+{
+	auto& vem = std::get<valid_lib_elem_ref_multi>(vld_elem_ref);
+	for (auto& mesh : vem.elem_def_ptr->meshes) {
+		auto mesh_ref = find_lib_mesh_ref(lib_refs, mesh);
+		if (!mesh_ref) {
+			// clang-format off
+			std::string err = path + DOT + JSON_STR_MESH +
+					  SPC + QT + mesh + QT + SPC + ERR_MISS;
+			// clang-format on
+
+			DBG(err);
+			add_error(err, errs);
+		}
+		else {
+			// clang-format off
+			DBG(path + DOT + JSON_STR_MESH + SPC +
+			    QT + mesh + QT + SPC + STR_FOUND);
+			// clang-format on
+
+			auto& vmr = vem.elem_mesh_refs.emplace_back();
+			vmr = *mesh_ref;
+		}
+	}
+}
+
+static void validate_resolve_lib_elem_mesh_ref(const valid_library_refs& lib_refs,
+                                               const std::string& path,
+                                               valid_lib_elem_ref& vld_elem_ref,
+                                               errors_t& errs)
+{
+	if (lib_refs.lib_elem_refs.e_type == SINGLE_MESH) {
+		validate_resolve_lib_elem_mesh_ref_single(lib_refs,
+		                                          path,
+		                                          vld_elem_ref,
+		                                          errs);
+	}
+	else {
+		validate_resolve_lib_elem_mesh_ref_multi(lib_refs,
+		                                         path,
+		                                         vld_elem_ref,
+		                                         errs);
 	}
 }
 
